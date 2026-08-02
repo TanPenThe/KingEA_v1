@@ -1,0 +1,159 @@
+{
+  "build_id": "KINGEA-STAGE14-20260802-O",
+  "dependency_hashes": {
+    "calendar_native_snapshot": "8D5A282FB287AC4B6F2B5A8AAACF625ECFD31286FE98E2F86AFEA44CB4054F37",
+    "candidate_freeze": "1DE78BABEDAED4261D5C35BFD20DDDBC2E2B3F52D8C77FADC98A7F448A9FAE06",
+    "candidate_source": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+    "cost_research_specification": "5E074C4F57E1852F6A620EA2A7B534F702545EE0553498F54E44E6767B6770FF",
+    "protection_intervals": "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3",
+    "protection_intervals_manifest": "BAB6BDB9B3DE48F631CE3FA238F7B54E42CCF4D412B467B0CED718B72CC688DC",
+    "stage12_contract": "AAE1F86A4454B71989687704216C2D7B6096BDE94E0751B618E09EA05164125B",
+    "stage13_contract": "2DE3F728D6C78BA543F5B39320E51B358EAA2D104C787977DCA20DF8B545947A",
+    "stage9_drill": "5EE6023591D9C597087422AB1235E45D137063ADAA50B00CF5F5221417482D65"
+  },
+  "kind": "PRE_TOOLING",
+  "manifest_sha256": "4B491F631C9A792FAFBB62F9CB29EA786033D272DADB8029B5DCBF50D400A9EC",
+  "schema": 1,
+  "sources": [
+    {
+      "path": "C:\\KingEA_v1\\.gitattributes",
+      "sha256": "12AD779ED592CDCAE19C7EBC5386B31E3A0D86758189E932D774F8544B04D9C5",
+      "size": 364
+    },
+    {
+      "path": "C:\\KingEA_v1\\.gitignore",
+      "sha256": "50611F34969176792E00154D07C8A73FA5623FB0A8CB71F2DADFE036EC968A18",
+      "size": 367
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\GuardedResearchTester.mq5",
+      "sha256": "FA8F564DDC0A7451D79690CD9E73E68CEC4E06C1DDC37DC5A4F761314ADCAC9D",
+      "size": 59522
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\ResearchThroughputBenchmark.mq5",
+      "sha256": "1B36A6D270B4AB0910BEB78096F2019F2F46E45E0148FAB6960F2D8F85305814",
+      "size": 4054
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\ResearchExecution.mqh",
+      "sha256": "115DE9B6EE7A5470D6D36A4D4C079B520CE17195F3316F6B34A99080532CB8F7",
+      "size": 13603
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\SpecificationMonitor.mqh",
+      "sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "size": 24780
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\SymbolSpecificationAdapter.mqh",
+      "sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "size": 6983
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Scripts\\KingEA\\ExportAccountingHistory.mq5",
+      "sha256": "9EAF54A90F89597DEE1980FD6B4CD1E92A6B79F650AEBB78FAD576177B0FFE67",
+      "size": 5356
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Scripts\\KingEA\\ExportResearchCalendar.mq5",
+      "sha256": "405F21EC4B1F591D82EA865FF460BD63FC4784B1F47FEC632E33599050518F6F",
+      "size": 5739
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Scripts\\KingEA\\ExportSymbolFeasibility.mq5",
+      "sha256": "DDB700A346096E4FE920DB8EAE9854A293F5EC9DC02866E0E7CBFD3869149F6D",
+      "size": 21105
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Scripts\\KingEA\\ObserveSpecificationMonitor.mq5",
+      "sha256": "E1BABB2E23647CB1997EE5E321B0A9946AB5135CF01866B3B7792E04A206F101",
+      "size": 7306
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Scripts\\KingEA\\TestResearchPipeline.mq5",
+      "sha256": "B85090C9BF7F6B092AA4E60519EA326519F8EAA195975344CC534A46ED95E738",
+      "size": 8685
+    },
+    {
+      "path": "C:\\KingEA_v1\\artifacts\\ExportAccountingHistory_stage14.set",
+      "sha256": "DC8B07553C20C360CE5CEEA6BD6EB0A2C6EC89C8CA97215D8499402E75B69BBA",
+      "size": 114
+    },
+    {
+      "path": "C:\\KingEA_v1\\artifacts\\ExportSymbolFeasibility_stage14.set",
+      "sha256": "91F4101EF23CE3DB9C9F1A036EFC44A3573F9897B036C36DB332CADC3F5F5845",
+      "size": 178
+    },
+    {
+      "path": "C:\\KingEA_v1\\config\\stage14_accounting_history_demo2.ini",
+      "sha256": "183211A717D004462BCD1C4F0727B93E4C691CBF81B9B45ABDAC1D89A3CD573A",
+      "size": 204
+    },
+    {
+      "path": "C:\\KingEA_v1\\config\\stage14_feasibility_demo2.ini",
+      "sha256": "0D636AE6AF81797B8B0A2520BD3D620BDBD5B78BF53B5EA5AEAB90D9111AA718",
+      "size": 204
+    },
+    {
+      "path": "C:\\KingEA_v1\\config\\stage14_spec_observation_demo2.ini",
+      "sha256": "66E9D57AB0F9324006C5C26D479C1DCFDE40E03468C5758116F82F306DE86639",
+      "size": 155
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\STAGE14_RESEARCH_READINESS_CONTRACT.md",
+      "sha256": "01C6F7281F3B2630DD698814EE58FBAFF08A9972866C70F6041FAAB0B8F02F6F",
+      "size": 6761
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\JUSTMARKETS_HMR_EVIDENCE_20260802.json",
+      "sha256": "EAFF996ACA978E8356E2677CF9C675026B710A228B70533A4E65D79F44ACE43D",
+      "size": 764
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\stage14_research_readiness_contract.json",
+      "sha256": "522A011A6FBB127C1BA285DF5F9C418666890E1F354CD22B250B2031ABD0729A",
+      "size": 2088
+    },
+    {
+      "path": "C:\\KingEA_v1\\research_pipeline\\mql5_calendar.py",
+      "sha256": "F30CF7729CDA0689122A08C9280773406A990340EC928813C7791804AC9AE3C9",
+      "size": 14279
+    },
+    {
+      "path": "C:\\KingEA_v1\\research_pipeline\\stage14.py",
+      "sha256": "66B4BFED3A53923F75945BF57558B233ED02514590AB975A2DA066CAC91A9860",
+      "size": 73430
+    },
+    {
+      "path": "C:\\KingEA_v1\\research_pipeline\\stage14_cli.py",
+      "sha256": "36DACB677A658B7B14C8981B087A8424598ACE44EC3F89375EEFB197ACA6BF37",
+      "size": 9525
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\Test-KillSwitchDrillEvidence.ps1",
+      "sha256": "D3BEAA3C878B2546BF9E5167487E2229CAEA0F573ED0A09C1DA6ED7863F7FB7D",
+      "size": 8438
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\Test-SpecificationMonitorPolicy.ps1",
+      "sha256": "F12597A595A14624F002A5CE42730264BBAD7F5B5555EAD9FFEBF5450B8FE594",
+      "size": 7267
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\Test-Stage14ResearchReadinessPolicy.ps1",
+      "sha256": "BEE2146AD4D531C5FDE4E75097E1A04D7F59DC52A3708FB0F6049B1503FE2987",
+      "size": 15134
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\test_mql5_calendar_adapter.py",
+      "sha256": "0EDDD6C621D595F2C8DFAFF4CACFE4DF1EA2C82ACF72D71F3F1F22E9D4E5D2F6",
+      "size": 8715
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\test_stage14_pipeline.py",
+      "sha256": "6F2510A0F7A169842AED957E2BE4E405FB3DE6C966B71F4C6760FDAEA4478825",
+      "size": 24100
+    }
+  ]
+}

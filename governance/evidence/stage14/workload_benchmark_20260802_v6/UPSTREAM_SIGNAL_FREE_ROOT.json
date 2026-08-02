@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "kind": "SIGNAL_FREE_REAL_TICK_BENCHMARK",
+  "build_id": "KINGEA-STAGE14-20260802-A",
+  "partition": "FINAL_SELECTION",
+  "start_inclusive": "2022-07-01T00:00:00",
+  "end_exclusive": "2024-01-01T00:00:00",
+  "branches": [
+    "RECORDED",
+    "RSB3"
+  ],
+  "sample_passes_per_branch": 12,
+  "pass_count": 24,
+  "projected_development_passes": 194400,
+  "artifact_hashes": {
+    "candidate": "1DE78BABEDAED4261D5C35BFD20DDDBC2E2B3F52D8C77FADC98A7F448A9FAE06",
+    "configuration": "A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE",
+    "source": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+    "dataset": "2C64105609D143C20420B9E33D8A458DFFF7158CEA894C41D31EE16474147206",
+    "tester_ea": "AC56A1272611787C9476C542B3D87CE729B8E3474BFBE63A6FE7483CEA55F869",
+    "pipeline": "66B4BFED3A53923F75945BF57558B233ED02514590AB975A2DA066CAC91A9860",
+    "accounting": "3C21FB0DD728DDBB92FC10E6AB6B01988813A97792D1AE82D01689E6F0A91640",
+    "calendar": "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3",
+    "cost": "5E074C4F57E1852F6A620EA2A7B534F702545EE0553498F54E44E6767B6770FF",
+    "research_specification": "5E074C4F57E1852F6A620EA2A7B534F702545EE0553498F54E44E6767B6770FF",
+    "pre_tooling": "4763A60B3864C4A52ADA506B31B47BD633E1F66354AA533B03CE83B8083849C8"
+  },
+  "mt5_build": 6090,
+  "account_fingerprint": "5A8ADD88286A10EECC859B5683273841D7DB17DE364C0F0AEF33CFEF5F36E8C2",
+  "operational_facts": {
+    "calendar_intervals_file": "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv",
+    "calendar_file_sha256": "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3",
+    "commission_per_lot_round_turn": 0.0,
+    "swap_per_lot_stress": 3.64728,
+    "weekend_risk_multiplier": 0.5,
+    "maintenance_entry_block_minutes": 30,
+    "maintenance_force_flat_minutes": 5,
+    "maintenance_clean_minutes": 15
+  },
+  "model": 4,
+  "execution_mode": 20,
+  "local_agents_only": true,
+  "signals": 0,
+  "trades": 0,
+  "returns": "ABSENT",
+  "candidate_budget_consumed": 0,
+  "status": "PLANNED_NON_PERFORMANCE",
+  "benchmark_root_sha256": "B55E1E4270D3EE766D6614FC8885CEE12FB9F0554E3D6BDDE350FB490F3E2E62"
+}

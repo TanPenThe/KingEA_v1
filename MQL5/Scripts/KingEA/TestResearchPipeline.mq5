@@ -1,5 +1,5 @@
 #property copyright "KingEA"
-#property version   "1.00"
+#property version   "1.01"
 #property script_show_inputs
 #property description "Synthetic, non-performance Stage 12 execution-contract tests."
 
@@ -35,7 +35,7 @@ void WriteContractReport()
       return;
      }
    FileWrite(report,"key","value");
-   FileWrite(report,"build_id","KINGEA-STAGE14-20260802-A");
+   FileWrite(report,"build_id","KINGEA-STAGE14-20260802-R");
    FileWrite(report,"result",g_failures==0 ? "PASS" : "FAIL");
    FileWrite(report,"checks",g_checks);
    FileWrite(report,"failures",g_failures);
@@ -132,6 +132,70 @@ void OnStart()
    Check(missed_route.outcome==KINGEA_RESEARCH_SEEDED_MISS &&
          !missed_route.enqueued && !missed_position.has_position,
          "seeded miss is terminal and never enters the delay queue");
+
+   long interval_start[]={100,150,170,400};
+   long interval_end[]={200,160,250,450};
+   long prefix_max_end[]={200,200,250,450};
+   string interval_type[]={"MAINTENANCE_ENTRY_BLOCK","MAINTENANCE_RECOVERY",
+                           "NEWS_BLOCK","MAINTENANCE_FORCE_FLAT"};
+   string selected="";
+   Check(KingEAResearchSelectMarketInterval(interval_start,interval_end,
+                                             prefix_max_end,interval_type,
+                                             175,selected) &&
+         selected=="NEWS_BLOCK",
+         "indexed interval lookup preserves overlapping priority");
+   selected="";
+   Check(!KingEAResearchSelectMarketInterval(interval_start,interval_end,
+                                              prefix_max_end,interval_type,
+                                              250,selected) && selected=="",
+         "indexed interval lookup preserves half-open end boundary");
+   KingEAResearchMarketIntervalSnapshot interval_snapshot={};
+   Check(KingEAResearchResolveMarketInterval(interval_start,interval_end,
+                                               prefix_max_end,interval_type,
+                                               175,interval_snapshot) &&
+         interval_snapshot.blocked &&
+         interval_snapshot.kind=="NEWS_BLOCK" &&
+         interval_snapshot.next_change_msc==200,
+         "calendar snapshot caches only until the earliest active boundary");
+   Check(KingEAResearchResolveMarketInterval(interval_start,interval_end,
+                                               prefix_max_end,interval_type,
+                                               250,interval_snapshot) &&
+         !interval_snapshot.blocked &&
+         interval_snapshot.next_change_msc==400,
+         "calendar snapshot wakes exactly at the next future interval");
+   string normalized="";
+   bool entry_block=false;
+   Check(KingEAResearchNormalizeProtectionType("KINGEA_ENTRY_BLACKOUT",
+                                                normalized,entry_block) &&
+         normalized=="NEWS_BLOCK" && entry_block,
+         "KingEA entry blackout maps to the entry gate");
+   normalized=""; entry_block=true;
+   Check(KingEAResearchNormalizeProtectionType("BROKER_HMR_SCHEDULED",
+                                                normalized,entry_block) &&
+         normalized=="BROKER_HMR_SCHEDULED" && !entry_block,
+         "broker HMR remains margin-only and separate from entry blackout");
+
+   KingEAResearchSpreadBaselineCache spread_cache={};
+   double cached_baseline=0.0;
+   Check(!KingEAResearchSpreadBaselineCacheHit(spread_cache,1800,
+                                                cached_baseline),
+         "uninitialized spread baseline cache misses closed");
+   KingEAResearchStoreSpreadBaseline(spread_cache,1800,2.5);
+   Check(KingEAResearchSpreadBaselineCacheHit(spread_cache,1800,
+                                               cached_baseline) &&
+         cached_baseline==2.5,
+         "spread baseline cache reuses the exact value inside one M30 slot");
+   Check(!KingEAResearchSpreadBaselineCacheHit(spread_cache,3600,
+                                                cached_baseline),
+         "spread baseline cache expires exactly at the next M30 slot");
+   KingEAResearchStoreSpreadBaseline(spread_cache,3600,0.0);
+   Check(KingEAResearchSpreadBaselineCacheHit(spread_cache,3600,
+                                               cached_baseline) &&
+         cached_baseline==0.0,
+         "unavailable early-history baseline is cached for the full slot");
+   Check(KingEAResearchObservedSpreadValid(0.0) &&
+         !KingEAResearchObservedSpreadValid(-0.01),
+         "zero observed spread is valid data while negative spread distance fails");
 
    WriteContractReport();
    PrintFormat("STAGE14_RESEARCH_CONTRACT_%s: checks=%d; failures=%d; synthetic only; no performance authorization.",

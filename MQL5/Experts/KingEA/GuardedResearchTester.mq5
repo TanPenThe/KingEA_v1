@@ -1,6 +1,7 @@
 #property copyright "KingEA"
-#property version   "1.00"
+#property version   "1.01"
 #property tester_everytick_calculate
+#property tester_file "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv"
 #property description "Guarded Candidate 001 research adapter; Strategy Tester only."
 #property description "Requires a separately authorized content-addressed manifest."
 
@@ -48,6 +49,12 @@ input double InpWeekendRiskMultiplier=0.50;
 input int    InpMaintenanceEntryBlockMinutes=30;
 input int    InpMaintenanceForceFlatMinutes=5;
 input int    InpMaintenanceCleanMinutes=15;
+input bool   InpWorkloadDryRun=false;
+input string InpDryBenchmarkRootSha256="";
+input string InpDryAuthorizationToken="";
+input int    InpDryBenchmarkPassId=0;
+input string InpExpectedServerFragment="";
+input int    InpExpectedTerminalBuild=0;
 
 KingEASleeveBar g_bars[];
 KingEARegimeHysteresis g_regime_state={};
@@ -108,15 +115,21 @@ long g_pending_expiry_msc=0;
 double g_pending_requested_price=0.0;
 long g_market_interval_start[];
 long g_market_interval_end[];
+long g_market_interval_prefix_max_end[];
 string g_market_interval_type[];
 bool g_market_intervals_loaded=false;
+KingEAResearchMarketIntervalSnapshot g_market_interval_snapshot={};
 double g_current_bar_spreads[];
 datetime g_spread_slot_time[];
 double g_spread_slot_median[];
+KingEAResearchSpreadBaselineCache g_spread_baseline_cache={};
 double g_latest_spread_ratio=0.0;
 int g_above_three_count=0;
 long g_above_three_start_msc=0;
 bool g_spread_reduced=false;
+long g_dry_tick_count=0;
+long g_dry_first_tick_msc=0;
+long g_dry_last_tick_msc=0;
 
 void ResearchProcessPeriodTransition(const datetime now,const bool new_day,
                                      const bool new_week,const bool new_month);
@@ -132,6 +145,8 @@ bool ResearchReduceHalf(const MqlTick &tick);
 void ResearchTrackSpread(const MqlTick &tick);
 void ResearchUpdateSpreadState(const MqlTick &tick);
 double ResearchCurrentSpreadRatio(const MqlTick &tick);
+void ResearchDryExerciseIntent(const KingEASleeveDecision &intent,
+                               const MqlTick &tick);
 
 string ResearchHex(const uchar &bytes[])
   {
@@ -159,9 +174,19 @@ string ResearchSha256String(const string value)
    return ResearchSha256Bytes(bytes);
   }
 
+int ResearchOpenInputFile(const string filename,const int flags,
+                          const short delimiter=0,
+                          const uint codepage=CP_ACP)
+  {
+   int handle=FileOpen(filename,flags,delimiter,codepage);
+   if(handle==INVALID_HANDLE)
+      handle=FileOpen(filename,flags|FILE_COMMON,delimiter,codepage);
+   return handle;
+  }
+
 string ResearchFileSha256(const string filename)
   {
-   int handle=FileOpen(filename,FILE_READ|FILE_BIN|FILE_COMMON);
+   int handle=ResearchOpenInputFile(filename,FILE_READ|FILE_BIN);
    if(handle==INVALID_HANDLE)
       return "";
    ulong size=FileSize(handle);
@@ -177,6 +202,22 @@ string ResearchFileSha256(const string filename)
    if(read!=(uint)size)
       return "";
    return ResearchSha256Bytes(bytes);
+  }
+
+bool PersistDryBenchmarkPayload(const string payload)
+  {
+   string filename=StringFormat(
+      "KingEA\\stage14_workload_%s_%s_%06d.txt",
+      InpDryBenchmarkRootSha256,InpBranch,InpDryBenchmarkPassId);
+   if(FileIsExist(filename,FILE_COMMON))
+      return false;
+   int handle=FileOpen(filename,FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
+   if(handle==INVALID_HANDLE)
+      return false;
+   uint written=FileWriteString(handle,payload);
+   FileFlush(handle);
+   FileClose(handle);
+   return written==(uint)StringLen(payload);
   }
 
 KingEAAccountingEvent ResearchAccountingBase(const int type,
@@ -314,9 +355,47 @@ bool ResearchAuthorizationValid()
    return expected!="" && InpDetachedAuthorizationToken==expected;
   }
 
+bool ResearchDryAuthorizationValid()
+  {
+   if(!InpWorkloadDryRun || !MQLInfoInteger(MQL_TESTER) ||
+      InpTesterModel!=4 || !InpLocalAgentsOnly ||
+      !InpRemoteAgentsDisabled || !InpCloudAgentsDisabled ||
+      InpPurpose!="WORKLOAD_DRY_BENCHMARK" ||
+      InpPartition!="FINAL_SELECTION" || InpScenario!="WORKLOAD_DRY" ||
+      InpExecutionAdapter!="VIRTUAL" ||
+      !ResearchHash(InpDryBenchmarkRootSha256) ||
+      InpDryBenchmarkPassId<0 || InpExpectedServerFragment=="")
+     { Print("KINGEA_DRY_AUTH_FAIL: CORE_FACTS"); return false; }
+   if(StringFind(AccountInfoString(ACCOUNT_SERVER),InpExpectedServerFragment)<0)
+     { Print("KINGEA_DRY_AUTH_FAIL: SERVER_IDENTITY"); return false; }
+   if(InpExpectedTerminalBuild<=0 ||
+      (int)TerminalInfoInteger(TERMINAL_BUILD)!=InpExpectedTerminalBuild)
+     { Print("KINGEA_DRY_AUTH_FAIL: TERMINAL_BUILD"); return false; }
+   string expected=ResearchSha256String(
+      InpDryBenchmarkRootSha256+"|FULL_WORKLOAD_DRY_BENCHMARK|AUTHORIZED");
+   if(expected=="" || InpDryAuthorizationToken!=expected)
+     { Print("KINGEA_DRY_AUTH_FAIL: TOKEN"); return false; }
+   if(!ResearchHash(InpCalendarSha256) ||
+      !ResearchHash(InpCalendarFileSha256) ||
+      InpCalendarFileSha256!=InpCalendarSha256 ||
+      InpCalendarIntervalsFile=="")
+     { Print("KINGEA_DRY_AUTH_FAIL: CALENDAR_FACTS"); return false; }
+   if(ResearchFileSha256(InpCalendarIntervalsFile)!=InpCalendarFileSha256)
+     { Print("KINGEA_DRY_AUTH_FAIL: CALENDAR_FILE"); return false; }
+   if(!ResearchHash(InpCostManifestSha256) ||
+      !ResearchHash(InpResearchSpecificationSha256))
+     { Print("KINGEA_DRY_AUTH_FAIL: COST_FACTS"); return false; }
+   if(InpWeekendRiskMultiplier!=0.50 ||
+      InpMaintenanceEntryBlockMinutes!=30 ||
+      InpMaintenanceForceFlatMinutes!=5 ||
+      InpMaintenanceCleanMinutes!=15)
+     { Print("KINGEA_DRY_AUTH_FAIL: POLICY_CONSTANTS"); return false; }
+   return true;
+  }
+
 bool ResearchUsesVirtual()
   {
-   return InpExecutionAdapter=="VIRTUAL";
+   return InpWorkloadDryRun || InpExecutionAdapter=="VIRTUAL";
   }
 
 double ResearchEquity()
@@ -335,9 +414,10 @@ bool ResearchLoadMarketIntervals()
   {
    ArrayResize(g_market_interval_start,0);
    ArrayResize(g_market_interval_end,0);
+   ArrayResize(g_market_interval_prefix_max_end,0);
    ArrayResize(g_market_interval_type,0);
-   int handle=FileOpen(InpCalendarIntervalsFile,
-                       FILE_READ|FILE_CSV|FILE_ANSI|FILE_COMMON,',',CP_UTF8);
+   int handle=ResearchOpenInputFile(InpCalendarIntervalsFile,
+                       FILE_READ|FILE_CSV|FILE_ANSI,',',CP_UTF8);
    if(handle==INVALID_HANDLE)
       return false;
    bool first=true;
@@ -360,20 +440,26 @@ bool ResearchLoadMarketIntervals()
          continue;
       long start=(long)StringToInteger(start_text);
       long end=(long)StringToInteger(end_text);
-      if((type!="NEWS_BLOCK" && type!="MAINTENANCE_ENTRY_BLOCK" &&
-          type!="MAINTENANCE_FORCE_FLAT" &&
-          type!="MAINTENANCE_RECOVERY") ||
+      string normalized_type="";
+      bool blocks_entry=false;
+      if(!KingEAResearchNormalizeProtectionType(type,normalized_type,
+                                                blocks_entry) ||
          start<=0 || end<=start || identity=="" ||
          (previous_start>0 && start<previous_start))
         { FileClose(handle); return false; }
+      previous_start=start;
+      if(!blocks_entry)
+         continue;
       int count=ArraySize(g_market_interval_start);
       ArrayResize(g_market_interval_start,count+1);
       ArrayResize(g_market_interval_end,count+1);
+      ArrayResize(g_market_interval_prefix_max_end,count+1);
       ArrayResize(g_market_interval_type,count+1);
       g_market_interval_start[count]=start;
       g_market_interval_end[count]=end;
-      g_market_interval_type[count]=type;
-      previous_start=start;
+      g_market_interval_prefix_max_end[count]=
+         (count==0 ? end : MathMax(g_market_interval_prefix_max_end[count-1],end));
+      g_market_interval_type[count]=normalized_type;
      }
    FileClose(handle);
    return ArraySize(g_market_interval_start)>0;
@@ -381,25 +467,25 @@ bool ResearchLoadMarketIntervals()
 
 bool ResearchMarketBlocked(const long now_msc,string &kind)
   {
-   kind="";
    if(!g_market_intervals_loaded)
      { kind="MARKET_INTERVALS_INVALID"; return true; }
-   int selected_priority=0;
-   for(int i=0;i<ArraySize(g_market_interval_start);i++)
+   if(g_market_interval_snapshot.healthy &&
+      now_msc>=g_market_interval_snapshot.observed_at_msc &&
+      now_msc<g_market_interval_snapshot.next_change_msc)
      {
-      if(now_msc<g_market_interval_start[i])
-         break;
-      if(now_msc>=g_market_interval_start[i] &&
-         now_msc<g_market_interval_end[i])
-        {
-         int priority=(g_market_interval_type[i]=="MAINTENANCE_FORCE_FLAT" ? 4 :
-                       g_market_interval_type[i]=="NEWS_BLOCK" ? 3 :
-                       g_market_interval_type[i]=="MAINTENANCE_ENTRY_BLOCK" ? 2 : 1);
-         if(priority>selected_priority)
-           { selected_priority=priority; kind=g_market_interval_type[i]; }
-        }
+      kind=g_market_interval_snapshot.kind;
+      return g_market_interval_snapshot.blocked;
      }
-   return selected_priority>0;
+   if(g_market_interval_snapshot.healthy &&
+      now_msc<g_market_interval_snapshot.observed_at_msc)
+     { kind="MARKET_TIME_BACKWARD"; return true; }
+   if(!KingEAResearchResolveMarketInterval(
+         g_market_interval_start,g_market_interval_end,
+         g_market_interval_prefix_max_end,g_market_interval_type,
+         now_msc,g_market_interval_snapshot))
+     { kind="MARKET_INTERVALS_INVALID"; return true; }
+   kind=g_market_interval_snapshot.kind;
+   return g_market_interval_snapshot.blocked;
   }
 
 bool ResearchProtectedForNews()
@@ -443,7 +529,7 @@ double ResearchMedian(double &values[])
 void ResearchFinalizeSpreadSlot(const datetime open_time)
   {
    double median=ResearchMedian(g_current_bar_spreads);
-   if(median<=0.0 || !MathIsValidNumber(median))
+   if(!KingEAResearchObservedSpreadValid(median))
      { g_hard_failures++; ArrayResize(g_current_bar_spreads,0); return; }
    int count=ArraySize(g_spread_slot_time);
    ArrayResize(g_spread_slot_time,count+1);
@@ -497,7 +583,15 @@ double ResearchSpreadBaseline(const datetime now)
 
 double ResearchCurrentSpreadRatio(const MqlTick &tick)
   {
-   double baseline=ResearchSpreadBaseline((datetime)((long)tick.time/1800*1800));
+   datetime bucket=(datetime)((long)tick.time/1800*1800);
+   double baseline=0.0;
+   if(!KingEAResearchSpreadBaselineCacheHit(g_spread_baseline_cache,
+                                             bucket,baseline))
+     {
+      baseline=ResearchSpreadBaseline(bucket);
+      KingEAResearchStoreSpreadBaseline(g_spread_baseline_cache,
+                                         bucket,baseline);
+     }
    double spread=MathAbs(tick.ask-tick.bid)*InpSpreadMultiplier;
    if(baseline<=0.0 || spread<0.0 || !MathIsValidNumber(spread))
       return 0.0;
@@ -507,10 +601,10 @@ double ResearchCurrentSpreadRatio(const MqlTick &tick)
 void ResearchTrackSpread(const MqlTick &tick)
   {
    double spread=MathAbs(tick.ask-tick.bid);
-   if(!MathIsValidNumber(spread) || spread<=0.0)
+   if(!KingEAResearchObservedSpreadValid(spread))
      { g_hard_failures++; return; }
    int count=ArraySize(g_current_bar_spreads);
-   ArrayResize(g_current_bar_spreads,count+1);
+   ArrayResize(g_current_bar_spreads,count+1,8192);
    g_current_bar_spreads[count]=spread;
   }
 
@@ -532,6 +626,12 @@ void ResearchUpdateSpreadState(const MqlTick &tick)
 
 bool ResearchOrderSend(MqlTradeRequest &request,MqlTradeResult &result)
   {
+   if(InpWorkloadDryRun)
+     {
+      Print("DRY_EXECUTION_PROHIBITED");
+      g_hard_failures++;
+      return false;
+     }
    // Every tester order path revalidates the complete immutable guard.
    if(!g_initialized || !ResearchAuthorizationValid())
      {
@@ -591,6 +691,17 @@ void ResearchUpdatePeriods(const datetime now)
    g_equity_high=MathMax(g_equity_high,equity);
    if(changed_day || changed_week || changed_month)
       ResearchProcessPeriodTransition(now,changed_day,changed_week,changed_month);
+  }
+
+void ResearchUpdatePeriodsFast(const datetime now)
+  {
+   datetime day=(datetime)((long)now/86400*86400);
+   if(g_day_start>0 && day==g_day_start)
+     {
+      g_equity_high=MathMax(g_equity_high,ResearchEquity());
+      return;
+     }
+   ResearchUpdatePeriods(now);
   }
 
 void ResearchFinalizeClosedTrade()
@@ -1157,10 +1268,52 @@ void ResearchEvaluateClosedBar(const datetime evaluation_time,
    KingEAEvaluateSleeveEthSt001(g_bars,request,g_sleeve_state,intent);
    g_sleeve_state=intent.next_state;
    ResearchUpdateTradeExcursion();
-   if(intent.action==KINGEA_SLEEVE_ACTION_ENTRY)
+   if(InpWorkloadDryRun)
+      ResearchDryExerciseIntent(intent,tick);
+   else if(intent.action==KINGEA_SLEEVE_ACTION_ENTRY)
       ResearchOpen(intent,tick);
    else if(intent.action==KINGEA_SLEEVE_ACTION_EXIT)
       ResearchClose(g_position.direction,tick);
+  }
+
+void ResearchDryExerciseIntent(const KingEASleeveDecision &intent,
+                               const MqlTick &tick)
+  {
+   if(intent.action!=KINGEA_SLEEVE_ACTION_ENTRY)
+      return;
+   KingEASafetyRequest request={};
+   request.event=KINGEA_EVENT_ENTRY;
+   request.scope=KINGEA_SCOPE_SLEEVE;
+   request.direction=(intent.direction==KINGEA_DIRECTION_LONG ?
+                      KINGEA_SAFETY_LONG : KINGEA_SAFETY_SHORT);
+   request.entry_price=(intent.direction==KINGEA_DIRECTION_LONG ?
+                        tick.ask : tick.bid);
+   request.technical_stop=intent.technical_stop;
+   request.signal_present=true;
+   KingEASafetyFacts facts={};
+   ResearchHealthyFacts(tick.time,request.entry_price,intent.technical_stop,
+                        intent.direction,facts);
+   KingEASafetyDecision safety={};
+   KingEASafetyState state_copy=g_safety_state;
+   KingEAEvaluateSafety(request,facts,state_copy,safety);
+
+   KingEAAccountingEvent event=ResearchAccountingBase(
+      KINGEA_ACCOUNTING_EVENT_DEAL,"DRY-WORKLOAD",(long)tick.time_msc);
+   event.signal_id="WITHHELD";
+   event.direction=intent.direction;
+   event.requested_price=request.entry_price;
+   event.executed_price=request.entry_price;
+   event.protective_stop=intent.technical_stop;
+   event.reason_code="WORKLOAD_ONLY_NO_EXECUTION";
+   KingEAAccountingCheckpoint checkpoint={};
+   KingEAAccountingDecision accounting={};
+   KingEAProcessAccountingEvent(event,checkpoint,accounting);
+   if(accounting.accepted)
+     {
+      string discarded=KingEAAccountingFramePayload(event,accounting);
+      if(discarded=="")
+         g_hard_failures++;
+     }
   }
 
 int OnInit()
@@ -1177,7 +1330,8 @@ int OnInit()
       return INIT_FAILED;
    if(!KingEAResearchDecodeConfiguration(InpConfigurationId,g_parameters))
       return INIT_PARAMETERS_INCORRECT;
-   g_manifest_valid=ResearchAuthorizationValid();
+   g_manifest_valid=(InpWorkloadDryRun ? ResearchDryAuthorizationValid() :
+                                          ResearchAuthorizationValid());
    if(!g_manifest_valid)
      {
       Print("KingEA research adapter refused: manifest/authorization guard failed.");
@@ -1209,6 +1363,13 @@ void OnTick()
    MqlTick tick={};
    if(!SymbolInfoTick(_Symbol,tick) || tick.bid<=0.0)
       return;
+   if(InpWorkloadDryRun)
+     {
+      if(g_dry_tick_count==0)
+         g_dry_first_tick_msc=(long)tick.time_msc;
+      g_dry_last_tick_msc=(long)tick.time_msc;
+      g_dry_tick_count++;
+     }
    ResearchUpdateSpreadState(tick);
    if(ResearchHasPosition() && g_latest_spread_ratio>2.5 &&
       !g_spread_reduced)
@@ -1232,7 +1393,7 @@ void OnTick()
          ResearchClose(g_virtual_position.direction,tick);
      }
    ResearchFinalizeClosedTrade();
-   ResearchUpdatePeriods(tick.time);
+   ResearchUpdatePeriodsFast(tick.time);
    datetime bucket=(datetime)((long)tick.time/1800*1800);
    if(!g_has_current)
      {
@@ -1274,6 +1435,27 @@ void OnTick()
 
 double OnTester()
   {
+   if(InpWorkloadDryRun)
+     {
+      string payload=StringFormat(
+         "schema=1|kind=FULL_WORKLOAD_DRY_BENCHMARK|root=%s|branch=%s|pass=%d|ticks=%I64d|first_tick_msc=%I64d|last_tick_msc=%I64d|results=WITHHELD|signals_exposed=0|trades=0|returns=ABSENT|candidate_budget=0|complete=1|healthy=%d",
+         InpDryBenchmarkRootSha256,InpBranch,InpDryBenchmarkPassId,
+         g_dry_tick_count,g_dry_first_tick_msc,g_dry_last_tick_msc,
+         (g_initialized && g_manifest_valid && g_hard_failures==0) ? 1 : 0);
+      uchar dry_frame[];
+      int dry_bytes=StringToCharArray(payload,dry_frame,0,WHOLE_ARRAY,CP_UTF8);
+      if(dry_bytes>0)
+         ArrayResize(dry_frame,dry_bytes-1);
+      bool persisted=PersistDryBenchmarkPayload(payload);
+      PrintFormat("KINGEA_STAGE14_WORKLOAD_RESULT: %s persisted=%d",
+                  payload,persisted ? 1 : 0);
+      if(!g_initialized || !g_manifest_valid || g_hard_failures!=0 ||
+         g_dry_tick_count<=0 || dry_bytes<=0 || !persisted ||
+         !FrameAdd("KINGEA_STAGE14_WORKLOAD_DRY",InpDryBenchmarkPassId,
+                   0.0,dry_frame))
+         return -1.0;
+      return 0.0;
+     }
    ResearchFinalizeClosedTrade();
    if(g_day_start>0 && g_day_open>0.0)
      {

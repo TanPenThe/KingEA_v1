@@ -1,0 +1,11 @@
+{
+  "status": "INVALIDATED_PRE_EXECUTION",
+  "reason": "EXPERT_PARAMETER_SET_NOT_INSTALLED_IN_TERMINAL_TESTER_PROFILE",
+  "tester_message": "no optimized parameter selected",
+  "valid_passes": 0,
+  "signals_exposed": 0,
+  "trades": 0,
+  "returns": "ABSENT",
+  "candidate_budget_consumed": 0,
+  "corrective_action": "INSTALL_EXACT_HASHED_SET_IN_TERMINAL_TESTER_PROFILE_AND_RELAUNCH_SAME_ROOT"
+}

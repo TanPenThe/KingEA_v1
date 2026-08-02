@@ -268,4 +268,146 @@ void KingEAResearchCompleteDelayedEntry(const KingEAResearchStress &stress,
    route.enqueued=true;
   }
 
+bool KingEAResearchNormalizeProtectionType(const string source_kind,
+                                           string &normalized_kind,
+                                           bool &blocks_entry)
+  {
+   normalized_kind="";
+   blocks_entry=false;
+   if(source_kind=="KINGEA_ENTRY_BLACKOUT")
+     { normalized_kind="NEWS_BLOCK"; blocks_entry=true; return true; }
+   if(source_kind=="BROKER_HMR_SCHEDULED")
+     { normalized_kind=source_kind; return true; }
+   if(source_kind=="MAINTENANCE_ENTRY_BLOCK" ||
+      source_kind=="MAINTENANCE_FORCE_FLAT" ||
+      source_kind=="MAINTENANCE_RECOVERY")
+     { normalized_kind=source_kind; blocks_entry=true; return true; }
+   return false;
+  }
+
+int KingEAResearchMarketIntervalPriority(const string kind)
+  {
+   if(kind=="MAINTENANCE_FORCE_FLAT") return 4;
+   if(kind=="NEWS_BLOCK") return 3;
+   if(kind=="MAINTENANCE_ENTRY_BLOCK") return 2;
+   if(kind=="MAINTENANCE_RECOVERY") return 1;
+   return 0;
+  }
+
+struct KingEAResearchMarketIntervalSnapshot
+  {
+   bool healthy;
+   bool blocked;
+   long observed_at_msc;
+   long next_change_msc;
+   string kind;
+  };
+
+bool KingEAResearchResolveMarketInterval(const long &starts[],
+                                         const long &ends[],
+                                         const long &prefix_max_ends[],
+                                         const string &types[],
+                                         const long now_msc,
+                                         KingEAResearchMarketIntervalSnapshot &snapshot)
+  {
+   ZeroMemory(snapshot);
+   snapshot.kind="";
+   snapshot.observed_at_msc=now_msc;
+   int count=ArraySize(starts);
+   if(now_msc<=0 || count<=0 || ArraySize(ends)!=count ||
+      ArraySize(prefix_max_ends)!=count || ArraySize(types)!=count)
+      return false;
+   for(int i=0;i<count;i++)
+      if(starts[i]<=0 || ends[i]<=starts[i] ||
+         prefix_max_ends[i]<ends[i] ||
+         (i>0 && (starts[i]<starts[i-1] ||
+                  prefix_max_ends[i]<prefix_max_ends[i-1])) ||
+         KingEAResearchMarketIntervalPriority(types[i])==0)
+         return false;
+
+   int low=0,high=count;
+   while(low<high)
+     {
+      int middle=low+(high-low)/2;
+      if(starts[middle]<=now_msc) low=middle+1;
+      else high=middle;
+     }
+   int selected_priority=0;
+   long next_change=(low<count ? starts[low] : 9223372036854775807);
+   for(int i=low-1;i>=0;i--)
+     {
+      if(prefix_max_ends[i]<=now_msc)
+         break;
+      if(now_msc>=starts[i] && now_msc<ends[i])
+        {
+         next_change=MathMin(next_change,ends[i]);
+         int priority=KingEAResearchMarketIntervalPriority(types[i]);
+         if(priority>selected_priority)
+           {
+            selected_priority=priority;
+            snapshot.kind=types[i];
+           }
+        }
+     }
+   snapshot.healthy=true;
+   snapshot.blocked=(selected_priority>0);
+   snapshot.next_change_msc=next_change;
+   return true;
+  }
+
+bool KingEAResearchSelectMarketInterval(const long &starts[],
+                                        const long &ends[],
+                                        const long &prefix_max_ends[],
+                                        const string &types[],
+                                        const long now_msc,
+                                        string &selected_kind)
+  {
+   selected_kind="";
+   KingEAResearchMarketIntervalSnapshot snapshot={};
+   if(!KingEAResearchResolveMarketInterval(starts,ends,prefix_max_ends,
+                                            types,now_msc,snapshot))
+      return false;
+   selected_kind=snapshot.kind;
+   return snapshot.blocked;
+  }
+
+struct KingEAResearchSpreadBaselineCache
+  {
+   bool initialized;
+   datetime m30_bucket;
+   double baseline;
+  };
+
+bool KingEAResearchSpreadBaselineCacheHit(
+   const KingEAResearchSpreadBaselineCache &cache,
+   const datetime m30_bucket,
+   double &baseline)
+  {
+   baseline=0.0;
+   if(!cache.initialized || m30_bucket<=0 ||
+      cache.m30_bucket!=m30_bucket ||
+      !MathIsValidNumber(cache.baseline) || cache.baseline<0.0)
+      return false;
+   baseline=cache.baseline;
+   return true;
+  }
+
+void KingEAResearchStoreSpreadBaseline(
+   KingEAResearchSpreadBaselineCache &cache,
+   const datetime m30_bucket,
+   const double baseline)
+  {
+   ZeroMemory(cache);
+   if(m30_bucket<=0 || !MathIsValidNumber(baseline) || baseline<0.0)
+      return;
+   cache.initialized=true;
+   cache.m30_bucket=m30_bucket;
+   cache.baseline=baseline;
+  }
+
+bool KingEAResearchObservedSpreadValid(const double spread_distance)
+  {
+   return MathIsValidNumber(spread_distance) && spread_distance>=0.0;
+  }
+
 #endif

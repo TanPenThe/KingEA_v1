@@ -142,6 +142,30 @@ class Stage14CoordinatorTests(unittest.TestCase):
         self.assertIn("InpExpectedTerminalBuild=5602", native_bundle["set"])
         self.assertIn("InpBenchmarkPassId=0||0||1||99||Y", native_bundle["set"])
 
+    def test_full_workload_dry_benchmark_is_opaque_and_order_incapable(self):
+        raw_root = self.coordinator.prepare_benchmark_root(
+            {
+                "artifact_hashes": self.hashes,
+                "mt5_build": 6090,
+                "account_fingerprint": "6" * 64,
+                "operational_facts": self.operational,
+            },
+            sample_passes_per_branch=12,
+        )
+        root = self.coordinator.prepare_workload_benchmark_root(raw_root)
+        self.assertEqual(root["kind"], "FULL_WORKLOAD_DRY_BENCHMARK")
+        self.assertEqual(root["configuration_id"], 7168)
+        self.assertEqual(root["candidate_budget_consumed"], 0)
+        self.assertEqual(root["result_fields"], ["completion", "ticks", "elapsed", "hashes"])
+        bundle = self.coordinator.render_workload_benchmark_bundle(root, branch="RECORDED")
+        self.assertIn("GuardedResearchTester.ex5", bundle["ini"])
+        self.assertIn("InpWorkloadDryRun=true", bundle["set"])
+        self.assertIn("InpExpectedTerminalBuild=6090", bundle["set"])
+        self.assertIn("InpConfigurationId=7168", bundle["set"])
+        self.assertIn("InpDryBenchmarkPassId=0||0||1||11||Y", bundle["set"])
+        self.assertNotIn("trade_returns", bundle["set"])
+        self.assertNotIn("signal_count", bundle["set"])
+
         benchmark = self.coordinator.evaluate_benchmark(
             valid_passes=1000,
             elapsed_seconds=3600,

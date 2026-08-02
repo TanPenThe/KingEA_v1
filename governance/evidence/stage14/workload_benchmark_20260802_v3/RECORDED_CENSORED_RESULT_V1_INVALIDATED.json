@@ -1,0 +1,8 @@
+{
+  "artifact": "RECORDED_CENSORED_RESULT.json",
+  "status": "INVALIDATED",
+  "reason": "POWERSHELL_DATETIME_KIND_MIXED_LOCAL_AND_UTC_PRODUCED_NEGATIVE_ELAPSED_SECONDS",
+  "replacement": "RECORDED_CENSORED_RESULT_V2.json",
+  "performance_or_signal_results_exposed": false,
+  "candidate_budget_consumed": 0
+}

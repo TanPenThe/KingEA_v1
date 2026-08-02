@@ -1,0 +1,21 @@
+﻿{
+    "schema_version":  1,
+    "kind":  "FULL_WORKLOAD_DRY_BENCHMARK_CENSORED_RESULT",
+    "root_sha256":  "0A5B2030559E6FD7C85FB0289C6B47A94E7D5F9192C8E698F254A3A6FA8CBD8A",
+    "branch":  "RECORDED",
+    "started_at_utc":  "2026-08-02T12:49:15.7810572+00:00",
+    "censored_at_utc":  "2026-08-02T12:56:01.7316479+00:00",
+    "elapsed_seconds":  405.951,
+    "expected_passes":  12,
+    "completed_payloads":  0,
+    "agents_observed":  12,
+    "maximum_batch_seconds_for_30_day_ceiling":  128,
+    "lower_bound_slowdown_multiple":  3.171,
+    "status":  "FAIL_30_DAY_CEILING",
+    "result_exposure":  "WITHHELD",
+    "signals_exposed":  0,
+    "trades":  0,
+    "returns":  "ABSENT",
+    "candidate_budget_consumed":  0,
+    "diagnosis":  "TICK_SPREAD_CACHE_REPAIR_EFFECTIVE_REMAINING_BAR_CLOSE_RECOMPUTATION_DOMINATES"
+}

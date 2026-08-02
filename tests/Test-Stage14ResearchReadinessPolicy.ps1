@@ -18,12 +18,12 @@ $calendarAdapterTestPath = Join-Path $Workspace 'tests\test_mql5_calendar_adapte
 $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
-$preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_V8.json'
+$preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_V17.json'
 $protectionManifestPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS_MANIFEST.json'
 $protectionIntervalsPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS.csv'
 $researchSpecificationPath = Join-Path $Workspace 'governance\evidence\stage14\cost_spec_capture_20260802\RESEARCH_SPECIFICATION.json'
-$eaCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\GuardedResearchTester.log'
-$testCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\TestResearchPipeline.log'
+$eaCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\GuardedResearchTester_v101_zero_spread_r.log'
+$testCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\TestResearchPipeline_v101_zero_spread_r.log'
 $benchmarkCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ResearchThroughputBenchmark_v102_final.log'
 $calendarCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ExportResearchCalendar.log'
 
@@ -42,18 +42,43 @@ $contract = Get-Content -LiteralPath $contractPath -Raw
 $contractJson = Get-Content -LiteralPath $contractJsonPath -Raw | ConvertFrom-Json
 
 Assert-True (([regex]::Matches($ea, '\bOrderSend\s*\(')).Count -eq 1) 'exactly one guarded native order seam must remain'
+Assert-True ($ea.Contains('InpWorkloadDryRun') -and
+             $ea.Contains('ResearchDryExerciseIntent') -and
+             $ea.Contains('FULL_WORKLOAD_DRY_BENCHMARK') -and
+             $ea.Contains('PersistDryBenchmarkPayload') -and
+             $ea.Contains('if(InpWorkloadDryRun)') -and
+             $ea.Contains('DRY_EXECUTION_PROHIBITED')) 'full-workload dry mode must exercise the frozen pipeline, swallow intent, prohibit execution, and persist opaque evidence'
+Assert-True ($ea.Contains('#property tester_file "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv"') -and
+             $ea.Contains('ResearchOpenInputFile') -and
+             $ea.Contains('FILE_COMMON')) 'calendar evidence must be explicitly transferred to local tester agents with a governed Common-Files fallback'
 Assert-True ($ea.Contains('InpExecutionAdapter') -and $ea.Contains('ResearchUsesVirtual') -and
              $ea.Contains('ResearchProcessVirtualPending') -and
              $ea.Contains('KINGEA_STAGE14_FRAME') -and
              $ea.Contains('ResearchLoadMarketIntervals') -and
              $ea.Contains('ResearchSpreadBaseline') -and
              $ea.Contains('ResearchReduceHalf')) 'EA must separate native/virtual state, load market facts, enforce spread tiers, and persist frames'
+Assert-True ($ea.Contains('g_spread_baseline_cache') -and
+             $ea.Contains('KingEAResearchSpreadBaselineCacheHit') -and
+             $ea.Contains('ArrayResize(g_current_bar_spreads,count+1,8192)') -and
+             $ea.Contains('g_market_interval_snapshot') -and
+             $ea.Contains('ResearchUpdatePeriodsFast')) 'tick hot path must cache spread/calendar facts, reserve the per-bar spread buffer, and avoid repeated period conversion'
 Assert-True ($pure.Contains('KingEAResearchRouteEntry') -and
              $pure.Contains('KingEAResearchCompleteDelayedEntry') -and
+             $pure.Contains('KingEAResearchSelectMarketInterval') -and
+             $pure.Contains('KingEAResearchResolveMarketInterval') -and
+             $pure.Contains('KingEAResearchNormalizeProtectionType') -and
+             $pure.Contains('KingEAResearchSpreadBaselineCacheHit') -and
+             $pure.Contains('KingEAResearchObservedSpreadValid') -and
              $pure.Contains('KINGEA_RESEARCH_SEEDED_MISS') -and
              $pure.Contains('KINGEA_RESEARCH_DELAY_EXPIRY')) 'pure execution seam must own exclusive combined outcomes'
 Assert-True ($harness.Contains('virtual sentinel fill reaches position and accounting without native order') -and
-             $harness.Contains('native route consumes only tester result price')) 'adapter connection bug must have a dedicated sentinel test'
+             $harness.Contains('native route consumes only tester result price') -and
+             $harness.Contains('indexed interval lookup preserves overlapping priority') -and
+             $harness.Contains('indexed interval lookup preserves half-open end boundary') -and
+             $harness.Contains('calendar snapshot wakes exactly at the next future interval') -and
+             $harness.Contains('broker HMR remains margin-only and separate from entry blackout') -and
+             $harness.Contains('unavailable early-history baseline is cached for the full slot') -and
+             $harness.Contains('zero observed spread is valid data while negative spread distance fails')) 'adapter connection, indexed interval lookup, HMR/blackout separation, and spread-cache boundaries must have dedicated contract tests'
 Assert-True (-not [regex]::IsMatch($pure + $harness, '\b(OrderSend|OrderSendAsync|PositionOpen|PositionClose|PositionModify|HistorySelect|CopyRates|CopyTicks|TesterStatistics|WebRequest)\b')) 'pure seam and harness must contain no broker/history/performance/network capability'
 Assert-True (-not [regex]::IsMatch($ea + $pure + $harness, '#import\s+|MqlTick\.flags|\bWebRequest\b')) 'MQL5 path must contain no DLL, tick-flag, or network bypass'
 Assert-True ($benchmark.Contains('SIGNAL_FREE_BENCHMARK') -and
@@ -108,7 +133,7 @@ Assert-True ($researchSpecification.hmr.stressed_position_size_assumption_lots -
              [bool]$researchSpecification.hmr.kingea_entry_blackout_is_separate) 'minimum-lot margin basis and extended-HMR fail-closed rules must be explicit'
 
 $preTooling = Get-Content -LiteralPath $preToolingPath -Raw | ConvertFrom-Json
-Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260802-H') 'PRE_TOOLING manifest must exist'
+Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260802-R') 'PRE_TOOLING manifest must exist'
 foreach ($source in $preTooling.sources) {
     Assert-True ((Test-Path -LiteralPath $source.path) -and
                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and

@@ -730,6 +730,136 @@ class ResearchRunCoordinator:
         ]
         return {"set": "\n".join(set_lines) + "\n", "ini": "\n".join(ini_lines) + "\n"}
 
+    def prepare_workload_benchmark_root(
+        self, signal_free_root: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        stored = signal_free_root.get("benchmark_root_sha256")
+        unhashed = {
+            key: value
+            for key, value in signal_free_root.items()
+            if key != "benchmark_root_sha256"
+        }
+        if (
+            signal_free_root.get("kind") != "SIGNAL_FREE_REAL_TICK_BENCHMARK"
+            or not self._valid_hash(stored)
+            or self.canonical_hash(unhashed) != stored
+        ):
+            raise Stage14Error("SIGNAL_FREE_BENCHMARK_ROOT_INVALID")
+        root = {
+            "schema": 1,
+            "kind": "FULL_WORKLOAD_DRY_BENCHMARK",
+            "build_id": self.BUILD_ID,
+            "upstream_signal_free_root_sha256": stored,
+            "partition": "FINAL_SELECTION",
+            "start_inclusive": signal_free_root["start_inclusive"],
+            "end_exclusive": signal_free_root["end_exclusive"],
+            "branches": ["RECORDED", "RSB3"],
+            "sample_passes_per_branch": int(signal_free_root["sample_passes_per_branch"]),
+            "pass_count": int(signal_free_root["pass_count"]),
+            "projected_development_passes": self.TOTAL_DEVELOPMENT_PASSES,
+            "configuration_id": Stage12Pipeline().default_configuration_id,
+            "artifact_hashes": dict(signal_free_root["artifact_hashes"]),
+            "mt5_build": int(signal_free_root["mt5_build"]),
+            "account_fingerprint": signal_free_root["account_fingerprint"],
+            "operational_facts": dict(signal_free_root["operational_facts"]),
+            "model": 4,
+            "execution_mode": 20,
+            "execution_adapter": "VIRTUAL_DRY_NO_EXECUTION",
+            "local_agents_only": True,
+            "result_fields": ["completion", "ticks", "elapsed", "hashes"],
+            "signals_exposed": False,
+            "trades": 0,
+            "returns": "WITHHELD_AND_NOT_EMITTED",
+            "candidate_budget_consumed": 0,
+            "status": "PLANNED_NON_RESULT_BEARING",
+        }
+        root["workload_benchmark_root_sha256"] = self.canonical_hash(root)
+        return root
+
+    def render_workload_benchmark_bundle(
+        self, root: Mapping[str, Any], *, branch: str
+    ) -> dict[str, str]:
+        stored = root.get("workload_benchmark_root_sha256")
+        unhashed = {
+            key: value
+            for key, value in root.items()
+            if key != "workload_benchmark_root_sha256"
+        }
+        if not self._valid_hash(stored) or self.canonical_hash(unhashed) != stored:
+            raise Stage14Error("WORKLOAD_BENCHMARK_ROOT_HASH_MISMATCH")
+        if root.get("kind") != "FULL_WORKLOAD_DRY_BENCHMARK" or branch not in (
+            "RECORDED",
+            "RSB3",
+        ):
+            raise Stage14Error("WORKLOAD_BENCHMARK_SCOPE_INVALID")
+        symbol = "ETHUSD.s" if branch == "RECORDED" else "KINGEA_ETHUSD_S_RSB3"
+        count = int(root["sample_passes_per_branch"])
+        hashes = root["artifact_hashes"]
+        facts = root["operational_facts"]
+        token = hashlib.sha256(
+            f"{stored}|FULL_WORKLOAD_DRY_BENCHMARK|AUTHORIZED".encode("utf-8")
+        ).hexdigest().upper()
+        set_lines = [
+            "; Full-workload dry benchmark. Intents are swallowed before execution.",
+            "InpWorkloadDryRun=true",
+            f"InpDryBenchmarkRootSha256={stored}",
+            f"InpDryAuthorizationToken={token}",
+            f"InpDryBenchmarkPassId=0||0||1||{count - 1}||Y",
+            "InpPurpose=WORKLOAD_DRY_BENCHMARK",
+            "InpPartition=FINAL_SELECTION",
+            f"InpBranch={branch}",
+            f"InpExpectedSymbol={symbol}",
+            "InpExpectedServerFragment=JustMarkets-Demo2",
+            f"InpExpectedTerminalBuild={int(root['mt5_build'])}",
+            f"InpConfigurationId={int(root['configuration_id'])}",
+            "InpTesterModel=4",
+            "InpLocalAgentsOnly=true",
+            "InpRemoteAgentsDisabled=true",
+            "InpCloudAgentsDisabled=true",
+            "InpScenario=WORKLOAD_DRY",
+            "InpExecutionAdapter=VIRTUAL",
+            f"InpCalendarSha256={hashes['calendar']}",
+            f"InpCostManifestSha256={hashes['cost']}",
+            f"InpResearchSpecificationSha256={hashes['research_specification']}",
+            f"InpCalendarIntervalsFile={facts['calendar_intervals_file']}",
+            f"InpCalendarFileSha256={facts['calendar_file_sha256']}",
+            "InpDelayMs=20",
+            "InpSpreadMultiplier=1.0",
+            "InpCostMultiplier=1.0",
+            "InpSlippageSpreadFraction=0.0",
+            "InpVolatilityDependentSlippage=false",
+            "InpMissedEntryFraction=0.0",
+            "InpStressSeed=0",
+            f"InpCommissionPerLotRoundTurn={float(facts['commission_per_lot_round_turn']):.8f}",
+            f"InpSwapPerLotStress={float(facts['swap_per_lot_stress']):.8f}",
+            f"InpWeekendRiskMultiplier={float(facts['weekend_risk_multiplier']):.2f}",
+            f"InpMaintenanceEntryBlockMinutes={int(facts['maintenance_entry_block_minutes'])}",
+            f"InpMaintenanceForceFlatMinutes={int(facts['maintenance_force_flat_minutes'])}",
+            f"InpMaintenanceCleanMinutes={int(facts['maintenance_clean_minutes'])}",
+        ]
+        start = datetime.fromisoformat(str(root["start_inclusive"]))
+        end = datetime.fromisoformat(str(root["end_exclusive"])) - timedelta(days=1)
+        ini_lines = [
+            "[Tester]",
+            r"Expert=KingEA\GuardedResearchTester.ex5",
+            f"ExpertParameters={stored}.{branch}.set",
+            f"Symbol={symbol}",
+            "Period=M30",
+            "Model=4",
+            "ExecutionMode=20",
+            "Optimization=1",
+            "UseLocal=1",
+            "UseRemote=0",
+            "UseCloud=0",
+            "Genetic=0",
+            "Deposit=1000",
+            "Currency=USD",
+            f"FromDate={start:%Y.%m.%d}",
+            f"ToDate={end:%Y.%m.%d}",
+            "ShutdownTerminal=1",
+        ]
+        return {"set": "\n".join(set_lines) + "\n", "ini": "\n".join(ini_lines) + "\n"}
+
     def evaluate_pace(
         self,
         benchmark: Mapping[str, Any],
