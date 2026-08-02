@@ -1,0 +1,17 @@
+# Governance hashes are byte-sensitive. Keep source and text evidence on LF.
+* text=auto eol=lf
+
+*.mq5 text eol=lf
+*.mqh text eol=lf
+*.py text eol=lf
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.csv text eol=lf
+*.set text eol=lf
+*.ini text eol=lf
+
+# MetaEditor/terminal logs may be UTF-16 and must remain byte-identical.
+*.log -text
+

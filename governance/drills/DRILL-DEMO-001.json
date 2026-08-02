@@ -1,0 +1,141 @@
+{
+  "Schema": 1,
+  "DrillId": "DRILL-DEMO-001",
+  "DeploymentId": "KINGEA-DEMO2-001",
+  "Status": "PASS_QUARANTINED",
+  "ServerClass": "JustMarkets-Demo2",
+  "AccountSuffix": "1768",
+  "AccountFingerprint": "5A8ADD88286A10EECC859B5683273841D7DB17DE364C0F0AEF33CFEF5F36E8C2",
+  "StartUtc": "2026-07-28T10:36:30Z",
+  "FixtureCreatedUtc": "2026-07-28T12:12:31Z",
+  "StanddownUtc": "2026-07-28T12:15:13.4856496Z",
+  "AutomationDisabledUtc": "2026-07-28T12:21:26Z",
+  "MobileActionUtc": "2026-07-28T12:25:00Z",
+  "FlatVerifiedUtc": "2026-07-28T12:27:35Z",
+  "TerminalStoppedUtc": "2026-07-28T12:41:46.3107187Z",
+  "ObservationCompletedUtc": "2026-07-28T12:43:02.8019235Z",
+  "Inventory": {
+    "Preflight": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\stage9_inventory_DRILL-DEMO-001_2026-07-28_10-36-30.csv",
+      "Sha256": "D05AB9C08B292396446EA5AF423F6DCEFF127CA71891655135F7B013C1EE1C5D"
+    },
+    "Fixtures": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\stage9_inventory_DRILL-DEMO-001_2026-07-28_12-20-49.csv",
+      "Sha256": "71634C7CF914127C7A9878D726D06FFD6E24317A6E1A7E3DD20F98FEB8B76071"
+    },
+    "Final": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\stage9_inventory_DRILL-DEMO-001_2026-07-28_12-27-35.csv",
+      "Sha256": "DA2F3ADA615B813B2A9CC7BCDF6651F0E9D82C73D359346D0FD9481A5DC485E5"
+    }
+  },
+  "Position": {
+    "Ticket": "2218842114",
+    "Symbol": "ETHUSD.s",
+    "Direction": "BUY",
+    "Volume": 0.01,
+    "EntryPrice": 1876.28,
+    "StopLoss": 1783.23,
+    "Resolution": "MANUAL_MOBILE_CLOSE",
+    "ActiveUntilMobileAction": true
+  },
+  "PendingOrder": {
+    "Ticket": "2218850445",
+    "Symbol": "ETHUSD.s",
+    "Type": "BUY_LIMIT",
+    "Volume": 0.01,
+    "ReferencePrice": 1877.08,
+    "EntryPrice": 1501.66,
+    "StopLoss": 1426.58,
+    "ExpirationUtc": "GTC",
+    "Resolution": "MANUAL_MOBILE_DELETE",
+    "ActiveUntilMobileAction": true
+  },
+  "Standdown": {
+    "Active": true,
+    "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\control\\KINGEA-DEMO2-001\\manual_standdown.json",
+    "Sha256": "8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7"
+  },
+  "Watchdog": {
+    "ForegroundOnce": true,
+    "Command": "operations\\KingEAWatchdog.ps1 -ConfigurationPath config\\watchdog.stage9.once.ephemeral.json -Once",
+    "Action": "STANDDOWN",
+    "Reason": "MANUAL_STANDDOWN_ACTIVE",
+    "ProcessAction": "NONE",
+    "EphemeralConfigCanonical": "{\"Schema\":1,\"Enabled\":true,\"DeploymentId\":\"KINGEA-DEMO2-001\",\"ExpectedExecutablePath\":\"C:\\\\Program Files\\\\MetaTrader 5\\\\terminal64.exe\",\"ExpectedDataRoot\":\"D0E8209F77C8CF37AD8BF550E51FF075\",\"ExpectedServerClass\":\"JustMarkets-Demo2\",\"ExpectedConfigurationHash\":\"A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE\",\"TerminalArguments\":\"/config:C:\\\\KingEA_v1\\\\config\\\\kingea_demo2_runtime.ini\",\"PollSeconds\":5,\"StaleSeconds\":30,\"GracefulCloseSeconds\":15,\"CommonFilesRoot\":\"C:\\\\Users\\\\tpent\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\Common\\\\Files\",\"InstallScheduledTask\":false}",
+    "EphemeralConfigSha256": "BE97AA1AE6C8A9FCC2B9CD924DA5E6049858BB121602CED22E78FC38FBEC0ADB",
+    "EphemeralConfigFileSha256": "334F6DD42B9009D68419EE68ABB79DB87D24D4C33BCD78E97CA830F10F41BB87",
+    "EphemeralConfigDeleted": true,
+    "OutboxPath": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\alerts\\KINGEA-DEMO2-001\\tier1_outbox.jsonl",
+    "OutboxSha256": "0E80BE51EE0D4A4CC9C12C0A19BF8631F705FB6852DD6D391A902534F11319CF"
+  },
+  "Automation": {
+    "ToolbarDisabled": true,
+    "OptionsDisabled": true,
+    "HostedDuplicateAbsent": true
+  },
+  "Screenshots": {
+    "preflight_desktop": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\preflight_desktop.png",
+      "Sha256": "714DA1591001B0000E4A04BD71A318A6D5CF425F95F9EA8E60D6299FF662FE6A"
+    },
+    "preflight_mobile": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\preflight_mobile.png",
+      "Sha256": "F1C8B1D18055E28BD54AD2676DAB79CEC2710AF352A472618B451D458A31E748"
+    },
+    "fixtures": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\fixtures.png",
+      "Sha256": "467FBACCC79928FE42F68CA2AF478616E8635F5B361C1C787F30B30BF7D53DA6"
+    },
+    "algo_disabled": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\algo_disabled.png",
+      "Sha256": "7B9A69A4FCBC708F415DADDFFC7BB89C824B87B87D02AB9CC043209C0D2CE689"
+    },
+    "mobile_flat": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\mobile_flat.png",
+      "Sha256": "34BCDE04EB0A23662E21835C3AEEC2913B5A6ED68BCF473FEC7911497B8DAE74"
+    },
+    "desktop_flat": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\desktop_flat.png",
+      "Sha256": "0110FABFBDEAB873607EB6D7B347D2EF63F435D153381FF307DBE6AC77B3486B"
+    },
+    "terminal_stopped": {
+      "Path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\drills\\DRILL-DEMO-001\\terminal_stopped.png",
+      "Sha256": "706FF554112744B8FAFB593C57F165289B6F99F7D3BD848BF6710F57526296F4"
+    }
+  },
+  "Final": {
+    "DesktopPositions": 0,
+    "DesktopOrders": 0,
+    "MobilePositions": 0,
+    "MobileOrders": 0,
+    "TerminalProcessCount": 0,
+    "KingEAScheduledTaskCount": 0,
+    "ObservationSeconds": 76,
+    "StanddownActive": true
+  },
+  "Authorization": {
+    "Live2Access": false,
+    "Performance": false,
+    "OosHoldout": false,
+    "AutomatedOrderCode": false,
+    "Dll": false,
+    "Network": false
+  },
+  "Operator": "tpent",
+  "Reviewer": "Codex deterministic evidence gate",
+  "Errors": [
+    {
+      "Code": "WINDOW_CAPTURE_INTERFACE_UNAVAILABLE",
+      "Resolution": "Owner supplied desktop screenshots; broker inventory was independently captured by the read-only guarded MQL5 script."
+    },
+    {
+      "Code": "WATCHDOG_WRAPPER_OBSERVATION_TIMEOUT",
+      "Resolution": "The foreground watchdog completed its decision and atomic state commit; the surrounding diagnostic wrapper later timed out during a post-run CIM query. The hashed outbox proves STANDDOWN and the unchanged terminal PID/process evidence proves no process action."
+    }
+  ],
+  "CorrectiveActions": [
+    "No acceptance threshold was changed.",
+    "No additional order was placed.",
+    "The standdown latch remains active and may only be cleared after separate review and owner approval."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "checked_at": "2026-08-02T17:50:00+08:00",
+  "source": "https://get.justmarkets.help/hc/en-us/articles/13822561328156-High-Margin-Requirements-HMR",
+  "source_updated_at": "2026-03-31T12:47:00",
+  "instrument": "ETHUSD",
+  "verified_facts": {
+    "news_hmr_leverage": 200,
+    "news_window_minutes_before": 15,
+    "news_window_minutes_after": 5,
+    "hmr_may_be_extended_by_broker_risk_management": true,
+    "terminal_mailbox_daily_schedule_is_authoritative_for_specific_events": true
+  },
+  "not_inferred": [
+    "ETHUSD_ROLLOVER_HMR_WINDOW",
+    "ETHUSD_WEEKEND_HMR_WINDOW",
+    "FUTURE_UNANNOUNCED_HMR_EXTENSION"
+  ],
+  "governed_use": "CONFIRMS_FROZEN_1_TO_200_HMR_PROXY_FOR_NEWS; LIVE_ORDERCALCMARGIN_AND_FRESH_SCHEDULE_STILL_REQUIRED"
+}

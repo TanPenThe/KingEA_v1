@@ -1,0 +1,113 @@
+{
+  "manifest_id": "KINGEA-ETH-INDEPENDENT-V1",
+  "status": "REFERENCE_ONLY_NOT_CANDIDATE_DATA",
+  "created_utc": "2026-07-21T14:00:00Z",
+  "purpose": "Optional non-performance gross price-history anomaly reference only; rejected for KingEA signal or execution testing",
+  "prohibited_uses_before_candidate_freeze": [
+    "strategy returns",
+    "signal evaluation",
+    "parameter ranking",
+    "optimizer runs",
+    "OOS or holdout result inspection"
+  ],
+  "permanent_prohibition": "No external-venue tick; candle; synthetic Bid/Ask; or custom symbol generated from this manifest may produce KingEA candidate signals; trades; returns; rankings; OOS results; holdout results; or acceptance evidence.",
+  "coverage": {
+    "start_utc_inclusive": "2021-07-01T00:00:00Z",
+    "end_utc_exclusive": "2026-07-01T00:00:00Z",
+    "complete_calendar_months": 60
+  },
+  "sources": {
+    "primary": {
+      "venue": "Binance Spot",
+      "instrument": "ETHUSDT",
+      "dataset": "monthly aggTrades",
+      "archive_url_template": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-{YYYY}-{MM}.zip",
+      "checksum_suffix": ".CHECKSUM",
+      "role": "Optional gross historical anomaly reference only",
+      "limitations": [
+        "USDT quote currency introduces USD-USDT basis risk",
+        "Trades are not broker CFD Bid/Ask quotes",
+        "Synthetic Bid/Ask costs must be separately frozen"
+      ]
+    },
+    "secondary": {
+      "venue": "Coinbase Exchange",
+      "instrument": "ETH-USD",
+      "dataset": "15-minute product candles",
+      "endpoint": "https://api.exchange.coinbase.com/products/ETH-USD/candles",
+      "role": "Optional gross historical anomaly reference only",
+      "limitations": [
+        "Official documentation warns historical rates may be incomplete",
+        "Maximum 300 candles per request",
+        "Not suitable as sole intrabar execution evidence"
+      ]
+    },
+    "tertiary_manual": {
+      "venue": "Kraken",
+      "instrument": "ETH/USD",
+      "dataset": "downloadable OHLCVT and time-and-sales archives",
+      "role": "Optional true-USD dispute resolution",
+      "limitations": [
+        "Bulk archives include all pairs",
+        "Google Drive distribution weakens deterministic automation",
+        "Updates are quarterly"
+      ]
+    },
+    "broker_native_recent": {
+      "venue": "JustMarkets-Live2",
+      "instrument": "ETHUSD.s",
+      "available_from": "2024-12",
+      "role": "Authoritative recent broker execution and final-holdout evidence"
+    },
+    "broker_simulated_stress": {
+      "venue": "JustMarkets-Demo2",
+      "instrument": "ETHUSD.s",
+      "role": "Unmodified adverse broker-simulation sensitivity run",
+      "warning": "Pre-December-2024 history is not verified executable Pro history"
+    }
+  },
+  "time_partitions": {
+    "development_walk_forward_zone": {
+      "start": "2021-07-01T00:00:00Z",
+      "end_exclusive": "2024-01-01T00:00:00Z"
+    },
+    "rolling_folds": [
+      {"train": ["2021-07-01T00:00:00Z", "2023-01-01T00:00:00Z"], "test": ["2023-01-01T00:00:00Z", "2023-04-01T00:00:00Z"]},
+      {"train": ["2021-10-01T00:00:00Z", "2023-04-01T00:00:00Z"], "test": ["2023-04-01T00:00:00Z", "2023-07-01T00:00:00Z"]},
+      {"train": ["2022-01-01T00:00:00Z", "2023-07-01T00:00:00Z"], "test": ["2023-07-01T00:00:00Z", "2023-10-01T00:00:00Z"]},
+      {"train": ["2022-04-01T00:00:00Z", "2023-10-01T00:00:00Z"], "test": ["2023-10-01T00:00:00Z", "2024-01-01T00:00:00Z"]}
+    ],
+    "formal_oos": ["2024-01-01T00:00:00Z", "2025-01-01T00:00:00Z"],
+    "untouched_final_holdout": ["2025-01-01T00:00:00Z", "2026-07-01T00:00:00Z"],
+    "holdout_rule": "No strategy-dependent statistic or chart may be read before the registered one-time holdout run"
+  },
+  "synthetic_execution_model": {
+    "status": "REJECTED_FOR_KINGEA_STRATEGY_USE",
+    "price_tick_usd": 0.01,
+    "bid_ask_construction": "trade_price plus or minus one half of max(spread_floor_usd, trade_price * spread_bps / 10000)",
+    "spread_floor_usd": 1.26,
+    "spread_bps": 10.0,
+    "stress_multipliers": [1.0, 2.0, 2.5, 3.0],
+    "commission_usd_per_lot_per_side": 0.0,
+    "slippage_and_latency": "Applied separately by the registered execution-stress harness",
+    "warning": "Retained only as an abandoned design record; must not be normalized; imported; backtested; or used for KingEA decisions"
+  },
+  "known_anomalies": [
+    {
+      "source": "JustMarkets-Live2",
+      "interval_server_time": "2026-02-22 00:30:00 to 01:30:00",
+      "issue": "14 real ticks exist inside an interval lacking its corresponding M30 bar",
+      "policy": "Quarantine from native-series reconciliation; preserve in raw evidence"
+    }
+  ],
+  "acceptance_requirements": [
+    "All 60 Binance archive checksums verified",
+    "Strictly nondecreasing aggregate-trade timestamps",
+    "No nonpositive prices or quantities",
+    "Coinbase coverage and missing-interval report completed",
+    "Binance-Coinbase M30 basis distribution reported without strategy evaluation",
+    "Live relative-spread cost audit completed and cost model frozen",
+    "Every raw and normalized artifact SHA-256 recorded",
+    "MT5 custom tick count and date boundary reconciled"
+  ]
+}

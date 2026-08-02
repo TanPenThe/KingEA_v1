@@ -1,0 +1,229 @@
+{
+  "manifest_id": "KINGEA-ETH-NATIVE-SPREAD-BRACKET-EVIDENCE-V2.1",
+  "status": "ACCEPTED_NON_PERFORMANCE_DATASET",
+  "documentation_revision": {
+    "created_at": "2026-07-26T16:45:00+08:00",
+    "scope": "Documentation clarification only; no source tick, RSB3 tick, bar, boundary, mapping, count, or acceptance evidence changed.",
+    "supersedes_manifest": "data/manifest/KINGEA_ETH_NATIVE_SPREAD_BRACKET_EVIDENCE_V2.json",
+    "supersedes_sha256": "0C6FE1ECD3C7B8A491F726A19AD22FFB2DD51DFE44040ACCB1F476ABB0413957"
+  },
+  "created_at": "2026-07-22T09:09:03+08:00",
+  "purpose": "Non-performance evidence fixing the native JustMarkets ETHUSD.s spread-regime boundary and empirical distributions for the mandatory two-branch sensitivity dataset.",
+  "performance_authorized": false,
+  "governing_protocol": {
+    "path": "governance/NATIVE_SPREAD_BRACKET_PROTOCOL.md",
+    "sha256": "8804CFC52D9169A33FE235B4898C6C9F8C53C75CE5839A314ECDBFDCF484B014"
+  },
+  "evidence_exporter": {
+    "path": "MQL5/Scripts/KingEA/AuditSpreadBracketEvidence.mq5",
+    "version": "1.00",
+    "sha256": "ED86D6498C79D207748B6769677068E101337BEAE5BF43C6F6F81454DE3F2013",
+    "compile_result": "0 errors, 0 warnings"
+  },
+  "live_reference": {
+    "server": "JustMarkets-Live2",
+    "symbol": "ETHUSD.s",
+    "source_file": "spread_bracket_evidence_ETHUSD.s_LIVE2_REFERENCE_2026.07.22_01-07-55.csv",
+    "source_file_size_bytes": 15279903,
+    "source_file_sha256": "E734D060C0F78EED706ED373B2B8DD1252A9CA547A8935F8733C5C44146CE2DA",
+    "fixed_monthly_windows": 19,
+    "valid_ticks": 156919,
+    "raw_distribution_rows": 156919,
+    "invalid_ticks": 0,
+    "spread_price": {
+      "median": 1.26,
+      "p95": 3.07,
+      "p99": 3.3,
+      "max": 4.69
+    },
+    "audited_median_match": "PASS",
+    "result": "PASS"
+  },
+  "demo_old_reference": {
+    "server": "JustMarkets-Demo2",
+    "symbol": "ETHUSD.s",
+    "source_file": "spread_bracket_evidence_ETHUSD.s_DEMO2_BOUNDARY_2026.07.22_01-08-55.csv",
+    "source_file_size_bytes": 13137386,
+    "source_file_sha256": "6037C428FA8A80EA4A9F60662DEDFA294FBC624AE9E0DED5986CDD85665A32CD",
+    "fixed_monthly_windows": 23,
+    "valid_ticks": 128479,
+    "raw_distribution_rows": 128479,
+    "invalid_ticks": 0,
+    "spread_price": {
+      "median": 23.76,
+      "p95": 26.52,
+      "p99": 27.77,
+      "max": 30.51
+    },
+    "result": "PASS"
+  },
+  "boundary": {
+    "search_start_server_time_inclusive": "2023-05-01T00:00:00",
+    "search_end_server_time_exclusive": "2023-07-01T00:00:00",
+    "valid_search_ticks": 5524493,
+    "invalid_search_ticks": 0,
+    "rolling_window_valid_ticks": 1001,
+    "confirmation_rolling_medians": 1001,
+    "demo_old_median": 23.76,
+    "fixed_live_median": 1.26,
+    "geometric_threshold_unrounded": 5.47152629528544,
+    "reported_threshold": 5.47,
+    "boundary_time_msc": 1685801408062,
+    "boundary_server_time": "2023-06-03T14:10:08.062",
+    "result": "PASS"
+  },
+  "registered_dataset_scope": {
+    "start_server_time_inclusive": "2021-07-01T00:00:00",
+    "end_server_time_exclusive": "2026-07-01T00:00:00",
+    "warmup_only": "[2021-04-01T00:00:00,2021-07-01T00:00:00)",
+    "rolling_folds": [
+      {
+        "train": "[2021-07-01T00:00:00,2023-01-01T00:00:00)",
+        "test": "[2023-01-01T00:00:00,2023-04-01T00:00:00)"
+      },
+      {
+        "train": "[2021-10-01T00:00:00,2023-04-01T00:00:00)",
+        "test": "[2023-04-01T00:00:00,2023-07-01T00:00:00)"
+      },
+      {
+        "train": "[2022-01-01T00:00:00,2023-07-01T00:00:00)",
+        "test": "[2023-07-01T00:00:00,2023-10-01T00:00:00)"
+      },
+      {
+        "train": "[2022-04-01T00:00:00,2023-10-01T00:00:00)",
+        "test": "[2023-10-01T00:00:00,2024-01-01T00:00:00)"
+      }
+    ],
+    "final_selection": "[2022-07-01T00:00:00,2024-01-01T00:00:00)",
+    "formal_oos": "[2024-01-01T00:00:00,2025-01-01T00:00:00)",
+    "untouched_live2_holdout": "[2025-01-01T00:00:00,2026-07-01T00:00:00)",
+    "timezone": "broker server time",
+    "sample_size_rule": "At least 150 original trade groups across stitched rolling tests and formal OOS; untouched holdout trades are excluded."
+  },
+  "branch_definition": {
+    "recorded": "Unchanged JustMarkets-Demo2 Bid/Ask ticks.",
+    "reduced": "Identical tick timestamps and Bid path; deterministic empirical quantile-mapped Ask/spread strictly before boundary_time_msc; unchanged ticks at and after the boundary.",
+    "decision": "Both pass independently; never average; neither branch can rescue the other."
+  },
+  "derived_reduced_dataset": {
+    "server": "JustMarkets-Demo2",
+    "custom_symbol": "KINGEA_ETHUSD_S_RSB3",
+    "builder": {
+      "path": "MQL5/Scripts/KingEA/BuildNativeReducedSpreadSymbol.mq5",
+      "version": "1.03",
+      "build_id": "RSB3-REPLACE-20260723-A",
+      "sha256": "5D7E8714A6BAF5B5D1667F38B7473E66CD7ABFE342D5EC130F747556661368BA",
+      "compile_result": "0 errors, 0 warnings"
+    },
+    "build_report": {
+      "source_file": "native_reduced_build_KINGEA_ETHUSD_S_RSB3_2026.07.23_01-40-08.csv",
+      "sha256": "F7D8FAC87B0A6F8785715351DE75AC9E2E878EA0495214E3F79352942AA5AE43",
+      "result": "PASS"
+    },
+    "verifier": {
+      "path": "MQL5/Scripts/KingEA/VerifyNativeReducedSpreadSymbol.mq5",
+      "version": "1.02",
+      "build_id": "RSB3-VERIFY-20260723-B",
+      "sha256": "21234DF52860515BFC78D547ED59461A765457C73C6D401EC3281741A438D8C3",
+      "compile_result": "0 errors, 0 warnings"
+    },
+    "verification_report": {
+      "source_file": "native_reduced_verify_KINGEA_ETHUSD_S_RSB3_2026.07.23_15-48-05.csv",
+      "sha256": "311F232414C5EC7AF898826F0C834DA091B8DD7A2BB9C427467A7B777C37BCE8",
+      "result": "PASS",
+      "ticks": 327417608,
+      "transformed": 96218891,
+      "unchanged": 231198717,
+      "count_mismatch_days": 0,
+      "nonflag_mismatches": 0,
+      "raw_flag_changes": 272867308,
+      "valid_flag_normalizations": 272867308,
+      "invalid_flag_normalizations": 0,
+      "expected_fieldhash64": "12331204907777062548",
+      "stored_fieldhash64": "12331204907777062548",
+      "expected_mix64": "2622223847145114891",
+      "stored_mix64": "2622223847145114891"
+    },
+    "platform_flag_rule": {
+      "amendment_path": "governance/NATIVE_SPREAD_BRACKET_PLATFORM_AMENDMENT_2026-07-22.md",
+      "amendment_sha256": "A0AF1004EFA0505AEF24FC7ED47FA691548DDAFB32EBB47AC814DB884D049FC0",
+      "rule": "stored_flags = origin_flags & 0xFFFFFF7F",
+      "strategy_use_of_flags": "PROHIBITED",
+      "normalization_sanity_check": {
+        "full_population_changed_ticks": 272867308,
+        "full_population_ticks": 327417608,
+        "full_population_percent": 83.339228,
+        "diagnostic_file": "persisted_flag_normalization_2026.07.23_14-21-50.csv",
+        "diagnostic_sha256": "ABEC9F5A82BA40B171ECD54AAEFF4EDD9665A5B9F97CBB7E3DFD7C45A5251B46",
+        "transformed_day_sample": {
+          "changed_ticks": 146415,
+          "ticks": 173712,
+          "percent": 84.28606
+        },
+        "unchanged_day_sample": {
+          "changed_ticks": 221862,
+          "ticks": 270610,
+          "percent": 81.985884
+        },
+        "conclusion": "The full-population rate is bracketed by the pre-verification transformed-day and unchanged-day reference samples. All observed changes are exactly bit 128 clearing; price, timestamp, last, and volume fields remain unchanged."
+      }
+    },
+    "result": "PASS"
+  },
+  "gap_and_anomaly_policy": {
+    "demo_no_tick_gaps": "Preserve all 45 classified no-tick gaps; never synthesize or interpolate.",
+    "live_2026_02_22_ticks_without_m30_bar": "Quarantined from authoritative Live2 validation until tester reconciliation is complete."
+  },
+  "not_done": [
+    "No strategy signal, trade, return, optimizer, OOS, or holdout result was consulted.",
+    "Candidate performance testing remains unauthorized until CAND-ETH-ST-001 is FROZEN."
+  ],
+  "pending_before_candidate_freeze": [],
+  "supersedes_without_mutating": {
+    "path": "data/manifest/KINGEA_ETH_NATIVE_SPREAD_BRACKET_EVIDENCE_V1.json",
+    "sha256": "498514189FEE0C3EF84DD338F4120474CE600DFA7964CB834624D339DBC254BC"
+  },
+  "final_manifest_gate": {
+    "applicable_month_window_definition": "applicable_month_window identifies the fixed sampling interval assigned to the crossed quote's calendar month for reference; it does not imply containment or identify the event time.",
+    "report_file": "rsb3_manifest_gate_2026.07.26_08-38-01.csv",
+    "report_sha256": "3E535B43B8B937A62ECA017DAAF1B6D23D3BC5C2577934807427671D21BB0357",
+    "result": {
+      "status": "PASS",
+      "sample_window_containment": [
+        {
+          "time_msc": 1709374488223,
+          "contained_window_count": 0,
+          "applicable_month_window": "sample_33",
+          "applicable_month_window_start": "2024.03.15 12:00:00",
+          "applicable_month_window_end_exclusive": "2024.03.15 13:00:00"
+        },
+        {
+          "time_msc": 1709375322820,
+          "contained_window_count": 0,
+          "applicable_month_window": "sample_33",
+          "applicable_month_window_start": "2024.03.15 12:00:00",
+          "applicable_month_window_end_exclusive": "2024.03.15 13:00:00"
+        }
+      ],
+      "sample_audit_sha256": "96AD33D6F51D61FF9411E0E1BB6012132B0FD4BC534FD7B596E91B32ABA6FA9B",
+      "sample_windows": 60,
+      "sampled_quotes": 400437,
+      "warmup": {
+        "status": "PASS",
+        "from": "2021.04.01 00:00:00",
+        "to_exclusive": "2021.07.01 00:00:00",
+        "m30_bars": 4340,
+        "expected_m30_slots": 4368,
+        "coverage_ratio": 0.99358974,
+        "derived_h4_bars": 545,
+        "unexplained_terminal_gaps": 0,
+        "export_file": "KingEA\\rsb3_warmup_m30_2026.07.26_08-38-01.csv"
+      }
+    },
+    "warmup_export_file": "rsb3_warmup_m30_2026.07.26_08-38-01.csv",
+    "warmup_export_sha256": "873D59AB200C9D54EF87075958A678FEC098C8A3CD28ED303278F57AF22D0BD5",
+    "sample_audit_file": "history_quality_ETHUSD.s_5Y_2026.07.21_13-28-01.csv",
+    "sample_audit_sha256": "96AD33D6F51D61FF9411E0E1BB6012132B0FD4BC534FD7B596E91B32ABA6FA9B",
+    "crossed_quote_reconciliation": "The earlier 400437-quote targeted audit found zero crossed quotes; the automated half-open interval check proves both full-population crossed timestamps were outside all 60 fixed sample windows."
+  }
+}

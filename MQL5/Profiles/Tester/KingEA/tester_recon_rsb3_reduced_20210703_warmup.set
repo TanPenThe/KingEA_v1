@@ -1,0 +1,8 @@
+; KingEA Strategy Tester reconciliation input set
+; Build ID: TESTER-RECON-20260724-A
+; Replacement for the infeasible 2021-07-01 boundary window
+InpRunLabel=RSB3_REDUCED_20210703_WARMUP
+InpExpectedSymbol=KINGEA_ETHUSD_S_RSB3
+InpWindowStart=2021.07.03 00:00:00
+InpWindowEnd=2021.07.04 00:00:00
+InpExpectedTicks=88490

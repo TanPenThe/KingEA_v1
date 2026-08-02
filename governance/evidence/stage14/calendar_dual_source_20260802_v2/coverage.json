@@ -1,0 +1,12 @@
+{
+  "category_counts": {
+    "central_bank": 60,
+    "employment": 177,
+    "gdp": 86,
+    "inflation": 315
+  },
+  "maximum_events_per_month": 51,
+  "minimum_events_per_month": 36,
+  "month_count": 45,
+  "passed": true
+}

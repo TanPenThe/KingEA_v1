@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE14-20260802-A",
+  "recorded_at": "2026-08-02T17:23:50+08:00",
+  "status": "ACCEPTED_DUAL_SOURCE",
+  "coverage": "[2021-04-01,2025-01-01)",
+  "owner_approval": {
+    "approved": true,
+    "statement": "I approve the governed MQL5 website calendar source adapter",
+    "scope": "GOVERNED_MQL5_WEBSITE_CALENDAR_SOURCE_ADAPTER_ONLY"
+  },
+  "source_contract": {
+    "primary": "NATIVE_MT5_TRADE_SERVER_CALENDAR",
+    "corroborating": "GOVERNED_MQL5_WEBSITE_ECONOMIC_CALENDAR",
+    "website_endpoint": "https://www.mql5.com/en/economic-calendar/content",
+    "website_max_segment_days": 90,
+    "website_filters": {
+      "currency": "USD",
+      "importance": "HIGH",
+      "country": "US"
+    },
+    "authenticated_session_required": false,
+    "native_time_governs_blackout_intervals": true
+  },
+  "native": {
+    "event_count": 1971,
+    "event_lookup_failures": 0,
+    "csv_sha256": "893BE5A32E37F324B4591104A4F4CA04B197DEDCBD893BDBF9D18E7E05D2AA28",
+    "snapshot_internal_sha256": "DDADA7D5FE7C45BFAB0BFE0B0938EE762760CFE6C13033AFCF6C7DA29028E1CD",
+    "snapshot_file_sha256": "8D5A282FB287AC4B6F2B5A8AAACF625ECFD31286FE98E2F86AFEA44CB4054F37"
+  },
+  "website": {
+    "event_count": 1971,
+    "raw_segment_count": 16,
+    "snapshot_internal_sha256": "003583A95B26AE2E98B555E701FCC0292B6834233645E0A3E5484FE8852312BF",
+    "snapshot_file_sha256": "2565F5A14D7EE797A1CD7E2BC8F3FEFCFD8847193A090519B260F8986464DE72"
+  },
+  "reconciliation": {
+    "passed": true,
+    "matched_ids_and_names": 1971,
+    "missing_native": 0,
+    "missing_website": 0,
+    "conflicts": 0,
+    "server_offset_seconds": {
+      "10800": 1971
+    },
+    "file_sha256": "A2B47FEE91F195063A703D608BF3EFEDA30FBF50BE67A710097ADD22603519B1"
+  },
+  "coverage_gate": {
+    "passed": true,
+    "months": 45,
+    "minimum_events_per_month": 36,
+    "maximum_events_per_month": 51,
+    "category_counts": {
+      "central_bank": 60,
+      "inflation": 315,
+      "employment": 177,
+      "gdp": 86
+    },
+    "file_sha256": "619315A81A78F933A9094FF23EB6CBF9872EBD5401D6155F4FD2E210907ED188"
+  },
+  "implementation": {
+    "adapter_sha256": "F30CF7729CDA0689122A08C9280773406A990340EC928813C7791804AC9AE3C9",
+    "cli_sha256": "36DACB677A658B7B14C8981B087A8424598ACE44EC3F89375EEFB197ACA6BF37",
+    "test_sha256": "0EDDD6C621D595F2C8DFAFF4CACFE4DF1EA2C82ACF72D71F3F1F22E9D4E5D2F6",
+    "exporter_source_sha256": "405F21EC4B1F591D82EA865FF460BD63FC4784B1F47FEC632E33599050518F6F",
+    "exporter_ex5_sha256": "ADAD54C7837B6C19B8A196D3213B183A9A42B86CD6A6C9145A4E9C957641D173",
+    "compile_log_sha256": "9C3883CBF562D89AEE064DDBCE23DFBFF71DCE1616B3E739388CFDDBA453731C",
+    "compile_errors": 0,
+    "compile_warnings": 0
+  },
+  "evidence": {
+    "root": "governance/evidence/stage14/calendar_dual_source_20260802_v2",
+    "manifest_sha256": "341CADA0ED6214409D254D1E4F82BA6632A2DEC7546F9110DDC6B917FA01935B",
+    "historical_blocker_retained": "governance/evidence/stage14/CALENDAR_BLOCKER.json"
+  },
+  "authorization_effect": {
+    "calendar_snapshot_accepted": true,
+    "signal_free_benchmark_run": false,
+    "gate1_root_prepared": false,
+    "gate1_execution": false,
+    "candidate_budget_consumed": 0,
+    "formal_oos_accessed": false,
+    "holdout_accessed": false
+  }
+}

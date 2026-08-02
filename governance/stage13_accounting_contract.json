@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE13-20260801-A",
+  "candidate_id": "CAND-ETH-ST-001",
+  "status": "IMPLEMENTED_NON_PERFORMANCE",
+  "candidate_budget_consumed": 0,
+  "canonical_export": "HASH_CHAINED_JSONL",
+  "derived_exports": ["CSV", "MARKDOWN"],
+  "statement_adapter": "MT5_ENGLISH_HTML_V1",
+  "justmarkets_adapter": "DEFERRED_UNTIL_GENUINE_SAMPLE",
+  "month_coverage_gate": "3_FAILED_OF_LATEST_6",
+  "integrity_gate": "2_QUARANTINES_IN_90_BROKER_DAYS",
+  "isolated_recovery": "HALF_TIER_AND_5_CLEAN_DAYS",
+  "cumulative_recovery": "BOTTOM_0_25_AND_FRESH_30_30_RAMP",
+  "authorization": {
+    "stage14_manifest_preparation": true,
+    "development_execution": false,
+    "formal_oos": false,
+    "holdout": false,
+    "demo_or_live_orders": false,
+    "live2": false,
+    "watchdog": false,
+    "standdown_removal": false
+  }
+}

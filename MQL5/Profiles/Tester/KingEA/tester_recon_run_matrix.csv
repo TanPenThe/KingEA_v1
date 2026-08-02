@@ -1,0 +1,5 @@
+run_id,set_file,expert,symbol,timeframe,model,tester_date_from,tester_date_to,account,purpose,status
+DEMO2_ORIGIN_20210701_WARMUP,tester_recon_demo2_origin_20210701_warmup.set,ReconcileTesterRealTicks,ETHUSD.s,M30,Every tick based on real ticks,2021.06.30,2021.07.02,JustMarkets-Demo2,Native warm-up boundary reconciliation,AUTHORIZED
+RSB3_REDUCED_20210701_WARMUP,tester_recon_rsb3_reduced_20210701_warmup.set,ReconcileTesterRealTicks,KINGEA_ETHUSD_S_RSB3,M30,Every tick based on real ticks,2021.06.30,2021.07.02,JustMarkets-Demo2,Original reduced-branch boundary reconciliation,INFEASIBLE_MT5_MANDATORY_WARMUP
+RSB3_REDUCED_20210703_WARMUP,tester_recon_rsb3_reduced_20210703_warmup.set,ReconcileTesterRealTicks,KINGEA_ETHUSD_S_RSB3,M30,Every tick based on real ticks,2021.07.01,2021.07.04,JustMarkets-Demo2,First replacement ending at MT5 rounded warm-up boundary,INFEASIBLE_MT5_WARMUP_ROUNDED_TO_END
+RSB3_REDUCED_20210704_WARMUP,tester_recon_rsb3_reduced_20210704_warmup.set,ReconcileTesterRealTicks,KINGEA_ETHUSD_S_RSB3,M30,Every tick based on real ticks,2021.07.01,2021.07.05,JustMarkets-Demo2,First full measurement day after observed MT5 warm-up boundary,PASS_20260726

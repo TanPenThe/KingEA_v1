@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE14-20260802-A",
+  "status": "BLOCKED_PENDING_CALENDAR_SOURCE_DECISION",
+  "reason": "NATIVE_MT5_OLDER_HISTORY_UNAVAILABLE",
+  "server": "JustMarkets-Demo2",
+  "range": "[2021-04-01,2025-01-01)",
+  "attempts": [
+    {
+      "filter": "currency=USD",
+      "query_values": 0,
+      "api_error": 0,
+      "high_impact_written": 0,
+      "artifact": "calendar_attempt_currency_only.csv",
+      "artifact_sha256": "BBF4C188E56BFE08A7AC7DE9421DA2CCD1F31E848E0EDE52641E1F3D3618BF6F"
+    },
+    {
+      "filter": "country=US,currency=USD",
+      "query_values": 0,
+      "api_error": 0,
+      "high_impact_written": 0,
+      "artifact": "calendar_attempt_us_usd.csv",
+      "artifact_sha256": "BBF4C188E56BFE08A7AC7DE9421DA2CCD1F31E848E0EDE52641E1F3D3618BF6F"
+    },
+    {
+      "filter": "connected Demo2; country=US,currency=USD; five bounded retries",
+      "terminal_build": 6090,
+      "countries": 23,
+      "usd_event_definitions": 248,
+      "recent_values_30d_plus_7d": 360,
+      "query_values_each_retry": 0,
+      "api_error_each_retry": 0,
+      "retry_count": 5,
+      "high_impact_written": 0,
+      "artifact": "calendar_attempt_connected_diagnostic.csv",
+      "artifact_sha256": "BBF4C188E56BFE08A7AC7DE9421DA2CCD1F31E848E0EDE52641E1F3D3618BF6F",
+      "compile_log_sha256": "8447E72A4EC89A742C6F97CF6850AF484948506623B5217DE57F0F965DCAA515",
+      "exporter_ex5_sha256": "AA85E0DB31BF0782FC37AB7EEB9B8BDA7CDB9AD47AEA52E0AFB58375113FC33E"
+    }
+  ],
+  "diagnosis": {
+    "calendar_service_healthy": true,
+    "recent_calendar_values_available": true,
+    "governed_historical_range_available": false,
+    "startup_race_fixed": true,
+    "native_retry_exhausted": true
+  },
+  "website_assessment": {
+    "url": "https://www.mql5.com/en/economic-calendar",
+    "accessible": true,
+    "custom_period_control_present": true,
+    "maximum_custom_period_days": 90,
+    "observed_data_endpoint": "/en/economic-calendar/content",
+    "bulk_historical_export_proven": false,
+    "contract_equivalent_to_native_api": false,
+    "source_revision_required_before_use": true
+  },
+  "effects": {
+    "calendar_snapshot_accepted": false,
+    "market_interval_file_created": false,
+    "signal_free_benchmark_authorized": false,
+    "gate1_root_prepared": false,
+    "candidate_budget_consumed": 0,
+    "formal_oos_accessed": false,
+    "holdout_accessed": false
+  },
+  "required_owner_decision": "APPROVE_GOVERNED_MQL5_WEBSITE_SOURCE_ADAPTER_OR_RETAIN_BLOCK"
+}

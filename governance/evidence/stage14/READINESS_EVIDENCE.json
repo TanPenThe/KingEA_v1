@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE14-20260802-A",
+  "recorded_at": "2026-08-02T16:41:17+08:00",
+  "status": "PASS_IMPLEMENTATION_BLOCKED_PENDING_CALENDAR_SOURCE_DECISION",
+  "candidate_id": "CAND-ETH-ST-001",
+  "candidate_budget_consumed": 0,
+  "result_bearing_run_count": 0,
+  "pre_tooling": {
+    "path": "governance/evidence/stage14/PRE_TOOLING.json",
+    "sha256": "61930DAC09C02878398C6CD3C202C862B0DC0A863421E328F1EDD5576BCDD18A",
+    "internal_manifest_sha256": "06B29D3CE425B545EFE38D49297B472089F0B9B214B0E9FCA6AE4350E63EC06B",
+    "post_compile_match": true
+  },
+  "compilation": {
+    "tester_log_sha256": "057E1D237167DC52332BB46A11B08EE7B811B42F5B63F5FE4901EE5BC275BAE0",
+    "benchmark_log_sha256": "68BCDB3C4212A2F0C8092C1106E850A1A0677AB9B0B588A0CF356411D4FF57E0",
+    "harness_log_sha256": "88C3C3A256B22607CAA273951B3A55CD67DAF5A2DA9E0D82C27CD25544B1F073",
+    "calendar_export_log_sha256": "8447E72A4EC89A742C6F97CF6850AF484948506623B5217DE57F0F965DCAA515",
+    "tester_ex5_sha256": "F23CF5917A6DBCEC5C51BB45996776EE776C95F3D9D768F34CDF02ACA1CC2072",
+    "benchmark_ex5_sha256": "585235849297DD8D289EDD5EE03DBBFFA8F00678D2C9E49D6746F26211BD60B1",
+    "harness_ex5_sha256": "86BAF6D35E6963E9BEA2F96B88749A7730183321A8FD1D8FD765BE98AA8470CB",
+    "calendar_export_ex5_sha256": "AA85E0DB31BF0782FC37AB7EEB9B8BDA7CDB9AD47AEA52E0AFB58375113FC33E",
+    "errors": 0,
+    "warnings": 0
+  },
+  "verification": {
+    "python_tests": 43,
+    "python_failures": 0,
+    "python_log_sha256": "5848083C3AC1CA7251AA197CA5AD0C83FBC59C75F7CA5807A20AC7A70DEFE428",
+    "policy_suites": 18,
+    "policy_failures": 0,
+    "policy_log_sha256": "DDF58941937014F4922E15DEB74565C61A8554B55A58A112630607E88801B0EB",
+    "mql_contract_checks": 10,
+    "mql_contract_failures": 0,
+    "mql_contract_sha256": "296311CB222D6EF0F0B7B5BDDFF664FF0BE22300A3D3C84482CFF6A1F3F7BE5F",
+    "runtime_harness_ex5_sha256": "86BAF6D35E6963E9BEA2F96B88749A7730183321A8FD1D8FD765BE98AA8470CB"
+  },
+  "calendar_evidence": {
+    "accepted": false,
+    "blocker": "NATIVE_MT5_OLDER_HISTORY_UNAVAILABLE",
+    "blocker_path": "governance/evidence/stage14/CALENDAR_BLOCKER.json",
+    "blocker_sha256": "11AB8A8203DC3D77B0BB849871532FEC7BA5BC656D6D13FAA99F8390BE7513FE",
+    "attempt_count": 3,
+    "connected_diagnostic": {
+      "countries": 23,
+      "usd_event_definitions": 248,
+      "recent_values": 360,
+      "historical_retry_count": 5,
+      "historical_values_each_retry": 0,
+      "api_error_each_retry": 0
+    },
+    "mql5_website_accessible": true,
+    "website_source_contract_approved": false,
+    "external_substitution_authorized": false
+  },
+  "governance": {
+    "contract_markdown_sha256": "A1FCCC519A5AD94F418D9DB696D903979A9E1623B9408DDFAC370CA775AA42B5",
+    "contract_json_sha256": "E5A93851452944AF82D8EF3CD723521FAC6CEC4A595DFB1162CCFD89E7C10210",
+    "stage9_standdown_active": true,
+    "watchdog_enabled": false,
+    "watchdog_installed": false,
+    "mt5_stopped_after_contract_run": true,
+    "signal_free_benchmark_run": false,
+    "gate1_root_prepared": false,
+    "gate1_owner_approved": false,
+    "formal_oos_access": false,
+    "holdout_access": false
+  }
+}

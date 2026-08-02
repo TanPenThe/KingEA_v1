@@ -1,0 +1,8 @@
+; KingEA Strategy Tester reconciliation input set
+; Build ID: TESTER-RECON-20260724-A
+; First full day after MT5's observed mandatory warm-up boundary
+InpRunLabel=RSB3_REDUCED_20210704_WARMUP
+InpExpectedSymbol=KINGEA_ETHUSD_S_RSB3
+InpWindowStart=2021.07.04 00:00:00
+InpWindowEnd=2021.07.05 00:00:00
+InpExpectedTicks=42787

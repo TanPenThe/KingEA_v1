@@ -1,0 +1,310 @@
+{
+  "manifest_id": "KINGEA-ETH-INDEPENDENT-V1",
+  "manifest_sha256": "858E2583F3D36EBC9143CC654A2DBDC91B6B391F101AEC07CEFA42B6FFFB3BD4",
+  "generated_utc": "2026-07-21T13:57:47.996190+00:00",
+  "network_accessed": false,
+  "binance_items": [
+    {
+      "month": "2021-07",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-07.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-07.zip.CHECKSUM"
+    },
+    {
+      "month": "2021-08",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-08.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-08.zip.CHECKSUM"
+    },
+    {
+      "month": "2021-09",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-09.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-09.zip.CHECKSUM"
+    },
+    {
+      "month": "2021-10",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-10.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-10.zip.CHECKSUM"
+    },
+    {
+      "month": "2021-11",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-11.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-11.zip.CHECKSUM"
+    },
+    {
+      "month": "2021-12",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-12.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2021-12.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-01",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-01.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-01.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-02",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-02.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-02.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-03",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-03.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-03.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-04",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-04.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-04.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-05",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-05.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-05.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-06",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-06.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-06.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-07",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-07.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-07.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-08",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-08.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-08.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-09",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-09.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-09.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-10",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-10.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-10.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-11",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-11.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-11.zip.CHECKSUM"
+    },
+    {
+      "month": "2022-12",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-12.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2022-12.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-01",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-01.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-01.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-02",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-02.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-02.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-03",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-03.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-03.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-04",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-04.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-04.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-05",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-05.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-05.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-06",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-06.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-06.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-07",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-07.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-07.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-08",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-08.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-08.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-09",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-09.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-09.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-10",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-10.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-10.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-11",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-11.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-11.zip.CHECKSUM"
+    },
+    {
+      "month": "2023-12",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-12.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2023-12.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-01",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-01.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-01.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-02",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-02.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-02.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-03",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-03.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-03.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-04",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-04.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-04.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-05",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-05.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-05.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-06",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-06.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-06.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-07",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-07.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-07.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-08",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-08.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-08.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-09",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-09.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-09.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-10",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-10.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-10.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-11",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-11.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-11.zip.CHECKSUM"
+    },
+    {
+      "month": "2024-12",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-12.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2024-12.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-01",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-01.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-01.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-02",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-02.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-02.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-03",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-03.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-03.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-04",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-04.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-04.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-05",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-05.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-05.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-06",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-06.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-06.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-07",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-07.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-07.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-08",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-08.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-08.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-09",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-09.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-09.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-10",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-10.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-10.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-11",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-11.zip.CHECKSUM"
+    },
+    {
+      "month": "2025-12",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-12.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2025-12.zip.CHECKSUM"
+    },
+    {
+      "month": "2026-01",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-01.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-01.zip.CHECKSUM"
+    },
+    {
+      "month": "2026-02",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-02.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-02.zip.CHECKSUM"
+    },
+    {
+      "month": "2026-03",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-03.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-03.zip.CHECKSUM"
+    },
+    {
+      "month": "2026-04",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-04.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-04.zip.CHECKSUM"
+    },
+    {
+      "month": "2026-05",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-05.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-05.zip.CHECKSUM"
+    },
+    {
+      "month": "2026-06",
+      "archive_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-06.zip",
+      "checksum_url": "https://data.binance.vision/data/spot/monthly/aggTrades/ETHUSDT/ETHUSDT-aggTrades-2026-06.zip.CHECKSUM"
+    }
+  ],
+  "coinbase_product": "ETH-USD",
+  "coinbase_granularity_seconds": 900
+}

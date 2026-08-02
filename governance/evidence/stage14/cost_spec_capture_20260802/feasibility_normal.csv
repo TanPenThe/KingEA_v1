@@ -1,0 +1,206 @@
+snapshot_utc,snapshot_server,label,section,key,value,unit,notes
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,audit,scope,NON_PERFORMANCE_FEASIBILITY_ONLY,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,audit,prohibited,No signals, historical returns, win rate, expectancy, ATR optimization, parameter ranking, or order submission.,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,audit,symbol,ETHUSD.s,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,audit,snapshot_label,STAGE14_FRESH_NORMAL,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,terminal,name,MetaTrader 5,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,terminal,company,MetaQuotes Ltd.,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,terminal,build,6090,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,terminal,connected,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,terminal,trade_allowed,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,terminal,dlls_allowed,0,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,server,JustMarkets-Demo2,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,company,Just Global Markets Ltd.,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,currency,USD,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,leverage,500,ratio,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,margin_mode,2,enum,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,stopout_mode,0,enum,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,margin_call_level,40.0000,percent_or_money,Interpret using stopout_mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,stopout_level,20.0000,percent_or_money,Interpret using stopout_mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,balance_snapshot,1000.00,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,equity_snapshot,1000.00,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,margin_used_snapshot,0.00,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,margin_free_snapshot,1000.00,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,margin_level_snapshot,0.0000,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,account,reference_equity,1000.00,USD,Feasibility reference only; no strategy performance calculation.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,name,ETHUSD.s,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,description,Ethereum vs US Dollar,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,path,Crypto S\ETHUSD.s,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,currency_base,USD,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,currency_profit,USD,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,currency_margin,USD,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,formula,,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,synchronized,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,digits,2,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,spread_property,98,points,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,spread_float,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,trade_mode,4,enum,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,calc_mode,2,enum,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,execution_mode,2,enum,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,filling_mode_flags,1,flags,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,order_mode_flags,127,flags,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,expiration_mode_flags,15,flags,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,stops_level,0,points,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,freeze_level,0,points,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,swap_mode,1,enum,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,swap_rollover_3days,3,enum_day,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,point,0.010000000000,price,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,tick_size,0.010000000000,price,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,tick_value,0.01000000,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,tick_value_profit,0.01000000,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,tick_value_loss,0.01000000,USD,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,contract_size,1.00000000,units_per_lot,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,volume_min,0.01000000,lots,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,volume_max,100.00000000,lots,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,volume_step,0.01000000,lots,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,volume_limit,0.00000000,lots,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,margin_initial,0.00000000,margin_currency_per_lot,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,margin_maintenance,0.00000000,margin_currency_per_lot,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,margin_hedged,1.00000000,margin_currency_per_lot,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,swap_long,-280.56000000,symbol_defined,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,symbol,swap_short,-184.08000000,symbol_defined,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,time_server,2026.08.02 12:46:09,,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,time_msc,1785674769415,unix_ms,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,bid,1868.40,price,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,ask,1869.38,price,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,last,0.00,price,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,spread,0.980000000000,price,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,spread_points,98.0000,points,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,tick,volume_real,0.0000,broker_units,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_rate,buy_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_rate,buy_initial_rate,0.0020000000,multiplier,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_rate,buy_maintenance_rate,0.0020000000,multiplier,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_rate,sell_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_rate,sell_initial_rate,0.0020000000,multiplier,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_rate,sell_maintenance_rate,0.0020000000,multiplier,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SUNDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SUNDAY_0_to,00:09,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SUNDAY_1_from,00:19,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SUNDAY_1_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SUNDAY_entries_found,2,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,MONDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,MONDAY_0_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,MONDAY_entries_found,1,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,TUESDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,TUESDAY_0_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,TUESDAY_entries_found,1,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,WEDNESDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,WEDNESDAY_0_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,WEDNESDAY_entries_found,1,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,THURSDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,THURSDAY_0_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,THURSDAY_entries_found,1,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,FRIDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,FRIDAY_0_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,FRIDAY_entries_found,1,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SATURDAY_0_from,00:05,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SATURDAY_0_to,00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,trade_session,SATURDAY_entries_found,1,sessions,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_M1_first_date,2021.06.29 23:56:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_M1_bars,2660240,bars,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_M1_synchronized,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_M30_first_date,2020.11.05 12:30:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_M30_bars,100389,bars,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_M30_synchronized,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_H4_first_date,2019.05.16 00:00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_H4_bars,15372,bars,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_H4_synchronized,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_D1_first_date,2019.05.16 00:00:00,server_time,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_D1_bars,2614,bars,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,history,PERIOD_D1_synchronized,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.01000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.01000000_live_margin,0.0400,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.01000000_pct_reference_equity,0.0040,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.01000000_notional_proxy,18.6938,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.01000000_effective_leverage_proxy,467.3450,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.01000000_hmr_margin_proxy,0.0935,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.02000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.02000000_live_margin,0.0700,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.02000000_pct_reference_equity,0.0070,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.02000000_notional_proxy,37.3876,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.02000000_effective_leverage_proxy,534.1086,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.02000000_hmr_margin_proxy,0.1869,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.05000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.05000000_live_margin,0.1900,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.05000000_pct_reference_equity,0.0190,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.05000000_notional_proxy,93.4690,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.05000000_effective_leverage_proxy,491.9421,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.05000000_hmr_margin_proxy,0.4673,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.10000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.10000000_live_margin,0.3700,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.10000000_pct_reference_equity,0.0370,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.10000000_notional_proxy,186.9380,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.10000000_effective_leverage_proxy,505.2378,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,buy_vol_0.10000000_hmr_margin_proxy,0.9347,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.01000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.01000000_live_margin,0.0400,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.01000000_pct_reference_equity,0.0040,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.01000000_notional_proxy,18.6840,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.01000000_effective_leverage_proxy,467.1000,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.01000000_hmr_margin_proxy,0.0934,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.02000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.02000000_live_margin,0.0700,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.02000000_pct_reference_equity,0.0070,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.02000000_notional_proxy,37.3680,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.02000000_effective_leverage_proxy,533.8286,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.02000000_hmr_margin_proxy,0.1868,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.05000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.05000000_live_margin,0.1900,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.05000000_pct_reference_equity,0.0190,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.05000000_notional_proxy,93.4200,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.05000000_effective_leverage_proxy,491.6842,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.05000000_hmr_margin_proxy,0.4671,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.10000000_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.10000000_live_margin,0.3700,USD,OrderCalcMargin at snapshot conditions; rerun during actual HMR.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.10000000_pct_reference_equity,0.0370,percent,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.10000000_notional_proxy,186.8400,USD,Proxy; interpretation depends on symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.10000000_effective_leverage_proxy,504.9730,ratio,Derived from notional proxy/live OrderCalcMargin; verify against symbol calculation mode.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,margin_matrix,sell_vol_0.10000000_hmr_margin_proxy,0.9342,USD,Informational only. Actual HMR snapshot via OrderCalcMargin is authoritative.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.10pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.10pct_gross_loss,0.0200,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.10pct_pct_reference_equity,0.0020,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.25pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.25pct_gross_loss,0.0500,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.25pct_pct_reference_equity,0.0050,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.50pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.50pct_gross_loss,0.0900,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_0.50pct_pct_reference_equity,0.0090,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_1.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_1.00pct_gross_loss,0.1900,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_1.00pct_pct_reference_equity,0.0190,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_2.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_2.00pct_gross_loss,0.3700,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_2.00pct_pct_reference_equity,0.0370,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_3.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_3.00pct_gross_loss,0.5600,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_3.00pct_pct_reference_equity,0.0560,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_5.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_5.00pct_gross_loss,0.9300,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_5.00pct_pct_reference_equity,0.0930,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_10.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_10.00pct_gross_loss,1.8700,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,buy_minlot_0.01000000_distance_10.00pct_pct_reference_equity,0.1870,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.10pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.10pct_gross_loss,0.0200,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.10pct_pct_reference_equity,0.0020,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.25pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.25pct_gross_loss,0.0500,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.25pct_pct_reference_equity,0.0050,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.50pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.50pct_gross_loss,0.0900,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_0.50pct_pct_reference_equity,0.0090,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_1.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_1.00pct_gross_loss,0.1900,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_1.00pct_pct_reference_equity,0.0190,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_2.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_2.00pct_gross_loss,0.3700,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_2.00pct_pct_reference_equity,0.0370,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_3.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_3.00pct_gross_loss,0.5600,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_3.00pct_pct_reference_equity,0.0560,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_5.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_5.00pct_gross_loss,0.9300,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_5.00pct_pct_reference_equity,0.0930,percent,Mechanical feasibility only; not a strategy test.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_10.00pct_ok,1,bool,
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_10.00pct_gross_loss,1.8700,USD,OrderCalcProfit; excludes commission, swap, and added slippage stress.
+2026.08.02 09:46:10,2026.08.02 12:46:10,STAGE14_FRESH_NORMAL,stop_risk_matrix,sell_minlot_0.01000000_distance_10.00pct_pct_reference_equity,0.1870,percent,Mechanical feasibility only; not a strategy test.

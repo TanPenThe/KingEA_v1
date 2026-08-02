@@ -1,0 +1,10 @@
+key,value
+build_id,KINGEA-STAGE14-20260802-A
+result,PASS
+checks,10
+failures,0
+fixture,SYNTHETIC_ONLY
+performance_authorization,DENIED
+candidate_budget_consumed,0
+order_capability,PROHIBITED_AND_ABSENT
+standdown_required,ACTIVE

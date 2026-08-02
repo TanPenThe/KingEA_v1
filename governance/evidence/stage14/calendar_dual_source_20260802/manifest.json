@@ -1,0 +1,231 @@
+{
+  "coverage": {
+    "category_counts": {
+      "central_bank": 60,
+      "employment": 177,
+      "gdp": 86,
+      "inflation": 315
+    },
+    "maximum_events_per_month": 51,
+    "minimum_events_per_month": 36,
+    "month_count": 45,
+    "passed": true
+  },
+  "matched_events": 1971,
+  "native_csv_sha256": "893BE5A32E37F324B4591104A4F4CA04B197DEDCBD893BDBF9D18E7E05D2AA28",
+  "native_role": "PRIMARY_MT5_TRADE_SERVER_CALENDAR",
+  "raw_segments": [
+    {
+      "index": 1,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_01.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2021-04-01T00:00:00",
+        "importance": "8",
+        "to": "2021-06-29T23:59:59"
+      },
+      "sha256": "4E42AD656D008713656EAED5E66AF6361ADF0FAA18F32277500D3D73C18AABA4",
+      "size": 65663
+    },
+    {
+      "index": 2,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_02.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2021-06-30T00:00:00",
+        "importance": "8",
+        "to": "2021-09-27T23:59:59"
+      },
+      "sha256": "8E209839E2E3118D5F184DF20814B557404F96AFF5D5B6FE5A5F7381BDF82182",
+      "size": 63340
+    },
+    {
+      "index": 3,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_03.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2021-09-28T00:00:00",
+        "importance": "8",
+        "to": "2021-12-26T23:59:59"
+      },
+      "sha256": "30D7A0FE4366C16DC534740E4EA226E68A27125B47D71255CB18EF7533DEA546",
+      "size": 68801
+    },
+    {
+      "index": 4,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_04.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2021-12-27T00:00:00",
+        "importance": "8",
+        "to": "2022-03-26T23:59:59"
+      },
+      "sha256": "604B64856E6C3A75B4C395613FEAD50D2B82C98EB8835F2C34AC1EA471863E57",
+      "size": 61917
+    },
+    {
+      "index": 5,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_05.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2022-03-27T00:00:00",
+        "importance": "8",
+        "to": "2022-06-24T23:59:59"
+      },
+      "sha256": "E62EDACA89FE9CF536FF2AC657905EB54E7335A57D3C5040D3FC30A7E66CC080",
+      "size": 64164
+    },
+    {
+      "index": 6,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_06.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2022-06-25T00:00:00",
+        "importance": "8",
+        "to": "2022-09-22T23:59:59"
+      },
+      "sha256": "0F40080F8DD7AD2B6A1A99FBE673788F7BDF015BF924DE1E1939E1551E2F4E85",
+      "size": 62237
+    },
+    {
+      "index": 7,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_07.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2022-09-23T00:00:00",
+        "importance": "8",
+        "to": "2022-12-21T23:59:59"
+      },
+      "sha256": "C8F0EB565D2D7D8C695E7A3A166BE3A9786CDA4DE18F38A443835F7633580784",
+      "size": 65623
+    },
+    {
+      "index": 8,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_08.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2022-12-22T00:00:00",
+        "importance": "8",
+        "to": "2023-03-21T23:59:59"
+      },
+      "sha256": "9ADD8ECD34118D7E3C4200CC365DF4E27E1D2358F4045596131E74D6833ED43A",
+      "size": 63777
+    },
+    {
+      "index": 9,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_09.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2023-03-22T00:00:00",
+        "importance": "8",
+        "to": "2023-06-19T23:59:59"
+      },
+      "sha256": "9DF8ECF37E338DCDD7A84F38DAADABF7B2CE61D0A4EE54543D7618D71EAE01B1",
+      "size": 63232
+    },
+    {
+      "index": 10,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_10.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2023-06-20T00:00:00",
+        "importance": "8",
+        "to": "2023-09-17T23:59:59"
+      },
+      "sha256": "7E572D66531B63C4373188E7F5B5603EE3B869D958BECB166E7A7D96B9829FED",
+      "size": 62707
+    },
+    {
+      "index": 11,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_11.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2023-09-18T00:00:00",
+        "importance": "8",
+        "to": "2023-12-16T23:59:59"
+      },
+      "sha256": "BE489C66EE476BD162C78C221C33A34D212AFC0E6177B7B74A42925EED93F4DD",
+      "size": 65974
+    },
+    {
+      "index": 12,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_12.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2023-12-17T00:00:00",
+        "importance": "8",
+        "to": "2024-03-15T23:59:59"
+      },
+      "sha256": "A4DCFE78EF379DE5C90DACE9BE1D53A704122B44B93B37803EB6DE7F689E3772",
+      "size": 57187
+    },
+    {
+      "index": 13,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_13.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2024-03-16T00:00:00",
+        "importance": "8",
+        "to": "2024-06-13T23:59:59"
+      },
+      "sha256": "446A90B43E66D1387A783009F8140D4CE2E59127D49BFFF08EE8066F51E05343",
+      "size": 61234
+    },
+    {
+      "index": 14,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_14.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2024-06-14T00:00:00",
+        "importance": "8",
+        "to": "2024-09-11T23:59:59"
+      },
+      "sha256": "8E2C7ECD3FE21FFF16ACE055CF1CAF8FE3DD3874F559BE93BAA3E069FF076520",
+      "size": 61588
+    },
+    {
+      "index": 15,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_15.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2024-09-12T00:00:00",
+        "importance": "8",
+        "to": "2024-12-10T23:59:59"
+      },
+      "sha256": "E2EE9031B505AE60B75E0F9EC3DCC3356F63DC701BD435BE2B0ADE91F445F6CF",
+      "size": 64046
+    },
+    {
+      "index": 16,
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802\\raw\\segment_16.json",
+      "request": {
+        "currencies": "1",
+        "date_mode": "0",
+        "from": "2024-12-11T00:00:00",
+        "importance": "8",
+        "to": "2024-12-31T23:59:59"
+      },
+      "sha256": "A1BF65419CF0F82BBA4CE5773FDB465764E402051A1D6DFABCA04BC212DD1F67",
+      "size": 13317
+    }
+  ],
+  "schema": 1,
+  "source_role": "CORROBORATING_GOVERNED_WEBSITE_ADAPTER",
+  "status": "ACCEPTED",
+  "website_snapshot_sha256": "003583A95B26AE2E98B555E701FCC0292B6834233645E0A3E5484FE8852312BF"
+}

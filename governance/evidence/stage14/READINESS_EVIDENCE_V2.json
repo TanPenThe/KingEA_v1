@@ -1,0 +1,54 @@
+{
+  "schema": 2,
+  "build_id": "KINGEA-STAGE14-20260802-A",
+  "recorded_at": "2026-08-02T17:23:50+08:00",
+  "status": "PASS_IMPLEMENTATION_CALENDAR_ACCEPTED_BENCHMARK_NOT_RUN",
+  "candidate_id": "CAND-ETH-ST-001",
+  "candidate_budget_consumed": 0,
+  "result_bearing_run_count": 0,
+  "calendar_evidence": {
+    "accepted": true,
+    "source_contract": "NATIVE_PRIMARY_WEBSITE_CORROBORATING",
+    "matched_events": 1971,
+    "covered_months": 45,
+    "acceptance_path": "governance/evidence/stage14/CALENDAR_ACCEPTANCE.json",
+    "acceptance_sha256": "21CC1B3F8F439BE0172884CC07008CB60D4E4B0C5075B78C618116572EB66F56",
+    "dual_source_manifest_sha256": "341CADA0ED6214409D254D1E4F82BA6632A2DEC7546F9110DDC6B917FA01935B"
+  },
+  "provenance": {
+    "pre_tooling_path": "governance/evidence/stage14/PRE_TOOLING.json",
+    "pre_tooling_file_sha256": "FEAA3E75276564F0D86251EBCD8085818EFBCDD85BBE7625E027F08310EED7D4",
+    "pre_tooling_internal_sha256": "2CBCDD3CB32191F712F4CE2493D052A34635B4F28AECBB34264C1D5E608E9F0C",
+    "post_compile_source_match": true,
+    "calendar_export_compile_errors": 0,
+    "calendar_export_compile_warnings": 0,
+    "calendar_export_compile_log_sha256": "9C3883CBF562D89AEE064DDBCE23DFBFF71DCE1616B3E739388CFDDBA453731C"
+  },
+  "verification": {
+    "python_tests": 50,
+    "python_failures": 0,
+    "python_stdout_sha256": "06486A674E35B698BC1F0F9B718C2F25BECBCCC4A32FCCEA2E4B7282C46F2DB5",
+    "python_stderr_sha256": "D7099A126E93188725D8AC5B768EBB4C39F24BDDEE76B57197D8EF634FBECA44",
+    "policy_suites": 18,
+    "policy_failures": 0,
+    "frozen_candidate_hashes_preserved": true
+  },
+  "governance": {
+    "contract_markdown_sha256": "E3EC0AA66F8EF25C4684BECA872A9406CA09B4D7E7E5031B16DC518E201773B5",
+    "contract_json_sha256": "DB5D2FB6A63C5C0168269AD4EC6D2F691CE6AE157457AEF0F9E33C0AA9E2C235",
+    "historical_calendar_blocker_retained": true,
+    "stage9_standdown_active": true,
+    "watchdog_enabled": false,
+    "watchdog_installed": false,
+    "signal_free_benchmark_run": false,
+    "gate1_root_prepared": false,
+    "gate1_owner_approved": false,
+    "formal_oos_access": false,
+    "holdout_access": false
+  },
+  "remaining_blockers": [
+    "DETERMINISTIC_COST_AND_RESEARCH_SPECIFICATION",
+    "SIGNAL_FREE_THROUGHPUT_BENCHMARK",
+    "EXACT_GATE1_ROOT_OWNER_APPROVAL"
+  ]
+}

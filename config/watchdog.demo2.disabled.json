@@ -1,0 +1,15 @@
+{
+  "Schema": 1,
+  "Enabled": false,
+  "DeploymentId": "KINGEA-DEMO2-001",
+  "ExpectedExecutablePath": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+  "ExpectedDataRoot": "D0E8209F77C8CF37AD8BF550E51FF075",
+  "ExpectedServerClass": "JustMarkets-Demo2",
+  "ExpectedConfigurationHash": "A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE",
+  "TerminalArguments": "/config:C:\\KingEA_v1\\config\\kingea_demo2_runtime.ini",
+  "PollSeconds": 5,
+  "StaleSeconds": 30,
+  "GracefulCloseSeconds": 15,
+  "CommonFilesRoot": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files",
+  "InstallScheduledTask": false
+}

@@ -1,0 +1,4 @@
+; KingEA guarded RSB3 M1 history build
+; Build ID: RSB3-M1-BARS-20260725-D
+InpCustomSymbol=KINGEA_ETHUSD_S_RSB3
+InpAuthorizationToken=AUTHORIZE_RSB3_M1_BARS_20260724

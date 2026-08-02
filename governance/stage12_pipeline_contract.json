@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE12-20260731-A",
+  "candidate_id": "CAND-ETH-ST-001",
+  "status": "IMPLEMENTED_NON_PERFORMANCE",
+  "candidate_budget_consumed": 0,
+  "spread_branches": ["RECORDED", "RSB3"],
+  "configuration_count": 19440,
+  "chunk_size": 1000,
+  "final_chunk_size": 440,
+  "branch_percentiles": "INDEPENDENT",
+  "branch_trade_floor": "150_EACH_INDEPENDENTLY",
+  "governing_score": "LOWER_BRANCH",
+  "monte_carlo_paths": 10000,
+  "monte_carlo_block_trade_groups": 5,
+  "authorization": {
+    "development_execution": false,
+    "formal_oos": false,
+    "holdout": false,
+    "demo_or_live_orders": false,
+    "live2": false,
+    "watchdog": false,
+    "standdown_removal": false,
+    "stage13_accounting_export_implementation": true
+  }
+}
+

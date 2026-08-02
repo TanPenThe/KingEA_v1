@@ -1,0 +1,25 @@
+# Local Python/tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Reproducible MetaTrader build outputs
+*.ex5
+
+# Local secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+
+# Account-bound local tester configuration (contains the Demo2 login)
+/artifacts/mt5_demo2_rsb3_tester_reconciliation.ini
+
+# Editor and transient files
+*.tmp
+*.bak
+*~
+.vscode/
+.idea/
+

@@ -1,0 +1,256 @@
+{
+  "candidate_id": "CAND-ETH-ST-001",
+  "parent_id": null,
+  "hypothesis_id": "HYP-ETH-M30-SUPERTREND-CONTINUATION-001",
+  "status": "DRAFT",
+  "performance_authorized": false,
+  "created_at": "2026-07-26T13:30:00+08:00",
+  "author": "KingEA owner and Codex",
+  "rationale": "A closed-bar M30 continuation breakout aligned with an H4 Supertrend and a fixed explainable trend/volatility regime may capture persistent ETHUSD.s moves while avoiding transitional and extreme-volatility entries.",
+  "falsification": "Reject if either registered spread branch fails any OOS, drawdown, sample-size, parameter-neighbourhood, execution-stress, or untouched-holdout gate. Insufficient qualifying trades is failure and does not authorize widening the search space.",
+  "strategy": {
+    "family": "Supertrend/ATR trend-following continuation breakout",
+    "symbol": "ETHUSD.s",
+    "account_type": "JustMarkets Pro",
+    "signal_timeframe": "M30",
+    "confirmation_timeframe": "H4",
+    "directions": [
+      "LONG",
+      "SHORT"
+    ],
+    "closed_bars_only": true,
+    "maximum_open_trade_groups": 1,
+    "planned_partial_exit": false,
+    "add_on": false,
+    "fixed_take_profit": false,
+    "entry_pseudocode": [
+      "Evaluate exactly once after a complete M30 bar closes.",
+      "Require complete and fresh M30/H4 inputs plus the fixed regime classifier.",
+      "Require M30 and H4 Supertrend directions to agree.",
+      "Require TRENDING regime and NORMAL or HIGH volatility.",
+      "LONG: the latest M30 close is above the preceding lookback high plus entry_buffer_atr times ATR and the previous close was not above its corresponding prior threshold.",
+      "SHORT: apply the exact inverse rule.",
+      "Block if a trade group is already open or any shared safety gate rejects."
+    ],
+    "stop_pseudocode": [
+      "LONG technical stop is min(signal_bar_low, M30_supertrend_line) minus stop_buffer_atr times ATR.",
+      "SHORT technical stop is max(signal_bar_high, M30_supertrend_line) plus stop_buffer_atr times ATR.",
+      "The signal module emits the technical stop but never volume or an order.",
+      "The shared safety kernel derives volume and may downsize or reject.",
+      "A confirmed protective stop may only tighten."
+    ],
+    "exit_pseudocode": [
+      "Exit on the broker-side protective stop.",
+      "Exit after a closed M30 bar confirms the opposite Supertrend state.",
+      "At progress_checkpoint_bars exit if maximum favourable excursion is below required_progress_r.",
+      "Exit unconditionally at maximum_holding_bars.",
+      "A gate-blocked signal expires at that bar and is never queued."
+    ],
+    "tunable_parameters": [
+      {
+        "name": "supertrend_atr_period",
+        "type": "integer",
+        "grid": [10, 14, 18, 22],
+        "default": 14
+      },
+      {
+        "name": "supertrend_multiplier",
+        "type": "decimal",
+        "grid": [2.0, 2.5, 3.0, 3.5, 4.0],
+        "default": 3.0
+      },
+      {
+        "name": "breakout_lookback_bars",
+        "type": "integer",
+        "grid": [6, 12, 18, 24],
+        "default": 12
+      },
+      {
+        "name": "entry_buffer_atr",
+        "type": "decimal",
+        "grid": [0.0, 0.1, 0.2],
+        "default": 0.1
+      },
+      {
+        "name": "stop_buffer_atr",
+        "type": "decimal",
+        "grid": [0.0, 0.25, 0.5],
+        "default": 0.25
+      },
+      {
+        "name": "progress_checkpoint_bars",
+        "type": "integer",
+        "grid": [8, 12, 16],
+        "default": 12
+      },
+      {
+        "name": "required_progress_r",
+        "type": "decimal",
+        "grid": [0.25, 0.5, 0.75],
+        "default": 0.5
+      },
+      {
+        "name": "maximum_holding_bars",
+        "type": "integer",
+        "grid": [48, 72, 96],
+        "default": 72
+      }
+    ],
+    "maximum_grid_combinations": 19440
+  },
+  "fixed_parameters": {
+    "regime_classifier": {
+      "adx_period": 14,
+      "trend_enter_threshold": 25,
+      "trend_exit_threshold": 20,
+      "confirmation_bars": 2,
+      "volatility_measure": "ATR(14) divided by close",
+      "volatility_lookback_calendar_days": 90,
+      "minimum_expected_bar_coverage": 0.95,
+      "normal_percentile_upper_exclusive": 80,
+      "high_percentile_upper_inclusive": 95,
+      "extreme_percentile_above": 95,
+      "state_hysteresis_bars": 2,
+      "fail_safe": "Incomplete stale transitional ranging or extreme state blocks entry."
+    },
+    "sessions": "All broker-open sessions remain eligible; news spread maintenance weekend margin and safety gates remain authoritative.",
+    "position_management": "Single runner with no partial exit and no add-on.",
+    "reason": "Fixed safety and regime rules reduce optimizer degrees of freedom and enforce the pre-registered explainable v1 design."
+  },
+  "validation": {
+    "timezone": "JustMarkets broker server time",
+    "warmup_only": {
+      "start_inclusive": "2021-04-01T00:00:00",
+      "end_exclusive": "2021-07-01T00:00:00",
+      "signals_allowed": false
+    },
+    "rolling_folds": [
+      {
+        "train": {
+          "start_inclusive": "2021-07-01T00:00:00",
+          "end_exclusive": "2023-01-01T00:00:00"
+        },
+        "test": {
+          "start_inclusive": "2023-01-01T00:00:00",
+          "end_exclusive": "2023-04-01T00:00:00"
+        }
+      },
+      {
+        "train": {
+          "start_inclusive": "2021-10-01T00:00:00",
+          "end_exclusive": "2023-04-01T00:00:00"
+        },
+        "test": {
+          "start_inclusive": "2023-04-01T00:00:00",
+          "end_exclusive": "2023-07-01T00:00:00"
+        }
+      },
+      {
+        "train": {
+          "start_inclusive": "2022-01-01T00:00:00",
+          "end_exclusive": "2023-07-01T00:00:00"
+        },
+        "test": {
+          "start_inclusive": "2023-07-01T00:00:00",
+          "end_exclusive": "2023-10-01T00:00:00"
+        }
+      },
+      {
+        "train": {
+          "start_inclusive": "2022-04-01T00:00:00",
+          "end_exclusive": "2023-10-01T00:00:00"
+        },
+        "test": {
+          "start_inclusive": "2023-10-01T00:00:00",
+          "end_exclusive": "2024-01-01T00:00:00"
+        }
+      }
+    ],
+    "final_selection": {
+      "start_inclusive": "2022-07-01T00:00:00",
+      "end_exclusive": "2024-01-01T00:00:00"
+    },
+    "formal_oos": {
+      "start_inclusive": "2024-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "counts_toward_150": true
+    },
+    "untouched_holdout": {
+      "server": "JustMarkets-Live2",
+      "start_inclusive": "2025-01-01T00:00:00",
+      "end_exclusive": "2026-07-01T00:00:00",
+      "counts_toward_150": false
+    },
+    "minimum_stitched_oos_trade_groups": 150,
+    "spread_branches": [
+      "UNCHANGED_DEMO2",
+      "KINGEA_ETHUSD_S_RSB3"
+    ],
+    "branch_rule": "Use the worse in-sample ranking score and require both branches to pass independently; neither branch may rescue the other."
+  },
+  "cost_and_execution_assumptions": {
+    "baseline_latency_ms": 20,
+    "additional_latency_ms": [100, 250, 500],
+    "severe_mt5_random_delay": true,
+    "spread_stress_multipliers": [2.0, 2.5, 3.0],
+    "commission_and_swap_stress_multiplier": 1.3,
+    "asymmetric_volatility_linked_slippage": true,
+    "randomized_missed_entries": true,
+    "margin_source": "Live MT5 symbol/account properties and OrderCalcMargin are authoritative.",
+    "hmr_reference": "ETHUSD leverage 1:200 during applicable news HMR; new entries remain blocked by the wider KingEA news window.",
+    "caveat": "Demo2 spread authenticity before the registered boundary is unverified. Unchanged recorded spreads are the conservative branch and RSB3 is the mandatory reduced-spread sensitivity branch. Either branch can reject and neither can rescue the other."
+  },
+  "ranking": {
+    "in_sample_only": true,
+    "worse_branch_score": true,
+    "weights_percent": {
+      "mar_calmar": 30,
+      "sortino": 20,
+      "profit_factor": 20,
+      "expectancy_95pct_lower_confidence_bound": 20,
+      "capped_trade_count_confidence": 10
+    }
+  },
+  "acceptance": {
+    "selected_oos_profit_factor_minimum": 1.3,
+    "neighbour_profit_factor_minimum": 1.2,
+    "neighbour_positive_expectancy_fraction_minimum": 0.8,
+    "neighbour_rule_reason": "The 1.20 threshold proves the surrounding configurations are not broken; it cannot replace or rescue the selected candidate's 1.30 OOS and stress requirement.",
+    "oos_drawdown_maximum_is_multiple": 1.5,
+    "strategy_drawdown_ceiling_percent": 20,
+    "monte_carlo_95pct_drawdown_ceiling_percent": 30,
+    "headline_return_can_override_failure": false
+  },
+  "candidate_budget": {
+    "family": "ETHUSD.s Supertrend/ATR trend continuation",
+    "family_max": 3,
+    "consumed": 0,
+    "consumption_rule": "Consumption begins only when the first result-bearing job changes the frozen candidate to RUNNING."
+  },
+  "source_and_configuration": {
+    "signal_source": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+    "signal_source_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+    "configuration_hash_rule": "SHA-256 of canonical UTF-8 JSON with this configuration_sha256 value replaced by an empty string; keys sorted; compact separators; ensure_ascii=false.",
+    "configuration_sha256": "A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE",
+    "data_manifest": "data/manifest/KINGEA_ETH_NATIVE_SPREAD_BRACKET_EVIDENCE_V2_1.json",
+    "data_manifest_sha256": "2C64105609D143C20420B9E33D8A458DFFF7158CEA894C41D31EE16474147206"
+  },
+  "expected_artifacts": [
+    "Versioned optimizer input and run manifest",
+    "Per-fold IS and forward reports for both spread branches",
+    "Parameter-neighbourhood heatmaps before OOS exposure",
+    "Formal OOS reports",
+    "Execution-stress reports",
+    "Monte Carlo reports",
+    "One-time untouched Live2 holdout report only after prior gates pass"
+  ],
+  "reproduction": {
+    "command": "PENDING_NON_PERFORMANCE_IMPLEMENTATION_AND_OWNER_FREEZE",
+    "performance_run_blocked": true
+  },
+  "approval": {
+    "owner": "PENDING",
+    "reviewer": "PENDING",
+    "freeze_timestamp": null
+  }
+}

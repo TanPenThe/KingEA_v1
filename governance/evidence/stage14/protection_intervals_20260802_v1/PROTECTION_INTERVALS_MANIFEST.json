@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE14-20260802-E",
+  "status": "PASS_SEPARATE_HMR_AND_ENTRY_PROTECTION",
+  "coverage": {
+    "start_inclusive": "2021-04-01T00:00:00+00:00",
+    "end_exclusive": "2025-01-01T00:00:00+00:00",
+    "time_semantics": "JUSTMARKETS_SERVER_CLOCK_REPRESENTED_AS_OFFSET_AWARE_EPOCH"
+  },
+  "calendar_snapshot": {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\calendar_dual_source_20260802_v2\\native_snapshot.json",
+    "file_sha256": "8D5A282FB287AC4B6F2B5A8AAACF625ECFD31286FE98E2F86AFEA44CB4054F37",
+    "internal_sha256": "DDADA7D5FE7C45BFAB0BFE0B0938EE762760CFE6C13033AFCF6C7DA29028E1CD"
+  },
+  "hmr_evidence": {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\JUSTMARKETS_HMR_EVIDENCE_20260802.json",
+    "file_sha256": "EAFF996ACA978E8356E2677CF9C675026B710A228B70533A4E65D79F44ACE43D",
+    "scheduled_before_minutes": 15,
+    "scheduled_after_minutes": 5,
+    "schedule_is_hard_end": false
+  },
+  "research_specification": {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\cost_spec_capture_20260802\\RESEARCH_SPECIFICATION.json",
+    "file_sha256": "5E074C4F57E1852F6A620EA2A7B534F702545EE0553498F54E44E6767B6770FF"
+  },
+  "protection_intervals": {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\protection_intervals_20260802_v1\\PROTECTION_INTERVALS.csv",
+    "file_sha256": "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3",
+    "interval_count": 8643,
+    "type_counts": {
+      "BROKER_HMR_SCHEDULED": 1971,
+      "KINGEA_ENTRY_BLACKOUT": 1971,
+      "MAINTENANCE_ENTRY_BLOCK": 1567,
+      "MAINTENANCE_FORCE_FLAT": 1567,
+      "MAINTENANCE_RECOVERY": 1567
+    }
+  },
+  "independent_semantics": {
+    "KINGEA_ENTRY_BLACKOUT": "ENTRY_PERMISSION_ONLY__EVENT_MINUS_30_MINUTES_TO_PLUS_15_MINUTES",
+    "BROKER_HMR_SCHEDULED": "MARGIN_STATE_SCHEDULE_ONLY__EVENT_MINUS_15_MINUTES_TO_PLUS_5_MINUTES",
+    "conflation_prohibited": true,
+    "hmr_schedule_is_hard_end": false,
+    "extended_hmr_policy": "FRESH_BROKER_MARGIN_AND_REVERSION_FACTS_REQUIRED",
+    "historical_margin_stress": "GREATER_OF_LIVE_CALCULATED_MARGIN_AND_FROZEN_1_TO_200_PROXY"
+  },
+  "maintenance_window_count": 1567,
+  "authorization": {
+    "signal_free_benchmark": false,
+    "gate1": false,
+    "result_bearing_research": false,
+    "oos": false,
+    "holdout": false
+  }
+}

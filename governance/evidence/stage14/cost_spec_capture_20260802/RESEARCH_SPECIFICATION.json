@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "build_id": "KINGEA-STAGE14-20260802-C",
+  "status": "PASS_RECONCILED_FRESH_BROKER_FACTS",
+  "collector_contract": "REUSED_STAGE8_PREFREEZE_STAGE13",
+  "server": "JustMarkets-Demo2",
+  "symbol": "ETHUSD.s",
+  "capture_server_times": {
+    "stage8_specification": "2026.08.02 12:41:34",
+    "pre_freeze_feasibility": "2026.08.02 12:46:10"
+  },
+  "specification_hash": "80B1088172CF232B585CBE41B83D5CE932DD31C91227EF1907CDA85698BB8246",
+  "research_specification_sha256": "EF29745018D5EFEF6BC0F2524E9612368539D45D0421987EA78FC2399866643D",
+  "account": {
+    "balance": 1000.0,
+    "equity": 1000.0,
+    "selected_leverage": 500
+  },
+  "symbol_facts": {
+    "digits": 2,
+    "point": 0.01,
+    "tick_size": 0.01,
+    "tick_value": 0.01,
+    "tick_value_profit": 0.01,
+    "tick_value_loss": 0.01,
+    "contract_size": 1.0,
+    "calculation_mode": 2,
+    "volume_min": 0.01,
+    "volume_max": 100.0,
+    "volume_step": 0.01,
+    "volume_limit": 0.0,
+    "stops_level_points": 0,
+    "freeze_level_points": 0,
+    "margin_rate_buy": 0.002,
+    "margin_rate_sell": 0.002,
+    "live_margin_per_lot": 4.0,
+    "hmr_proxy_margin_per_lot": 9.3463
+  },
+  "costs": {
+    "commission_per_lot_round_turn": 0.0,
+    "commission_zero_evidence": {
+      "source": "STAGE9_DEMO_POSITION_OPEN_AND_CLOSE_DEALS",
+      "deal_count": 2,
+      "round_turn_volume": 0.01,
+      "both_deal_commissions_zero": true
+    },
+    "swap_mode": "POINTS",
+    "swap_long_points_per_lot": -280.56,
+    "swap_short_points_per_lot": -184.08,
+    "worst_swap_usd_per_lot_day": 2.8056,
+    "stress_multiplier_applied_later": 1.3
+  },
+  "hmr": {
+    "fresh_official_document_check": true,
+    "news_proxy_leverage": 200,
+    "calculation_rule": "MAX_OF_LIVE_ORDERCALCMARGIN_AND_1_TO_200_PROXY",
+    "stressed_position_size_assumption_lots": 0.01,
+    "live_margin_per_lot_usd": 4.0,
+    "hmr_proxy_margin_per_lot_usd": 9.3463,
+    "stressed_margin_used_usd": 0.093463,
+    "stressed_margin_level_calculation": "1000.00_EQUITY_DIVIDED_BY_0.093463_MARGIN_TIMES_100",
+    "stressed_margin_level_percent_at_minimum_lot": 1069942.1161,
+    "stressed_free_margin_ratio_at_minimum_lot": 0.99990654,
+    "margin_level_floor_percent": 500.0,
+    "free_margin_floor_ratio": 0.8,
+    "floors_passed": true,
+    "scheduled_news_window_minutes_before": 15,
+    "scheduled_news_window_minutes_after": 5,
+    "scheduled_window_is_not_a_hard_end": true,
+    "extended_or_unscheduled_hmr_policy": "BLOCK_ENTRY_APPLY_CONSERVATIVE_MARGIN_AND_REQUIRE_FRESH_REVERSION_EVIDENCE",
+    "kingea_entry_blackout_is_separate": true,
+    "kingea_entry_blackout_minutes_before": 30,
+    "kingea_entry_blackout_minutes_after": 15
+  },
+  "sessions": {
+    "count": 8,
+    "half_open_seconds_of_week": [
+      "300-540",
+      "1140-86400",
+      "86700-172800",
+      "173100-259200",
+      "259500-345600",
+      "345900-432000",
+      "432300-518400",
+      "518700-604800"
+    ],
+    "derived_closure_gaps": [
+      "SUNDAY 00:00-00:05 SERVER",
+      "SUNDAY 00:09-00:19 SERVER",
+      "MONDAY-SATURDAY 00:00-00:05 SERVER"
+    ]
+  },
+  "evidence_hashes": {
+    "stage8_specification_csv": "1350A1F4552E76358621553399165839C8C4C958D95A9CADBF43ABC37FF733CB",
+    "pre_freeze_feasibility_csv": "89E03342530FC90D9E51F0F35FD22A1FA4CDCCF8094A2E59DEA27982C77C06AD",
+    "stage13_deal_cost_csv": "0BDF21B4BECE5CFEC3253C9331623C8C9ED5DD6BB20ECD106DA136E35D276F46",
+    "justmarkets_hmr_evidence": "EAFF996ACA978E8356E2677CF9C675026B710A228B70533A4E65D79F44ACE43D",
+    "pre_tooling_internal": "729848DFA4BBECAE339061B9F00AF9E5B7396A5F900D23C93449A5D8CC866CA3"
+  },
+  "fail_closed_notes": [
+    "THE_FIRST_FEASIBILITY_CAPTURE_RECORDED_ZERO_ACCOUNT_FINANCIALS_AND_WAS_REJECTED",
+    "THE_EXISTING_EXPORTER_WAS_HARDENED_TO_WAIT_FOR_DEMO2_IDENTITY_SYMBOL_SYNC_AND_POSITIVE_ACCOUNT_FINANCIALS",
+    "NO_BROKER_FACT_WAS_COPIED_FORWARD_FROM_AN_OLDER_CAPTURE",
+    "NO_PARALLEL_SYMBOL_SPECIFICATION_COLLECTOR_WAS_CREATED"
+  ],
+  "authorization": {
+    "signal_free_benchmark": false,
+    "gate1_root": false,
+    "result_bearing_research": false,
+    "formal_oos": false,
+    "holdout": false
+  }
+}

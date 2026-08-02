@@ -1,0 +1,68 @@
+{
+  "schema": "kingea.symbol-specification.v1",
+  "status": "DRAFT_NON_DEPLOYABLE",
+  "approval": "PENDING_OWNER_REVIEW",
+  "deployment_id": "KINGEA-DEMO2-STAGE8-OBSERVATION",
+  "server_class": "JustMarkets-Demo2",
+  "symbol_id": "ETHUSD.s",
+  "observed_server_time": "2026-07-28T04:46:21",
+  "canonical_specification_sha256": "80B1088172CF232B585CBE41B83D5CE932DD31C91227EF1907CDA85698BB8246",
+  "observation_evidence": {
+    "path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\stage8_spec_observation_ETHUSD.s_2026.07.28_01-46-21.csv",
+    "sha256": "5684396DE064843ED30854BCDCA5CA417B42041F00F90707751569F872ACBA6E"
+  },
+  "specification": {
+    "description": "Ethereum vs US Dollar",
+    "path": "Crypto S\\ETHUSD.s",
+    "currency_base": "USD",
+    "currency_profit": "USD",
+    "currency_margin": "USD",
+    "digits": 2,
+    "point": 0.01,
+    "tick_size": 0.01,
+    "tick_value": 0.01,
+    "tick_value_profit": 0.01,
+    "tick_value_loss": 0.01,
+    "contract_size": 1.0,
+    "calc_mode": 2,
+    "execution_mode": 2,
+    "filling_mode": 1,
+    "order_mode": 127,
+    "expiration_mode": 15,
+    "trade_mode": 4,
+    "volume_min": 0.01,
+    "volume_max": 100.0,
+    "volume_step": 0.01,
+    "volume_limit": 0.0,
+    "stops_level": 0,
+    "freeze_level": 0,
+    "margin_initial": 0.0,
+    "margin_maintenance": 0.0,
+    "margin_hedged": 1.0,
+    "margin_rate_buy": 0.002,
+    "margin_rate_sell": 0.002,
+    "sessions_seconds_of_week": [
+      [300, 540],
+      [1140, 86400],
+      [86700, 172800],
+      [173100, 259200],
+      [259500, 345600],
+      [345900, 432000],
+      [432300, 518400],
+      [518700, 604800]
+    ]
+  },
+  "calculator_evidence": {
+    "tick_probe_reported_per_lot": 0.01,
+    "tick_probe_calculated_per_lot": 0.01,
+    "live_margin_per_lot": 4.0,
+    "hmr_1_to_200_proxy_per_lot": 9.36785,
+    "stressed_margin_level_percent": 1067480.7987,
+    "stressed_free_margin_ratio": 0.99990632
+  },
+  "permissions": {
+    "order_capability": false,
+    "performance_authorization": false,
+    "baseline_activation": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "certificate_id": "FREEZE-CAND-ETH-ST-001-20260726",
+  "candidate_id": "CAND-ETH-ST-001",
+  "status": "FROZEN",
+  "freeze_timestamp": "2026-07-26T18:49:42+08:00",
+  "owner_approval": {
+    "received": true,
+    "statement": "I explicitly approve CAND-ETH-ST-001 configuration A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE for FROZEN status.",
+    "approved_configuration_sha256": "A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE"
+  },
+  "approved_configuration_sha256": "A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE",
+  "draft_artifact": "governance/candidates/CAND-ETH-ST-001_DRAFT.json",
+  "draft_artifact_sha256": "3BDCEC73D2F843F3D31227425047BA714BF2C7C157BDD667CD7BF9811AA1F4CC",
+  "data_manifest": "data/manifest/KINGEA_ETH_NATIVE_SPREAD_BRACKET_EVIDENCE_V2_1.json",
+  "data_manifest_sha256": "2C64105609D143C20420B9E33D8A458DFFF7158CEA894C41D31EE16474147206",
+  "signal_source": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+  "signal_source_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+  "immutability_rule": "The reviewed DRAFT artifact remains byte-for-byte unchanged. This certificate changes governance state without recomputing or replacing the owner-approved configuration hash.",
+  "authorization": {
+    "safety_kernel_implementation": true,
+    "non_performance_contract_testing": true,
+    "performance_testing": false,
+    "optimization": false,
+    "formal_oos_access": false,
+    "untouched_holdout_access": false,
+    "live_or_demo_orders": false
+  },
+  "next_gate": "Implement and test the shared safety kernel before requesting separate authorization for any performance-bearing run.",
+  "candidate_budget_consumed": 0
+}

@@ -1,0 +1,5 @@
+InpExpectedServerContains=Demo2
+InpAuthorization=AUTHORIZE_STAGE14_CALENDAR_EXPORT_20260802
+InpStart=1617235200
+InpEnd=1735689600
+InpConnectionTimeoutSeconds=60

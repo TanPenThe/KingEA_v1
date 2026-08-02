@@ -1,0 +1,54 @@
+{
+  "schema": 2,
+  "build_id": "KINGEA-STAGE14-20260802-A",
+  "candidate_id": "CAND-ETH-ST-001",
+  "status": "READINESS_IMPLEMENTED_INPUTS_ACCEPTED_BENCHMARK_NOT_RUN",
+  "candidate_budget_consumed": 0,
+  "gate_cardinality": {
+    "gate1_launches": 200,
+    "gate1_configuration_passes": 194400,
+    "gate2_launches": 8,
+    "gate3_runs_per_branch": 312,
+    "gate3_launches": 624
+  },
+  "calendar": {
+    "status": "ACCEPTED_DUAL_SOURCE",
+    "coverage": "[2021-04-01,2025-01-01)",
+    "native_role": "PRIMARY_MT5_TRADE_SERVER_CALENDAR",
+    "website_role": "CORROBORATING_GOVERNED_WEBSITE_ADAPTER",
+    "matched_events": 1971,
+    "covered_months": 45,
+    "website_snapshot_sha256": "003583A95B26AE2E98B555E701FCC0292B6834233645E0A3E5484FE8852312BF",
+    "native_snapshot_sha256": "DDADA7D5FE7C45BFAB0BFE0B0938EE762760CFE6C13033AFCF6C7DA29028E1CD",
+    "evidence_manifest_sha256": "341CADA0ED6214409D254D1E4F82BA6632A2DEC7546F9110DDC6B917FA01935B"
+  },
+  "cost_and_specification": {
+    "status": "ACCEPTED_FRESH_RECONCILED_BROKER_FACTS",
+    "research_specification_file_sha256": "5E074C4F57E1852F6A620EA2A7B534F702545EE0553498F54E44E6767B6770FF",
+    "minimum_lot_stressed_margin_usd": 0.093463,
+    "minimum_lot_stressed_margin_level_percent": 1069942.1161
+  },
+  "protection_intervals": {
+    "status": "ACCEPTED_SEPARATE_HMR_AND_ENTRY_PROTECTION",
+    "interval_file_sha256": "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3",
+    "manifest_file_sha256": "BAB6BDB9B3DE48F631CE3FA238F7B54E42CCF4D412B467B0CED718B72CC688DC",
+    "kingea_entry_blackout_count": 1971,
+    "broker_hmr_scheduled_count": 1971,
+    "scheduled_hmr_end_is_reversion_proof": false
+  },
+  "remaining_readiness": [
+    "SIGNAL_FREE_THROUGHPUT_BENCHMARK",
+    "EXACT_GATE1_ROOT_OWNER_APPROVAL"
+  ],
+  "authorization": {
+    "signal_free_benchmark_preparation": false,
+    "gate1_execution": false,
+    "gate2_execution": false,
+    "gate3_execution": false,
+    "holdout": false,
+    "live2": false,
+    "demo_or_live_orders": false,
+    "watchdog": false,
+    "standdown_removal": false
+  }
+}

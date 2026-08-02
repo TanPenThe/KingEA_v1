@@ -1,0 +1,7 @@
+..................{"status": "FAIL", "reason": "CALENDAR_EVIDENCE_ROOT_ALREADY_EXISTS"}
+.................................
+----------------------------------------------------------------------
+Ran 51 tests in 0.406s
+System.Management.Automation.RemoteException
+OK
+{"coverage": {"category_counts": {"central_bank": 1, "employment": 1, "gdp": 1, "inflation": 2}, "maximum_events_per_month": 5, "minimum_events_per_month": 5, "month_count": 1, "passed": true}, "matched_events": 5, "native_csv_sha256": "DE1E6AF08F6EC0272C668465AF1230C815DB09FEFE2DA8B03CF8734D7A1CBD7A", "native_role": "PRIMARY_MT5_TRADE_SERVER_CALENDAR", "native_snapshot_sha256": "1416CC428C2D28A8B240EA46FCCB2395FCFA9B1F3EC865F62D8718588F3D885C", "raw_segments": [{"index": 1, "path": "C:\\Users\\tpent\\AppData\\Local\\Temp\\tmpeexawumu\\evidence\\raw\\segment_01.json", "request": {"currencies": "1", "date_mode": "0", "from": "2021-04-01T00:00:00", "importance": "8", "to": "2021-04-30T23:59:59"}, "sha256": "2C0BBB9DCA53D4B59C8FC46F7D7AFCFCB84BE846A52CAD014517B595E3ECDFF1", "size": 1360}], "schema": 1, "source_role": "CORROBORATING_GOVERNED_WEBSITE_ADAPTER", "status": "ACCEPTED", "website_snapshot_sha256": "054914147B29652EC1AB44FDA89F0EC6D38AC4164AE9A700D1975D5F36A2A4C9"}

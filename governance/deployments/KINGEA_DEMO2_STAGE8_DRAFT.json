@@ -1,0 +1,16 @@
+{
+  "schema": "kingea.deployment-binding.v1",
+  "status": "DRAFT_NOT_ACTIVE",
+  "deployment_id": "KINGEA-DEMO2-STAGE8-OBSERVATION",
+  "server_class": "JustMarkets-Demo2",
+  "symbol_id": "ETHUSD.s",
+  "candidate_configuration_sha256": "A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE",
+  "safety_contract_sha256": "E59C45C8CA54429390A95D96FDFDD381475555C8D0891FA92DBC31A88747258B",
+  "approved_specification_sha256": null,
+  "observed_draft_specification_sha256": "80B1088172CF232B585CBE41B83D5CE932DD31C91227EF1907CDA85698BB8246",
+  "configuration_binding_rule": "An approved specification hash is mandatory before activation. Any changed binding creates a new Stage 7 configuration hash and validation epoch.",
+  "risk_critical_replacement_rule": "Reset the affected sleeve to 0.25% and restart the 30-trade/30-day tier clock.",
+  "administrative_replacement_rule": "Preserve the earned tier only after deterministic proof that risk, execution, and strategy timing are unchanged.",
+  "performance_authorization": false,
+  "order_authorization": false
+}

@@ -1,0 +1,6 @@
+InpSymbol=ETHUSD.s
+InpSnapshotLabel=STAGE14_FRESH_NORMAL
+InpRequiredServerFragment=Demo2
+InpReadinessTimeoutSeconds=30
+InpReferenceEquityUSD=1000.0
+InpHMRLeverageReference=200.0
