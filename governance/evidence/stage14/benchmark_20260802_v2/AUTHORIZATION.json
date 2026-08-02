@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "kind": "SIGNAL_FREE_BENCHMARK_AUTHORIZATION",
+  "authorized_by": "OWNER",
+  "authorization_basis": "OWNER_READY_TO_PROCEED_TO_SIGNAL_FREE_THROUGHPUT_BENCHMARK",
+  "benchmark_root_sha256": "EC4FEC699B7227E68D0299FF958CE2504804D1BA41F4C8CF4F18AFB1B410DE33",
+  "signals": 0,
+  "trades": 0,
+  "returns": "ABSENT",
+  "candidate_budget_consumed": 0,
+  "gate1_authorized": false,
+  "oos_authorized": false,
+  "holdout_authorized": false
+}

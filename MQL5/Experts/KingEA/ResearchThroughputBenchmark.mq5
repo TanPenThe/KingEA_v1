@@ -1,5 +1,5 @@
 #property copyright "KingEA"
-#property version   "1.00"
+#property version   "1.01"
 #property tester_everytick_calculate
 #property description "Signal-free Stage 14 real-tick throughput benchmark."
 #property description "No indicator, signal, trade, return, or performance capability."
@@ -7,6 +7,7 @@
 input string InpBenchmarkRootSha256="";
 input string InpBranch="";
 input string InpExpectedSymbol="";
+input string InpExpectedServerFragment="JustMarkets-Demo2";
 input int    InpTesterModel=4;
 input bool   InpLocalAgentsOnly=true;
 input bool   InpRemoteAgentsDisabled=true;
@@ -38,6 +39,8 @@ int OnInit()
       !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
       !InpCloudAgentsDisabled || !BenchmarkHash(InpBenchmarkRootSha256) ||
       InpBenchmarkPassId<0 || InpExpectedSymbol=="" ||
+      InpExpectedServerFragment=="" ||
+      StringFind(AccountInfoString(ACCOUNT_SERVER),InpExpectedServerFragment)<0 ||
       _Symbol!=InpExpectedSymbol ||
       (InpBranch!="RECORDED" && InpBranch!="RSB3") ||
       (InpBranch=="RECORDED" && _Symbol!="ETHUSD.s") ||
@@ -74,6 +77,7 @@ double OnTester()
    int count=StringToCharArray(payload,frame,0,WHOLE_ARRAY,CP_UTF8);
    if(count>0)
       ArrayResize(frame,count-1);
+   PrintFormat("KINGEA_STAGE14_BENCHMARK_RESULT: %s",payload);
    if(!g_healthy || g_tick_count<=0 || count<=0 ||
       !FrameAdd("KINGEA_STAGE14_BENCHMARK",InpBenchmarkPassId,0.0,frame))
       return -1.0;
@@ -88,8 +92,11 @@ void OnTesterPass()
    double value=0.0;
    uchar data[];
    while(FrameNext(pass,name,identifier,value,data))
-      PrintFormat("KINGEA_STAGE14_BENCHMARK_FRAME: pass=%I64u id=%I64d bytes=%d",
-                  pass,identifier,ArraySize(data));
+     {
+      string payload=CharArrayToString(data,0,WHOLE_ARRAY,CP_UTF8);
+      PrintFormat("KINGEA_STAGE14_BENCHMARK_FRAME: pass=%I64u id=%I64d bytes=%d payload=%s",
+                  pass,identifier,ArraySize(data),payload);
+     }
   }
 
 void OnTesterDeinit()

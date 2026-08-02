@@ -18,13 +18,13 @@ $calendarAdapterTestPath = Join-Path $Workspace 'tests\test_mql5_calendar_adapte
 $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
-$preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_V5.json'
+$preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_V7.json'
 $protectionManifestPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS_MANIFEST.json'
 $protectionIntervalsPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS.csv'
 $researchSpecificationPath = Join-Path $Workspace 'governance\evidence\stage14\cost_spec_capture_20260802\RESEARCH_SPECIFICATION.json'
 $eaCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\GuardedResearchTester.log'
 $testCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\TestResearchPipeline.log'
-$benchmarkCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ResearchThroughputBenchmark.log'
+$benchmarkCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ResearchThroughputBenchmark_v101_final.log'
 $calendarCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ExportResearchCalendar.log'
 
 $ea = Get-Content -LiteralPath $eaPath -Raw
@@ -58,6 +58,9 @@ Assert-True (-not [regex]::IsMatch($pure + $harness, '\b(OrderSend|OrderSendAsyn
 Assert-True (-not [regex]::IsMatch($ea + $pure + $harness, '#import\s+|MqlTick\.flags|\bWebRequest\b')) 'MQL5 path must contain no DLL, tick-flag, or network bypass'
 Assert-True ($benchmark.Contains('SIGNAL_FREE_BENCHMARK') -and
              $benchmark.Contains('signals=0|trades=0|returns=ABSENT|candidate_budget=0') -and
+             $benchmark.Contains('InpExpectedServerFragment') -and
+             $benchmark.Contains('AccountInfoString(ACCOUNT_SERVER)') -and
+             $benchmark.Contains('KINGEA_STAGE14_BENCHMARK_RESULT') -and
              -not [regex]::IsMatch($benchmark, '\b(OrderSend|PositionOpen|PositionClose|HistorySelect|TesterStatistics|iATR|iADX|iCustom|WebRequest)\b')) 'benchmark must be real-tick throughput only with no research or order capability'
 Assert-True ($calendarExporter.Contains('CalendarValueHistory') -and
              $calendarExporter.Contains('CALENDAR_IMPORTANCE_HIGH') -and
@@ -101,7 +104,7 @@ Assert-True ($researchSpecification.hmr.stressed_position_size_assumption_lots -
              [bool]$researchSpecification.hmr.kingea_entry_blackout_is_separate) 'minimum-lot margin basis and extended-HMR fail-closed rules must be explicit'
 
 $preTooling = Get-Content -LiteralPath $preToolingPath -Raw | ConvertFrom-Json
-Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260802-E') 'PRE_TOOLING manifest must exist'
+Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260802-G') 'PRE_TOOLING manifest must exist'
 foreach ($source in $preTooling.sources) {
     Assert-True ((Test-Path -LiteralPath $source.path) -and
                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and

@@ -1,0 +1,9 @@
+; Signal-free Stage 14 real-tick throughput benchmark.
+InpBenchmarkRootSha256=98F87703445B60F064EBB83BB133DB7AE5D6CFF247102603FC0EE35AFBBDEE5B
+InpBranch=RECORDED
+InpExpectedSymbol=ETHUSD.s
+InpTesterModel=4
+InpLocalAgentsOnly=true
+InpRemoteAgentsDisabled=true
+InpCloudAgentsDisabled=true
+InpBenchmarkPassId=0||0||1||11||Y

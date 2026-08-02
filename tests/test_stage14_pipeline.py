@@ -138,6 +138,7 @@ class Stage14CoordinatorTests(unittest.TestCase):
         self.assertIn("ResearchThroughputBenchmark.ex5", native_bundle["ini"])
         self.assertIn("Model=4", native_bundle["ini"])
         self.assertIn("ExecutionMode=20", native_bundle["ini"])
+        self.assertIn("InpExpectedServerFragment=JustMarkets-Demo2", native_bundle["set"])
         self.assertIn("InpBenchmarkPassId=0||0||1||99||Y", native_bundle["set"])
 
         benchmark = self.coordinator.evaluate_benchmark(

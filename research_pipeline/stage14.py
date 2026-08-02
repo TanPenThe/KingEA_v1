@@ -699,6 +699,7 @@ class ResearchRunCoordinator:
             f"InpBenchmarkRootSha256={stored}",
             f"InpBranch={branch}",
             f"InpExpectedSymbol={symbol}",
+            "InpExpectedServerFragment=JustMarkets-Demo2",
             "InpTesterModel=4",
             "InpLocalAgentsOnly=true",
             "InpRemoteAgentsDisabled=true",
