@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "status": "INVALIDATED_INFRASTRUCTURE",
+  "benchmark_root_sha256": "EC4FEC699B7227E68D0299FF958CE2504804D1BA41F4C8CF4F18AFB1B410DE33",
+  "reason_codes": [
+    "MT5_TERMINAL_BUILD_MISMATCH",
+    "DURABLE_PASS_PAYLOAD_NOT_PROVEN"
+  ],
+  "manifest_mt5_build": 5602,
+  "observed_mt5_build": 6090,
+  "started_at_utc": "2026-08-02T11:07:13.9905602Z",
+  "terminal_stopped_at_local": "2026-08-02T19:13:38+08:00",
+  "branches_attempted": [
+    "RECORDED"
+  ],
+  "branches_not_started": [
+    "RSB3"
+  ],
+  "accepted_valid_passes": 0,
+  "projection_authorized": false,
+  "candidate_budget_consumed": 0,
+  "gate1_authorized": false,
+  "corrective_action": {
+    "benchmark_source_version": "1.02",
+    "exact_terminal_build_guard": true,
+    "append_only_common_files_payload": true,
+    "pre_tooling_manifest_sha256": "6398047E392B125A62D72646111A513E44B70BD74B3D470E9D2F1359DF3B0565",
+    "compiled_ex5_sha256": "F88BC0A73681BB9CB47B507F9E8BB06375CDA9A6685335CC9D6BD0445E0546A5",
+    "compile_log_sha256": "DBA1CB8976237DCE90074FFA51ED0BC9343897EC384506E0A24D839C809FB33C"
+  },
+  "evidence_retention": "APPEND_ONLY_DO_NOT_USE_FOR_THROUGHPUT_PROJECTION"
+}

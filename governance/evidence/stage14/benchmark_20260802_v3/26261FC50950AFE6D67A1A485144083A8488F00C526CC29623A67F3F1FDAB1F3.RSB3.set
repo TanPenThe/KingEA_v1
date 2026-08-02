@@ -1,0 +1,11 @@
+; Signal-free Stage 14 real-tick throughput benchmark.
+InpBenchmarkRootSha256=26261FC50950AFE6D67A1A485144083A8488F00C526CC29623A67F3F1FDAB1F3
+InpBranch=RSB3
+InpExpectedSymbol=KINGEA_ETHUSD_S_RSB3
+InpExpectedServerFragment=JustMarkets-Demo2
+InpExpectedTerminalBuild=6090
+InpTesterModel=4
+InpLocalAgentsOnly=true
+InpRemoteAgentsDisabled=true
+InpCloudAgentsDisabled=true
+InpBenchmarkPassId=0||0||1||11||Y

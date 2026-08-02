@@ -1,0 +1,1 @@
+schema=1|kind=SIGNAL_FREE_BENCHMARK|root=26261FC50950AFE6D67A1A485144083A8488F00C526CC29623A67F3F1FDAB1F3|branch=RECORDED|pass=3|ticks=84886065|first_tick_msc=1656633900391|last_tick_msc=1703980798532|signals=0|trades=0|returns=ABSENT|candidate_budget=0|complete=1|healthy=1

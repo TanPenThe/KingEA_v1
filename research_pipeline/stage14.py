@@ -700,6 +700,7 @@ class ResearchRunCoordinator:
             f"InpBranch={branch}",
             f"InpExpectedSymbol={symbol}",
             "InpExpectedServerFragment=JustMarkets-Demo2",
+            f"InpExpectedTerminalBuild={int(root['mt5_build'])}",
             "InpTesterModel=4",
             "InpLocalAgentsOnly=true",
             "InpRemoteAgentsDisabled=true",

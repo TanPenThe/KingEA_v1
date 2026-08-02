@@ -1,5 +1,5 @@
 #property copyright "KingEA"
-#property version   "1.01"
+#property version   "1.02"
 #property tester_everytick_calculate
 #property description "Signal-free Stage 14 real-tick throughput benchmark."
 #property description "No indicator, signal, trade, return, or performance capability."
@@ -8,6 +8,7 @@ input string InpBenchmarkRootSha256="";
 input string InpBranch="";
 input string InpExpectedSymbol="";
 input string InpExpectedServerFragment="JustMarkets-Demo2";
+input int    InpExpectedTerminalBuild=0;
 input int    InpTesterModel=4;
 input bool   InpLocalAgentsOnly=true;
 input bool   InpRemoteAgentsDisabled=true;
@@ -33,12 +34,30 @@ bool BenchmarkHash(const string value)
    return true;
   }
 
+bool PersistBenchmarkPayload(const string payload)
+  {
+   string filename=StringFormat(
+      "KingEA\\stage14_benchmark_%s_%s_%06d.txt",
+      InpBenchmarkRootSha256,InpBranch,InpBenchmarkPassId);
+   if(FileIsExist(filename,FILE_COMMON))
+      return false;
+   int handle=FileOpen(filename,FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
+   if(handle==INVALID_HANDLE)
+      return false;
+   uint written=FileWriteString(handle,payload);
+   FileFlush(handle);
+   FileClose(handle);
+   return written==(uint)StringLen(payload);
+  }
+
 int OnInit()
   {
    if(!MQLInfoInteger(MQL_TESTER) || InpTesterModel!=4 ||
       !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
       !InpCloudAgentsDisabled || !BenchmarkHash(InpBenchmarkRootSha256) ||
       InpBenchmarkPassId<0 || InpExpectedSymbol=="" ||
+      InpExpectedTerminalBuild<=0 ||
+      (int)TerminalInfoInteger(TERMINAL_BUILD)!=InpExpectedTerminalBuild ||
       InpExpectedServerFragment=="" ||
       StringFind(AccountInfoString(ACCOUNT_SERVER),InpExpectedServerFragment)<0 ||
       _Symbol!=InpExpectedSymbol ||
@@ -77,8 +96,9 @@ double OnTester()
    int count=StringToCharArray(payload,frame,0,WHOLE_ARRAY,CP_UTF8);
    if(count>0)
       ArrayResize(frame,count-1);
-   PrintFormat("KINGEA_STAGE14_BENCHMARK_RESULT: %s",payload);
-   if(!g_healthy || g_tick_count<=0 || count<=0 ||
+   bool persisted=PersistBenchmarkPayload(payload);
+   PrintFormat("KINGEA_STAGE14_BENCHMARK_RESULT: %s persisted=%d",payload,persisted ? 1 : 0);
+   if(!g_healthy || g_tick_count<=0 || count<=0 || !persisted ||
       !FrameAdd("KINGEA_STAGE14_BENCHMARK",InpBenchmarkPassId,0.0,frame))
       return -1.0;
    return 0.0;
