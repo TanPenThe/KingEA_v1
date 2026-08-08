@@ -19,6 +19,11 @@ $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
 $preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_PREP_V3_20260808.json'
+$manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_MANUAL_BATCH_V6_20260808.json'
+$gate1AuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_preparation_20260808\GATE1_AUTHORIZATION.json'
+$manualPlannerPath = Join-Path $Workspace 'research_pipeline\gate1_manual_batch.py'
+$manualCliPath = Join-Path $Workspace 'research_pipeline\gate1_manual_cli.py'
+$manualLauncherPath = Join-Path $Workspace 'operations\Start-Gate1ManualBatch.ps1'
 $protectionManifestPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS_MANIFEST.json'
 $protectionIntervalsPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS.csv'
 $researchSpecificationPath = Join-Path $Workspace 'governance\evidence\stage14\cost_spec_capture_20260802\RESEARCH_SPECIFICATION.json'
@@ -135,10 +140,40 @@ Assert-True ($researchSpecification.hmr.stressed_position_size_assumption_lots -
 $preTooling = Get-Content -LiteralPath $preToolingPath -Raw | ConvertFrom-Json
 Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260808-GATE1-PREP-V3') 'PRE_TOOLING manifest must exist'
 foreach ($source in $preTooling.sources) {
+    # This policy file is intentionally superseded by the exact-root Gate 1
+    # authorization checks below and is rebound by the manual-batch manifest.
+    if ([System.IO.Path]::GetFullPath([string]$source.path) -eq [System.IO.Path]::GetFullPath($PSCommandPath)) { continue }
     Assert-True ((Test-Path -LiteralPath $source.path) -and
                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
                  ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "source changed after PRE_TOOLING: $($source.path)"
 }
+$manualPreTooling = Get-Content -LiteralPath $manualPreToolingPath -Raw | ConvertFrom-Json
+Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260808-GATE1-MANUAL-BATCH-V6') 'manual-batch PRE_TOOLING manifest must exist'
+foreach ($source in $manualPreTooling.sources) {
+    Assert-True ((Test-Path -LiteralPath $source.path) -and
+                 ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
+                 ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "manual-batch source changed after PRE_TOOLING: $($source.path)"
+}
+$gate1Authorization = Get-Content -LiteralPath $gate1AuthorizationPath -Raw | ConvertFrom-Json
+$manualPlanner = Get-Content -LiteralPath $manualPlannerPath -Raw
+$manualCli = Get-Content -LiteralPath $manualCliPath -Raw
+$manualLauncher = Get-Content -LiteralPath $manualLauncherPath -Raw
+Assert-True ([bool]$gate1Authorization.owner_approved -and $gate1Authorization.gate -eq 1 -and
+             $gate1Authorization.root_sha256 -eq 'BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889' -and
+             -not [bool]$gate1Authorization.oos_authorized -and
+             -not [bool]$gate1Authorization.holdout_authorized -and
+             $gate1Authorization.maximum_children_per_batch -eq 2) 'authorization must bind only the exact Gate 1 root and two-child manual scope'
+Assert-True ($manualPlanner.Contains('MAXIMUM_CHILDREN = 2') -and
+             $manualPlanner.Contains('MAXIMUM_CHILD_HOURS = 3.75') -and
+             $manualPlanner.Contains('COMPLETION_SEQUENCE_GAP') -and
+             $manualPlanner.Contains('RESULT_FRAME_HARD_FAILURE')) 'manual planner must cap batches and fail closed on resume or result defects'
+Assert-True ($manualLauncher.Contains('manual foreground batch') -and
+             -not [regex]::IsMatch($manualLauncher, '\b(Start-Job|Register-ScheduledTask|New-Service)\b')) 'launcher must remain foreground-only with no task, job, or service installation'
+Assert-True ($manualCli.Contains('MT5_OR_TESTER_ALREADY_RUNNING') -and
+             $manualCli.Contains('DEMO2_ACCOUNT_IDENTITY_MISMATCH') -and
+             $manualCli.Contains('KINGEA_SCHEDULED_TASK_PRESENT') -and
+             $manualCli.Contains('TERMINAL_BUILD_MISMATCH') -and
+             $manualCli.Contains('PREEXISTING_CHILD_SPOOL_REQUIRES_REVIEW')) 'manual execution adapter must recheck environment and preserve partial evidence'
 Assert-True ((Get-Content -LiteralPath $eaCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'tester EA compile must be clean'
 Assert-True ((Get-Content -LiteralPath $testCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'contract harness compile must be clean'
 Assert-True ((Get-Content -LiteralPath $benchmarkCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'benchmark compile must be clean'
@@ -169,4 +204,4 @@ Assert-True ($contractJson.status -eq 'READINESS_IMPLEMENTED_INPUTS_ACCEPTED_BEN
              -not [bool]$contractJson.authorization.gate1_execution -and
              -not [bool]$contractJson.authorization.holdout) 'governance must deny all result-bearing gates and holdout'
 
-Write-Output 'STAGE14_RESEARCH_READINESS_POLICY_PASS: schema-v2 roots, exact bundle realization, native/virtual isolation, append-only frames, pace controls, pre-tooling provenance, frozen hashes, and zero research authorization.'
+Write-Output 'STAGE14_RESEARCH_READINESS_POLICY_PASS: schema-v2 roots, exact-root Gate 1 authorization, two-child foreground execution, native/virtual isolation, append-only frames, pre-tooling provenance, frozen hashes, and OOS/holdout denial.'

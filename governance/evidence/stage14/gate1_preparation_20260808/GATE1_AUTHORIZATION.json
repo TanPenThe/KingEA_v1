@@ -1,0 +1,15 @@
+{
+  "approved_at": "2026-08-08T23:22:50.5478733+08:00",
+  "approved_by": "OWNER",
+  "execution_mode": "MANUAL_FOREGROUND_BATCHES",
+  "gate": 1,
+  "holdout_authorized": false,
+  "kind": "GATE1_OWNER_AUTHORIZATION",
+  "maximum_children_per_batch": 2,
+  "oos_authorized": false,
+  "owner_approved": true,
+  "owner_statement": "I explicitly approve Gate 1 root BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889 for exhaustive development execution.",
+  "root_file_sha256": "CF9E490BBDBBA6773467E8D537C785D1F4D961EB7AA2640D8318B4257F109489",
+  "root_sha256": "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889",
+  "schema": 1
+}

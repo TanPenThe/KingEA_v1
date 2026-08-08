@@ -1148,3 +1148,17 @@ Do not edit or delete existing records. Corrections are appended as new records 
 - Throughput binding: twelve local agents remain selected; frozen 25% allowance projects 26.48 wall days, below the 30-day ceiling.
 - Residual safety state: MT5 and MetaTester process counts 0; scheduled watchdog-task count 0; Stage 9 standdown remains active with SHA-256 `8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7`; no Gate 1 authorization file exists.
 - Candidate remains `FROZEN`; candidate-budget consumption remains 0. No result-bearing pass, strategy return, OOS/holdout access, demo order, or Live2 action occurred.
+
+## GOV-20260808-068
+
+- Timestamp: 2026-08-08T23:22:50.5478733+08:00
+- Type: Exact-root owner authorization and bounded manual Gate 1 batch launcher
+- Status: GATE 1 AUTHORIZED; NO RESULT-BEARING PASS STARTED
+- Owner approval: The owner explicitly approved canonical Gate 1 root `BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889` for exhaustive development execution using the exact required statement. Detached authorization artifact: `governance/evidence/stage14/gate1_preparation_20260808/GATE1_AUTHORIZATION.json`; file SHA-256 `6FF67C9D7AB21DDAF50357E030C62E1FB377DD5EEBCB0B78BCE5FBC8EADACDC4`.
+- Execution mode: Manual foreground batches only; no watchdog, scheduled task, service, or background loop. Each batch contains at most two sequential children. Expected duration is approximately 6.36 hours; the hard child limit is 3.75 hours and therefore the hard two-child compute ceiling is 7.5 hours before small preflight/finalization overhead.
+- Launcher: `operations/Start-Gate1ManualBatch.ps1`; SHA-256 `16A7A2713AAEAA9E873E2544B4017528AD88164A3AA6FF1DDFFC4D8BE49D765D`. It revalidates the exact root, child index and child files, approval file, Stage 9 standdown, absence of KingEA scheduled tasks, terminal build 6090, and the active Demo2 account title before deriving each child bundle. It stops on gaps, partial evidence, conflicting spools, timeout, nonzero terminal exit, missing frames, duplicate frames, incomplete frames, or any reported hard failure.
+- Resume rule: Only a contiguous prefix of independently completed children may resume. The launcher always selects the next one or two children and never skips, overwrites, or auto-retries partial evidence.
+- Source provenance: Final launcher sources are bound by `governance/evidence/stage14/PRE_TOOLING_GATE1_MANUAL_BATCH_V6_20260808.json`; file SHA-256 `68A150FC70C5D8F063C196CB1474D1816CF165B62151489C7A0C03250C91C2D2`; canonical manifest SHA-256 `75455DA9A80F4408D3DC34666692826B749CBDFD88E34FF1B548C35C39FC256C`; post-tooling verification PASS. Earlier manual-batch pre-tooling manifests remain retained and superseded.
+- Verification: 59 Python tests PASS, including six manual-batch contract tests; all repository PowerShell policy suites PASS. Candidate source and freeze hashes remain unchanged.
+- Current state: MT5 and MetaTester process counts 0; Stage 9 standdown remains active; watchdog remains disabled/uninstalled; no Gate 1 child has started. Candidate remains `FROZEN` and candidate-budget consumption remains 0 until the first valid result-bearing pass begins.
+- Scope: Gate 1 development only. Formal OOS, stress Gate 3, holdout, demo/live broker orders, Live2 activity, watchdog activation, and standdown removal remain prohibited.
