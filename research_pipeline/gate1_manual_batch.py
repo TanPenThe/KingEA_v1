@@ -176,6 +176,47 @@ class Gate1ManualBatch:
             "holdout_authorized": False,
         }
 
+    def verify_execution_provenance(
+        self,
+        base_manifest: Mapping[str, Any],
+        manual_manifest: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        for label, manifest in (("BASE", base_manifest), ("MANUAL", manual_manifest)):
+            stored = str(manifest.get("manifest_sha256", "")).upper()
+            unhashed = {
+                key: value for key, value in manifest.items() if key != "manifest_sha256"
+            }
+            if self.canonical_hash(unhashed) != stored:
+                raise Gate1BatchError(f"{label}_PRE_TOOLING_MANIFEST_HASH_MISMATCH")
+        policy_path = (self.workspace / "tests/Test-Stage14ResearchReadinessPolicy.ps1").resolve()
+        superseded: list[str] = []
+        for record in base_manifest.get("sources", []):
+            path = Path(str(record.get("path", ""))).resolve()
+            current = path.is_file() and path.stat().st_size == record.get("size") and self.file_hash(path) == record.get("sha256")
+            if current:
+                continue
+            if path != policy_path:
+                raise Gate1BatchError("UNGOVERNED_BASE_SOURCE_CHANGE")
+            superseded.append(str(path))
+        if superseded != [str(policy_path)]:
+            raise Gate1BatchError("POLICY_SUPERSESSION_SET_INVALID")
+        for record in manual_manifest.get("sources", []):
+            path = Path(str(record.get("path", ""))).resolve()
+            if (
+                not path.is_file()
+                or path.stat().st_size != record.get("size")
+                or self.file_hash(path) != record.get("sha256")
+            ):
+                raise Gate1BatchError("MANUAL_SOURCE_CHANGED_AFTER_PRE_TOOLING")
+        policy_hash = self.file_hash(policy_path)
+        if manual_manifest.get("dependency_hashes", {}).get("policy_source") != policy_hash:
+            raise Gate1BatchError("POLICY_SUPERSESSION_NOT_BOUND")
+        return {
+            "passed": True,
+            "reason": "PASS_GOVERNED_POLICY_SUPERSESSION",
+            "governed_supersessions": superseded,
+        }
+
     def verify_completion(
         self, manifest: Mapping[str, Any], spool: Path
     ) -> dict[str, Any]:

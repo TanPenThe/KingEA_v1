@@ -215,13 +215,13 @@ def _run(args: argparse.Namespace) -> dict:
         raise Gate1BatchError("TERMINAL_BUILD_MISMATCH")
     identity = _verify_demo2_terminal_identity(args.terminal)
     coordinator = ResearchRunCoordinator()
-    for name in (
-        "PRE_TOOLING_GATE1_PREP_V3_20260808.json",
-        "PRE_TOOLING_GATE1_MANUAL_BATCH_V6_20260808.json",
-    ):
-        pre_tooling = _read_json(workspace / "governance/evidence/stage14" / name)
-        if not coordinator.verify_pre_tooling_manifest(pre_tooling)["passed"]:
-            raise Gate1BatchError(f"PRE_TOOLING_VERIFICATION_FAILED:{name}")
+    base_pre_tooling = _read_json(
+        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_PREP_V3_20260808.json"
+    )
+    manual_pre_tooling = _read_json(
+        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_MANUAL_BATCH_V7_20260809.json"
+    )
+    planner.verify_execution_provenance(base_pre_tooling, manual_pre_tooling)
 
     first = plan["run_ids"][0].split("-")[-1]
     last = plan["run_ids"][-1].split("-")[-1]

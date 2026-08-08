@@ -19,7 +19,7 @@ $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
 $preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_PREP_V3_20260808.json'
-$manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_MANUAL_BATCH_V6_20260808.json'
+$manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_MANUAL_BATCH_V7_20260809.json'
 $gate1AuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_preparation_20260808\GATE1_AUTHORIZATION.json'
 $manualPlannerPath = Join-Path $Workspace 'research_pipeline\gate1_manual_batch.py'
 $manualCliPath = Join-Path $Workspace 'research_pipeline\gate1_manual_cli.py'
@@ -148,7 +148,7 @@ foreach ($source in $preTooling.sources) {
                  ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "source changed after PRE_TOOLING: $($source.path)"
 }
 $manualPreTooling = Get-Content -LiteralPath $manualPreToolingPath -Raw | ConvertFrom-Json
-Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260808-GATE1-MANUAL-BATCH-V6') 'manual-batch PRE_TOOLING manifest must exist'
+Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260809-GATE1-MANUAL-BATCH-V7') 'manual-batch PRE_TOOLING manifest must exist'
 foreach ($source in $manualPreTooling.sources) {
     Assert-True ((Test-Path -LiteralPath $source.path) -and
                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and

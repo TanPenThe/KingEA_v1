@@ -112,6 +112,30 @@ class Gate1ManualBatchTests(unittest.TestCase):
             with self.assertRaisesRegex(Gate1BatchError, "RESULT_FRAME_HARD_FAILURE"):
                 planner.verify_completion(manifest, spool)
 
+    def test_execution_provenance_accepts_only_the_governed_policy_supersession(self):
+        planner = Gate1ManualBatch(self.workspace)
+        evidence = self.workspace / "governance" / "evidence" / "stage14"
+        base = json.loads(
+            (evidence / "PRE_TOOLING_GATE1_PREP_V3_20260808.json").read_text()
+        )
+        manual = json.loads(
+            (evidence / "PRE_TOOLING_GATE1_MANUAL_BATCH_V7_20260809.json").read_text()
+        )
+        result = planner.verify_execution_provenance(base, manual)
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["governed_supersessions"], [
+            str((self.workspace / "tests" / "Test-Stage14ResearchReadinessPolicy.ps1").resolve())
+        ])
+
+        altered = json.loads(json.dumps(manual))
+        altered["dependency_hashes"]["policy_source"] = "0" * 64
+        unhashed = {
+            key: value for key, value in altered.items() if key != "manifest_sha256"
+        }
+        altered["manifest_sha256"] = planner.canonical_hash(unhashed)
+        with self.assertRaisesRegex(Gate1BatchError, "POLICY_SUPERSESSION_NOT_BOUND"):
+            planner.verify_execution_provenance(base, altered)
+
 
 if __name__ == "__main__":
     unittest.main()
