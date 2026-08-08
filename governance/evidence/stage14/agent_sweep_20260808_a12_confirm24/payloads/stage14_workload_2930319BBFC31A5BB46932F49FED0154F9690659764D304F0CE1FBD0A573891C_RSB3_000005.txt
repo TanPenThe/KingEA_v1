@@ -1,0 +1,1 @@
+schema=1|kind=FULL_WORKLOAD_DRY_BENCHMARK|root=2930319BBFC31A5BB46932F49FED0154F9690659764D304F0CE1FBD0A573891C|branch=RSB3|pass=5|ticks=84886065|first_tick_msc=1656633900391|last_tick_msc=1703980798532|results=WITHHELD|signals_exposed=0|trades=0|returns=ABSENT|candidate_budget=0|complete=1|healthy=1

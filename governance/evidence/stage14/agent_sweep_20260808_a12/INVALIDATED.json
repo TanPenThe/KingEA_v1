@@ -1,0 +1,10 @@
+{
+  "candidate_budget_consumed": 0,
+  "reason": "MT5_OPTIMIZATION_CACHE_HIT_NO_REAL_TICK_REPLAY",
+  "returns": "ABSENT",
+  "root_sha256": "0226A0DF9C1A47112B58BB3F5E339B622A82925332BF60544934A7EB5FA05D80",
+  "schema": 1,
+  "signals_exposed": 0,
+  "status": "INVALIDATED",
+  "trades": 0
+}

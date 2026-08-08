@@ -1,0 +1,34 @@
+{
+  "candidate_budget_consumed": 0,
+  "disabled_cores": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12
+  ],
+  "enabled_agent_count": 6,
+  "enabled_cores": [
+    1,
+    3,
+    5,
+    7,
+    9,
+    11
+  ],
+  "owner_direction": "RUN_THE_FREE_AGENT_COUNT_SWEEP_FIRST",
+  "processor_topology_masks": [
+    "0x3",
+    "0xC",
+    "0x30",
+    "0xC0",
+    "0x300",
+    "0xC00"
+  ],
+  "purpose": "NON_PERFORMANCE_LOCAL_AGENT_COUNT_SWEEP",
+  "returns": "ABSENT",
+  "schema": 1,
+  "signals_exposed": 0,
+  "trades": 0
+}

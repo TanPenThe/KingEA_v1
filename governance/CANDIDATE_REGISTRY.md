@@ -1115,3 +1115,19 @@ Do not edit or delete existing records. Corrections are appended as new records 
 - Candidate-budget consumption: 0.
 - Next authorized work: Stage 14 development-manifest preparation and owner review only.
 - Development execution, optimization, formal OOS/holdout access, demo/live orders, Live2 activity, watchdog activation, standdown removal, and new candidate-budget consumption: REMAIN PROHIBITED.
+
+## GOV-20260808-066
+
+- Timestamp: 2026-08-08T14:52:19+08:00
+- Type: Stage 14 governed local-agent throughput sweep and two-wave confirmation
+- Status: PASS; LOCKED 30-DAY THROUGHPUT CEILING SATISFIED; GATE 1 REMAINS UNAUTHORIZED PENDING EXACT-ROOT OWNER APPROVAL
+- Sweep evidence: `governance/evidence/stage14/agent_sweep_20260808_summary/AGENT_SWEEP_RESULT.json`; SHA-256 `197481A963F0A6F755FEE8D998EFDDB5520C9F6321FA4DEFEDD6AD641F8ED695`.
+- Final evidence manifest: `governance/evidence/stage14/agent_sweep_20260808_summary/FINAL_EVIDENCE_MANIFEST.json`; SHA-256 `97542E0F17CE87E6BEB6E236924CD049A845441045119B6A7A1E67C54D96E7BF`.
+- Method: compare 6, 8, 10, and 12 enabled local agents using the full-workload dry harness, both RECORDED and RSB3 branches, real-tick model 4, withheld result fields, zero signals, zero trades, and zero candidate-budget consumption. Processor topology was verified as six physical cores with paired logical masks `0x3`, `0xC`, `0x30`, `0xC0`, `0x300`, and `0xC00`.
+- Result: twelve local agents selected. The unique two-wave confirmation ran 24 passes per branch, 48 valid passes total, at 0.11355 active passes/second and 0.10622 wall passes/second. With the frozen 25% operational allowance, the projected exhaustive-development duration is 24.77 active days and 26.48 wall days, below the locked 30-day ceiling.
+- Confirmation root: `governance/evidence/stage14/agent_sweep_20260808_a12_confirm24/WORKLOAD_BENCHMARK_ROOT.json`; file SHA-256 `F379A10399EAB22188E53162F9545A0D059E0EC0B3833D162CAA866F331343F9`; canonical workload root `2930319BBFC31A5BB46932F49FED0154F9690659764D304F0CE1FBD0A573891C`.
+- Invalidated evidence retained: the immediate 12-agent rerun using the prior root was served from MT5 optimization cache and is explicitly marked `MT5_OPTIMIZATION_CACHE_HIT_NO_REAL_TICK_REPLAY`; it contributes no throughput evidence.
+- Regression evidence: all 52 Python tests PASS; Stage 14 static readiness policy PASS. Candidate source remains SHA-256 `4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83`; freeze certificate remains SHA-256 `1DE78BABEDAED4261D5C35BFD20DDDBC2E2B3F52D8C77FADC98A7F448A9FAE06`.
+- Residual safety state: MT5 and MetaTester process counts 0; all twelve local-agent logs confirm participation in the final run; KingEA scheduled-task count 0; watchdog disabled/uninstalled; Stage 9 standdown remains active with SHA-256 `8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7`; deployment remains quarantined.
+- Candidate status remains `FROZEN`; candidate-budget consumption remains 0. No optimization result, strategy return, formal OOS/holdout information, demo order, or Live2 activity was exposed.
+- Next action: prepare the exact Gate 1 exhaustive-development root and present its hash for separate explicit owner approval. No gate auto-advances.

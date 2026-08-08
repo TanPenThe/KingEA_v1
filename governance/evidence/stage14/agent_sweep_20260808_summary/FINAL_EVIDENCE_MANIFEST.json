@@ -1,0 +1,48 @@
+{
+  "artifacts": [
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\agent_sweep_20260808_summary\\AGENT_SWEEP_RESULT.json",
+      "sha256": "197481A963F0A6F755FEE8D998EFDDB5520C9F6321FA4DEFEDD6AD641F8ED695",
+      "size": 28180
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\agent_sweep_20260808_summary\\EVIDENCE_MANIFEST.json",
+      "sha256": "F1D1D3F6BD8F0E4A91F02046205C10AF10FC21B4FCFB86E6BB0931FB18D18995",
+      "size": 269
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\agent_sweep_20260808_summary\\python_regressions.log",
+      "sha256": "1DB397EF263B89C352C892AF0869A1A6FE7257AD6D3E19E14BD8B4038A0FAEBC",
+      "size": 3122
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\agent_sweep_20260808_summary\\stage14_policy.log",
+      "sha256": "9EE015C2158F5823F85242CEDC10151A277EA50631D131627A23C46FEAD0D739",
+      "size": 436
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\agent_sweep_20260808_a12_confirm24\\WORKLOAD_BENCHMARK_ROOT.json",
+      "sha256": "F379A10399EAB22188E53162F9545A0D059E0EC0B3833D162CAA866F331343F9",
+      "size": 2512
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\agent_sweep_20260808_a12_confirm24\\AGENT_CONFIGURATION.json",
+      "sha256": "6BA4CAB830A9F52BE3D1074A484CB14FA55DC3FF542B6922601C80716D2914F2",
+      "size": 400
+    }
+  ],
+  "candidate_budget_consumed": 0,
+  "candidate_source_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+  "freeze_certificate_sha256": "1DE78BABEDAED4261D5C35BFD20DDDBC2E2B3F52D8C77FADC98A7F448A9FAE06",
+  "gate1_authorized": false,
+  "projected_active_days_with_allowance": 24.7686328125,
+  "projected_wall_days_with_allowance": 26.478398437500005,
+  "schema": 1,
+  "selected_local_agents": 12,
+  "standdown_sha256": "8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7",
+  "status": "PASS_30_DAY_CEILING",
+  "terminal_process_count": 0,
+  "tester_process_count": 0,
+  "valid_confirmation_passes": 48,
+  "watchdog_task_count": 0
+}
