@@ -1,0 +1,9 @@
+{
+  "matched_events": 1971,
+  "native_csv_sha256": "893BE5A32E37F324B4591104A4F4CA04B197DEDCBD893BDBF9D18E7E05D2AA28",
+  "passed": true,
+  "server_offset_seconds": {
+    "10800": 1971
+  },
+  "website_snapshot_sha256": "003583A95B26AE2E98B555E701FCC0292B6834233645E0A3E5484FE8852312BF"
+}

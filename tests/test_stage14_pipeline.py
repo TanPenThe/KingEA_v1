@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from research_pipeline.stage14 import ResearchRunCoordinator, Stage14Error
+from research_pipeline.stage14_cli import main as stage14_main
 
 
 class Stage14CoordinatorTests(unittest.TestCase):
@@ -505,6 +506,40 @@ class Stage14CoordinatorTests(unittest.TestCase):
         self.assertEqual(gate3["scenario_runs_per_branch"], 312)
         self.assertEqual(gate3["launch_count"], 624)
         self.assertNotIn("HOLDOUT", json.dumps(gate3))
+
+    def test_prepare_root_cli_forwards_operational_facts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            facts_path = root / "facts.json"
+            output_path = root / "gate1.json"
+            facts_path.write_text(
+                json.dumps(
+                    {
+                        "artifact_hashes": self.hashes,
+                        "mt5_build": 5602,
+                        "account_fingerprint": "6" * 64,
+                        "operational_facts": self.operational,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = stage14_main(
+                [
+                    "prepare-root",
+                    "--gate",
+                    "1",
+                    "--facts",
+                    str(facts_path),
+                    "--output",
+                    str(output_path),
+                ]
+            )
+
+            self.assertEqual(0, result)
+            prepared = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(self.operational, prepared["operational_facts"])
+            self.assertEqual(200, prepared["launch_count"])
 
 
 if __name__ == "__main__":

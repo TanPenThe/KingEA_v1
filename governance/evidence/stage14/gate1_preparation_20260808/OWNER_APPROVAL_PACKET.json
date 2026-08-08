@@ -1,0 +1,35 @@
+{
+  "agent_sweep_result_file_sha256": "197481A963F0A6F755FEE8D998EFDDB5520C9F6321FA4DEFEDD6AD641F8ED695",
+  "branches": [
+    "RECORDED",
+    "RSB3"
+  ],
+  "calendar_refresh_file_sha256": "002FE1A58AE548ABD1D4928F086D674D553ADB9AA4774E9C3F571BBCDDDF9299",
+  "candidate_budget_before_first_valid_pass": 0,
+  "candidate_budget_transition": "FIRST_VALID_RESULT_PASS",
+  "candidate_id": "CAND-ETH-ST-001",
+  "child_index_file_sha256": "BEBE6F86B870C99B03A299060996DE6D4D348ABA9D836808E7EDCB2EA3BFC32B",
+  "child_index_internal_sha256": "8297B92EB5A95FB2F36022A8BADCB6CE2786DFC48AE693B60EF3A8F717ED443A",
+  "configuration_pass_count": 194400,
+  "execution_authorized": false,
+  "gate": 1,
+  "holdout_authorized": false,
+  "launch_count": 200,
+  "oos_authorized": false,
+  "packet_sha256": "F4B8B542EFE1ADFDA66472D96985D8FFE4E10686F6C6552627FDDE4B06AF26F3",
+  "partitions": [
+    "FOLD_1_TRAIN",
+    "FOLD_2_TRAIN",
+    "FOLD_3_TRAIN",
+    "FOLD_4_TRAIN",
+    "FINAL_SELECTION"
+  ],
+  "pre_tooling_file_sha256": "8863DA26F3BB7DA0A5FE379DFA87FDC1716CCFF8D5D7EC60283E051FD263417A",
+  "projected_wall_days_with_allowance": 26.4783984375,
+  "required_owner_statement": "I explicitly approve Gate 1 root BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889 for exhaustive development execution.",
+  "root_file_sha256": "CF9E490BBDBBA6773467E8D537C785D1F4D961EB7AA2640D8318B4257F109489",
+  "root_sha256": "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889",
+  "schema": 1,
+  "selected_local_agents": 12,
+  "status": "AWAITING_EXPLICIT_OWNER_APPROVAL"
+}

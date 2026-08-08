@@ -88,6 +88,7 @@ def main(argv: list[str] | None = None) -> int:
                 "artifact_hashes": facts.pop("artifact_hashes"),
                 "mt5_build": facts.pop("mt5_build"),
                 "account_fingerprint": facts.pop("account_fingerprint"),
+                "operational_facts": facts.pop("operational_facts"),
             }
             value = coordinator.prepare_gate_root(args.gate, common, **facts)
             write_new(args.output, value)
