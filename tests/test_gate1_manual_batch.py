@@ -112,7 +112,7 @@ class Gate1ManualBatchTests(unittest.TestCase):
             with self.assertRaisesRegex(Gate1BatchError, "RESULT_FRAME_HARD_FAILURE"):
                 planner.verify_completion(manifest, spool)
 
-    def test_execution_provenance_accepts_only_the_governed_policy_supersession(self):
+    def test_historical_execution_provenance_is_invalid_after_tester_repair(self):
         planner = Gate1ManualBatch(self.workspace)
         evidence = self.workspace / "governance" / "evidence" / "stage14"
         base = json.loads(
@@ -121,20 +121,12 @@ class Gate1ManualBatchTests(unittest.TestCase):
         manual = json.loads(
             (evidence / "PRE_TOOLING_GATE1_MANUAL_BATCH_V7_20260809.json").read_text()
         )
-        result = planner.verify_execution_provenance(base, manual)
-        self.assertTrue(result["passed"])
-        self.assertEqual(result["governed_supersessions"], [
-            str((self.workspace / "tests" / "Test-Stage14ResearchReadinessPolicy.ps1").resolve())
-        ])
-
-        altered = json.loads(json.dumps(manual))
-        altered["dependency_hashes"]["policy_source"] = "0" * 64
-        unhashed = {
-            key: value for key, value in altered.items() if key != "manifest_sha256"
-        }
-        altered["manifest_sha256"] = planner.canonical_hash(unhashed)
-        with self.assertRaisesRegex(Gate1BatchError, "POLICY_SUPERSESSION_NOT_BOUND"):
-            planner.verify_execution_provenance(base, altered)
+        # The old root is deliberately non-resumable after the shared-read
+        # repair changed GuardedResearchTester.mq5.  A replacement root must
+        # bind the repaired source rather than treating it as a policy-only
+        # supersession of the historical execution provenance.
+        with self.assertRaisesRegex(Gate1BatchError, "UNGOVERNED_BASE_SOURCE_CHANGE"):
+            planner.verify_execution_provenance(base, manual)
 
 
 if __name__ == "__main__":

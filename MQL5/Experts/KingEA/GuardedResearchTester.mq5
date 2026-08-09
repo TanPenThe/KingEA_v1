@@ -178,9 +178,10 @@ int ResearchOpenInputFile(const string filename,const int flags,
                           const short delimiter=0,
                           const uint codepage=CP_ACP)
   {
-   int handle=FileOpen(filename,flags,delimiter,codepage);
+   int handle=FileOpen(filename,flags|FILE_SHARE_READ,delimiter,codepage);
    if(handle==INVALID_HANDLE)
-      handle=FileOpen(filename,flags|FILE_COMMON,delimiter,codepage);
+      handle=FileOpen(filename,flags|FILE_COMMON|FILE_SHARE_READ,
+                      delimiter,codepage);
    return handle;
   }
 

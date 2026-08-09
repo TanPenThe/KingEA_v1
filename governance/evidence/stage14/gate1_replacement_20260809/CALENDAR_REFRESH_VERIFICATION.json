@@ -1,0 +1,45 @@
+{
+  "expected": {
+    "coverage": {
+      "category_counts": {
+        "central_bank": 60,
+        "employment": 177,
+        "gdp": 86,
+        "inflation": 315
+      },
+      "maximum_events_per_month": 51,
+      "minimum_events_per_month": 36,
+      "month_count": 45,
+      "passed": true
+    },
+    "matched_events": 1971,
+    "native_csv_sha256": "893BE5A32E37F324B4591104A4F4CA04B197DEDCBD893BDBF9D18E7E05D2AA28",
+    "native_snapshot_sha256": "DDADA7D5FE7C45BFAB0BFE0B0938EE762760CFE6C13033AFCF6C7DA29028E1CD",
+    "website_snapshot_sha256": "003583A95B26AE2E98B555E701FCC0292B6834233645E0A3E5484FE8852312BF"
+  },
+  "gate1_execution_authorized": false,
+  "observed": {
+    "coverage": {
+      "category_counts": {
+        "central_bank": 60,
+        "employment": 177,
+        "gdp": 86,
+        "inflation": 315
+      },
+      "maximum_events_per_month": 51,
+      "minimum_events_per_month": 36,
+      "month_count": 45,
+      "passed": true
+    },
+    "matched_events": 1971,
+    "native_csv_sha256": "893BE5A32E37F324B4591104A4F4CA04B197DEDCBD893BDBF9D18E7E05D2AA28",
+    "native_snapshot_sha256": "DDADA7D5FE7C45BFAB0BFE0B0938EE762760CFE6C13033AFCF6C7DA29028E1CD",
+    "website_snapshot_sha256": "003583A95B26AE2E98B555E701FCC0292B6834233645E0A3E5484FE8852312BF"
+  },
+  "previous_manifest": "governance/evidence/stage14/calendar_dual_source_20260802_v2/manifest.json",
+  "purpose": "PRE_GATE1_CALENDAR_REQUERY",
+  "refresh_manifest": "governance/evidence/stage14/calendar_gate1_refresh_20260808/manifest.json",
+  "refresh_manifest_file_sha256": "DC4FDA192CF7EDC8B65676303CC0FD97A3C9DC74774EC53B2BF9B94F43077D77",
+  "schema": 1,
+  "status": "PASS_UNCHANGED"
+}

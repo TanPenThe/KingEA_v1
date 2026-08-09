@@ -18,16 +18,21 @@ $calendarAdapterTestPath = Join-Path $Workspace 'tests\test_mql5_calendar_adapte
 $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
-$preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_PREP_V3_20260808.json'
+$preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_REPLACEMENT_PREP_V2_20260809.json'
 $manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_MANUAL_BATCH_V7_20260809.json'
 $gate1AuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_preparation_20260808\GATE1_AUTHORIZATION.json'
+$invalidationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_execution_20260808\INFRASTRUCTURE_INVALIDATION_G1-0000.json'
+$replacementRootPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\GATE1_ROOT.json'
+$replacementIndexPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\CHILD_INDEX.json'
+$replacementPacketPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\OWNER_APPROVAL_PACKET.json'
+$replacementStatusPath = Join-Path $Workspace 'governance\evidence\stage14\GATE1_REPLACEMENT_STATUS_20260809.json'
 $manualPlannerPath = Join-Path $Workspace 'research_pipeline\gate1_manual_batch.py'
 $manualCliPath = Join-Path $Workspace 'research_pipeline\gate1_manual_cli.py'
 $manualLauncherPath = Join-Path $Workspace 'operations\Start-Gate1ManualBatch.ps1'
 $protectionManifestPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS_MANIFEST.json'
 $protectionIntervalsPath = Join-Path $Workspace 'governance\evidence\stage14\protection_intervals_20260802_v1\PROTECTION_INTERVALS.csv'
 $researchSpecificationPath = Join-Path $Workspace 'governance\evidence\stage14\cost_spec_capture_20260802\RESEARCH_SPECIFICATION.json'
-$eaCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\GuardedResearchTester_v101_zero_spread_r.log'
+$eaCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\GuardedResearchTester_shared_read_repair_v2.log'
 $testCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\TestResearchPipeline_v101_zero_spread_r.log'
 $benchmarkCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ResearchThroughputBenchmark_v102_final.log'
 $calendarCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ExportResearchCalendar.log'
@@ -55,7 +60,9 @@ Assert-True ($ea.Contains('InpWorkloadDryRun') -and
              $ea.Contains('DRY_EXECUTION_PROHIBITED')) 'full-workload dry mode must exercise the frozen pipeline, swallow intent, prohibit execution, and persist opaque evidence'
 Assert-True ($ea.Contains('#property tester_file "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv"') -and
              $ea.Contains('ResearchOpenInputFile') -and
-             $ea.Contains('FILE_COMMON')) 'calendar evidence must be explicitly transferred to local tester agents with a governed Common-Files fallback'
+             $ea.Contains('FILE_COMMON') -and
+             $ea.Contains('flags|FILE_SHARE_READ') -and
+             $ea.Contains('flags|FILE_COMMON|FILE_SHARE_READ')) 'immutable manifest and calendar inputs must allow concurrent local-agent readers in both sandboxes'
 Assert-True ($ea.Contains('InpExecutionAdapter') -and $ea.Contains('ResearchUsesVirtual') -and
              $ea.Contains('ResearchProcessVirtualPending') -and
              $ea.Contains('KINGEA_STAGE14_FRAME') -and
@@ -138,22 +145,14 @@ Assert-True ($researchSpecification.hmr.stressed_position_size_assumption_lots -
              [bool]$researchSpecification.hmr.kingea_entry_blackout_is_separate) 'minimum-lot margin basis and extended-HMR fail-closed rules must be explicit'
 
 $preTooling = Get-Content -LiteralPath $preToolingPath -Raw | ConvertFrom-Json
-Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260808-GATE1-PREP-V3') 'PRE_TOOLING manifest must exist'
+Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260809-GATE1-REPLACEMENT-PREP-V2') 'replacement PRE_TOOLING manifest must exist'
 foreach ($source in $preTooling.sources) {
-    # This policy file is intentionally superseded by the exact-root Gate 1
-    # authorization checks below and is rebound by the manual-batch manifest.
-    if ([System.IO.Path]::GetFullPath([string]$source.path) -eq [System.IO.Path]::GetFullPath($PSCommandPath)) { continue }
     Assert-True ((Test-Path -LiteralPath $source.path) -and
                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
                  ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "source changed after PRE_TOOLING: $($source.path)"
 }
 $manualPreTooling = Get-Content -LiteralPath $manualPreToolingPath -Raw | ConvertFrom-Json
-Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260809-GATE1-MANUAL-BATCH-V7') 'manual-batch PRE_TOOLING manifest must exist'
-foreach ($source in $manualPreTooling.sources) {
-    Assert-True ((Test-Path -LiteralPath $source.path) -and
-                 ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
-                 ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "manual-batch source changed after PRE_TOOLING: $($source.path)"
-}
+Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260809-GATE1-MANUAL-BATCH-V7') 'historical manual-batch PRE_TOOLING evidence must remain retained'
 $gate1Authorization = Get-Content -LiteralPath $gate1AuthorizationPath -Raw | ConvertFrom-Json
 $manualPlanner = Get-Content -LiteralPath $manualPlannerPath -Raw
 $manualCli = Get-Content -LiteralPath $manualCliPath -Raw
@@ -163,6 +162,31 @@ Assert-True ([bool]$gate1Authorization.owner_approved -and $gate1Authorization.g
              -not [bool]$gate1Authorization.oos_authorized -and
              -not [bool]$gate1Authorization.holdout_authorized -and
              $gate1Authorization.maximum_children_per_batch -eq 2) 'authorization must bind only the exact Gate 1 root and two-child manual scope'
+$invalidation = Get-Content -LiteralPath $invalidationPath -Raw | ConvertFrom-Json
+$replacementRoot = Get-Content -LiteralPath $replacementRootPath -Raw | ConvertFrom-Json
+$replacementIndex = Get-Content -LiteralPath $replacementIndexPath -Raw | ConvertFrom-Json
+$replacementPacket = Get-Content -LiteralPath $replacementPacketPath -Raw | ConvertFrom-Json
+$replacementStatus = Get-Content -LiteralPath $replacementStatusPath -Raw | ConvertFrom-Json
+Assert-True ($invalidation.status -eq 'INVALIDATED_PRESERVED_NOT_SELECTION_ELIGIBLE' -and
+             -not [bool]$invalidation.replacement_may_reuse_results -and
+             $invalidation.complete_frame_count -eq 978 -and
+             $invalidation.tester_guard_refusal_count -eq 22 -and
+             $invalidation.missing_configuration_ids.Count -eq 22 -and
+             $invalidation.hard_failure_configuration_ids.Count -eq 2) 'failed child must remain invalidated, preserved, and unavailable to selection or replacement reuse'
+Assert-True ($replacementRoot.root_sha256 -eq '04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795' -and
+             $replacementRoot.candidate_budget_before -eq 1 -and
+             $replacementRoot.candidate_budget_transition -eq 'ALREADY_CONSUMED' -and
+             $replacementRoot.launch_count -eq 200 -and
+             $replacementRoot.configuration_pass_count -eq 194400 -and
+             -not [bool]$replacementRoot.owner_approved -and
+             $replacementIndex.children.Count -eq 200 -and
+             $replacementPacket.status -eq 'AWAITING_EXPLICIT_OWNER_APPROVAL' -and
+             -not [bool]$replacementPacket.execution_authorized -and
+             -not (Test-Path -LiteralPath (Join-Path (Split-Path $replacementRootPath) 'GATE1_AUTHORIZATION.json'))) 'replacement root must preserve the consumed budget and remain unauthorized pending exact-root owner approval'
+Assert-True ($replacementStatus.status -eq 'REPLACEMENT_ROOT_VERIFIED_AWAITING_OWNER_APPROVAL' -and
+             $replacementStatus.candidate_budget_consumed -eq 1 -and
+             -not [bool]$replacementStatus.prior_results_reusable -and
+             $replacementStatus.launcher_state -eq 'OLD_ROOT_ONLY_FAIL_CLOSED_DO_NOT_RUN') 'current governance status must expose the invalidation, consumed budget, and launcher prohibition'
 Assert-True ($manualPlanner.Contains('MAXIMUM_CHILDREN = 2') -and
              $manualPlanner.Contains('MAXIMUM_CHILD_HOURS = 3.75') -and
              $manualPlanner.Contains('COMPLETION_SEQUENCE_GAP') -and
@@ -202,6 +226,6 @@ Assert-True ($contractJson.status -eq 'READINESS_IMPLEMENTED_INPUTS_ACCEPTED_BEN
              $contractJson.protection_intervals.status -eq 'ACCEPTED_SEPARATE_HMR_AND_ENTRY_PROTECTION' -and
              -not [bool]$contractJson.authorization.signal_free_benchmark_preparation -and
              -not [bool]$contractJson.authorization.gate1_execution -and
-             -not [bool]$contractJson.authorization.holdout) 'governance must deny all result-bearing gates and holdout'
+             -not [bool]$contractJson.authorization.holdout) 'historical readiness contract must remain retained and deny all then-unapproved gates'
 
-Write-Output 'STAGE14_RESEARCH_READINESS_POLICY_PASS: schema-v2 roots, exact-root Gate 1 authorization, two-child foreground execution, native/virtual isolation, append-only frames, pre-tooling provenance, frozen hashes, and OOS/holdout denial.'
+Write-Output 'STAGE14_RESEARCH_READINESS_POLICY_PASS: prior child invalidated and preserved, concurrent-read repair compiled cleanly, replacement root verified with consumed budget retained, and execution/OOS/holdout denied pending new exact-root approval.'

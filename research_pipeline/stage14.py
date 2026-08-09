@@ -265,6 +265,7 @@ class ResearchRunCoordinator:
         final_configuration_id: int | None = None,
         selection_sha256: str | None = None,
         surface_sha256: str | None = None,
+        candidate_budget_before: int | None = None,
     ) -> dict[str, Any]:
         if gate not in (1, 2, 3):
             raise Stage14Error("GATE_INVALID")
@@ -283,6 +284,17 @@ class ResearchRunCoordinator:
         if not self._valid_hash(common["account_fingerprint"]):
             raise Stage14Error("ACCOUNT_FINGERPRINT_INVALID")
         self._validate_operational_facts(common["operational_facts"], hashes)
+        default_budget = 0 if gate == 1 else 1
+        budget_before = (
+            default_budget if candidate_budget_before is None else candidate_budget_before
+        )
+        if (
+            isinstance(budget_before, bool)
+            or not isinstance(budget_before, int)
+            or budget_before not in (0, 1)
+            or (gate != 1 and budget_before != 1)
+        ):
+            raise Stage14Error("CANDIDATE_BUDGET_STATE_INVALID")
         descriptors: list[dict[str, Any]] = []
         if gate == 1:
             partitions = [f"FOLD_{index}_TRAIN" for index in range(1, 5)] + ["FINAL_SELECTION"]
@@ -362,8 +374,12 @@ class ResearchRunCoordinator:
             "status": "PLANNED",
             "owner_approved": False,
             "candidate_id": "CAND-ETH-ST-001",
-            "candidate_budget_before": 0 if gate == 1 else 1,
-            "candidate_budget_transition": "FIRST_VALID_RESULT_PASS" if gate == 1 else "ALREADY_CONSUMED",
+            "candidate_budget_before": budget_before,
+            "candidate_budget_transition": (
+                "FIRST_VALID_RESULT_PASS"
+                if gate == 1 and budget_before == 0
+                else "ALREADY_CONSUMED"
+            ),
             "artifact_hashes": dict(hashes),
             "mt5_build": int(common["mt5_build"]),
             "account_fingerprint": str(common["account_fingerprint"]),

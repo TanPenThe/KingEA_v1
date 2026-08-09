@@ -1,0 +1,54 @@
+{
+  "candidate_budget_after_first_valid_pass": 1,
+  "candidate_id": "CAND-ETH-ST-001",
+  "classification": "INDEPENDENTLY_DEMONSTRATED_INFRASTRUCTURE_DEFECT",
+  "complete_frame_count": 978,
+  "failed_child_manifest_sha256": "D4829B3110A745FFB9F7CDCF2CC7B0EF11313DC3455888340BBEBEFC1166BE87",
+  "gate": 1,
+  "hard_failure_configuration_ids": [
+    295,
+    470
+  ],
+  "hard_failure_frame_sha256": {
+    "295": "C625772DA15B322597F6EA1CC31C1E2A50131FAADBE0E12962C4188CB9620393",
+    "470": "414D3BDC24B6C5E23712896B2727516300AD537E5D60065C83C09D9238E02D9D"
+  },
+  "missing_configuration_ids": [
+    368,
+    379,
+    415,
+    445,
+    447,
+    449,
+    453,
+    498,
+    531,
+    608,
+    614,
+    619,
+    630,
+    695,
+    700,
+    703,
+    712,
+    780,
+    785,
+    789,
+    947,
+    954
+  ],
+  "preserved_evidence": {
+    "authorization_sha256": "22B6806B0616CA7E1463037A70BE331D513F5A6385A086FBE5FF546433EA1F49",
+    "batch_plan_sha256": "CF98A0804C50DED2564F3E69EC89C7AA918A68B57E640E4E8A43F2DAB76CB88B",
+    "local_spool_file_count": 624942,
+    "local_spool_path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\stage14_spool\\D4829B3110A745FFB9F7CDCF2CC7B0EF11313DC3455888340BBEBEFC1166BE87",
+    "running_record_sha256": "6000F56ED69199F58AA29EE05409E78F6CD12EFE7C19BD933EAAE8EC2E35868D"
+  },
+  "reason": "Concurrent local tester agents opened immutable shared manifest and calendar inputs without FILE_SHARE_READ. Twenty-two synchronized OnInit guard refusals exactly account for all missing completion frames; two further concurrent-read failures occurred during the end-of-pass authorization recheck and emitted hard-failure frames.",
+  "replacement_may_reuse_results": false,
+  "root_sha256": "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889",
+  "run_id": "G1-0000",
+  "schema": 1,
+  "status": "INVALIDATED_PRESERVED_NOT_SELECTION_ELIGIBLE",
+  "tester_guard_refusal_count": 22
+}

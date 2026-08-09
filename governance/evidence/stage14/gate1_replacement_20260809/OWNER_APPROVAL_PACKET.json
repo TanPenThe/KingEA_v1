@@ -1,0 +1,36 @@
+{
+  "branches": [
+    "RECORDED",
+    "RSB3"
+  ],
+  "candidate_budget_before_replacement": 1,
+  "candidate_budget_transition": "ALREADY_CONSUMED",
+  "candidate_id": "CAND-ETH-ST-001",
+  "child_index_file_sha256": "9A4E667D52045B00BBC678B7403E4319C3EA379818E6DDACBB6D5C6DA21C0410",
+  "child_index_internal_sha256": "09C6F66BFF896BEA7164387F629E386712F472681C2D2F0CBE501AED96783FF0",
+  "configuration_pass_count": 194400,
+  "execution_authorized": false,
+  "gate": 1,
+  "holdout_authorized": false,
+  "infrastructure_invalidation_file_sha256": "DDD35F0C990F1B6F52AEF9C336CE24A65A266BF6B4A3BD6BFE01B33E257C66F5",
+  "launch_count": 200,
+  "oos_authorized": false,
+  "packet_sha256": "1C71ABCF167FFA16F7E8411F2A75A628D2BD9D057EBEC28EC432420492FAF93A",
+  "partitions": [
+    "FOLD_1_TRAIN",
+    "FOLD_2_TRAIN",
+    "FOLD_3_TRAIN",
+    "FOLD_4_TRAIN",
+    "FINAL_SELECTION"
+  ],
+  "pre_tooling_file_sha256": "50385D5C930E5898B86477321EAA108201A0D5CB8FE8D7016B8F1240D8ABBFD8",
+  "prior_invalidated_root_sha256": "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889",
+  "projected_wall_days_with_allowance": 26.4783984375,
+  "required_owner_statement": "I explicitly approve replacement Gate 1 root 04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795 for exhaustive development execution after infrastructure invalidation of the prior root.",
+  "root_file_sha256": "1F52DF01CAC71173F17F19E517DD209162BB448E97AC2F7EB2017A9B59155A6A",
+  "root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+  "schema": 1,
+  "selected_local_agents": 12,
+  "status": "AWAITING_EXPLICIT_OWNER_APPROVAL",
+  "tester_ea_sha256": "00BD0FAD6E9829510B0011C44C951735CEE7EA8BC770BBE2F36FA959DA5DC600"
+}

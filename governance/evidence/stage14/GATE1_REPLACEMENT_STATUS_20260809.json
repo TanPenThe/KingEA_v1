@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "candidate_id": "CAND-ETH-ST-001",
+  "status": "REPLACEMENT_ROOT_VERIFIED_AWAITING_OWNER_APPROVAL",
+  "candidate_budget_consumed": 1,
+  "candidate_budget_transition": "ALREADY_CONSUMED",
+  "prior_root_sha256": "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889",
+  "prior_child_run_id": "G1-0000",
+  "prior_child_status": "INVALIDATED_PRESERVED_NOT_SELECTION_ELIGIBLE",
+  "prior_results_reusable": false,
+  "infrastructure_invalidation_file_sha256": "DDD35F0C990F1B6F52AEF9C336CE24A65A266BF6B4A3BD6BFE01B33E257C66F5",
+  "root_cause": "CONCURRENT_IMMUTABLE_INPUT_READS_LACKED_FILE_SHARE_READ",
+  "repair": {
+    "source_sha256": "E94B71AAC7C6320A4518C69D9AC10D4E2E4F5EF747D19487D0C94971D861D069",
+    "compiled_ex5_sha256": "00BD0FAD6E9829510B0011C44C951735CEE7EA8BC770BBE2F36FA959DA5DC600",
+    "compile_evidence_sha256": "7AB4AFE4F743A6038D1733B2D12FE3CFD696FAD656DE6659C9DD421DDD4C4A4B",
+    "compile_errors": 0,
+    "compile_warnings": 0
+  },
+  "replacement": {
+    "root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+    "launch_count": 200,
+    "configuration_pass_count": 194400,
+    "branch_count": 2,
+    "partition_count": 5,
+    "owner_approved": false,
+    "execution_authorized": false,
+    "oos_authorized": false,
+    "holdout_authorized": false
+  },
+  "required_owner_statement": "I explicitly approve replacement Gate 1 root 04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795 for exhaustive development execution after infrastructure invalidation of the prior root.",
+  "launcher_state": "OLD_ROOT_ONLY_FAIL_CLOSED_DO_NOT_RUN",
+  "next_action": "EXPLICIT_OWNER_APPROVAL_OF_REPLACEMENT_ROOT"
+}

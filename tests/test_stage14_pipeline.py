@@ -541,6 +541,31 @@ class Stage14CoordinatorTests(unittest.TestCase):
             self.assertEqual(self.operational, prepared["operational_facts"])
             self.assertEqual(200, prepared["launch_count"])
 
+    def test_tester_guard_opens_immutable_inputs_for_concurrent_readers(self):
+        workspace = Path(__file__).resolve().parents[1]
+        source = (
+            workspace / "MQL5" / "Experts" / "KingEA" / "GuardedResearchTester.mq5"
+        ).read_text(encoding="utf-8")
+        start = source.index("int ResearchOpenInputFile")
+        end = source.index("string ResearchFileSha256", start)
+        open_helper = source[start:end]
+        self.assertIn("flags|FILE_SHARE_READ", open_helper)
+
+    def test_replacement_gate1_root_preserves_consumed_candidate_budget(self):
+        common = {
+            "artifact_hashes": self.hashes,
+            "mt5_build": 6090,
+            "account_fingerprint": "6" * 64,
+            "operational_facts": self.operational,
+        }
+        replacement = self.coordinator.prepare_gate_root(
+            1, common, candidate_budget_before=1
+        )
+        self.assertEqual(1, replacement["candidate_budget_before"])
+        self.assertEqual("ALREADY_CONSUMED", replacement["candidate_budget_transition"])
+        with self.assertRaisesRegex(Stage14Error, "CANDIDATE_BUDGET_STATE_INVALID"):
+            self.coordinator.prepare_gate_root(1, common, candidate_budget_before=2)
+
 
 if __name__ == "__main__":
     unittest.main()
