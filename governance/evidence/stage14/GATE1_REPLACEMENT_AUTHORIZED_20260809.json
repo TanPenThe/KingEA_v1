@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "candidate_id": "CAND-ETH-ST-001",
+  "status": "REPLACEMENT_GATE1_AUTHORIZED_MANUAL_FOREGROUND_ONLY",
+  "authorized_at": "2026-08-09T10:07:19.5904786+08:00",
+  "root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+  "authorization_file_sha256": "1793038EB1E10A9A0ADA5C974B1A0C9C48AED4DCE25C7041397F3E84F5C51D18",
+  "candidate_budget_before": 1,
+  "candidate_budget_transition": "ALREADY_CONSUMED",
+  "maximum_children_per_batch": 2,
+  "execution_mode": "MANUAL_FOREGROUND_BATCHES",
+  "execution_root": "governance/evidence/stage14/gate1_execution_20260809_v2",
+  "prior_invalidated_root_sha256": "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889",
+  "prior_results_reusable": false,
+  "oos_authorized": false,
+  "holdout_authorized": false,
+  "watchdog_authorized": false,
+  "live2_authorized": false,
+  "next_action": "FINAL_LAUNCHER_PROVENANCE_VERIFICATION"
+}

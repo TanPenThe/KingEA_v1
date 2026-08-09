@@ -1187,3 +1187,24 @@ Do not edit or delete existing records. Corrections are appended as new records 
 - Replacement root: `04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795`; 200 launches and 194,400 expected passes across only the two development branches and five development partitions. All child manifests, file hashes, configuration IDs, and cardinalities verify; OOS and holdout are absent.
 - Authorization state: no replacement authorization file exists. The current manual launcher intentionally remains bound to the invalidated historical root and must not be run. A new exact-root owner statement is required before rebinding the launcher.
 - Scope remains Gate 1 development only. No OOS/holdout access, demo/live broker order, Live2 action, watchdog activation, or standdown removal is authorized.
+
+## GOV-20260809-071
+
+- Timestamp: 2026-08-09T10:08:57+08:00
+- Type: Exact-root owner authorization for the repaired Gate 1 replacement
+- Status: REPLACEMENT GATE 1 AUTHORIZED; MANUAL FOREGROUND BATCHES ONLY; FINAL LAUNCHER VERIFICATION PENDING
+- Owner approval: the owner explicitly approved replacement root `04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795` using the exact required infrastructure-invalidation statement. Authorization artifact: `governance/evidence/stage14/gate1_replacement_20260809/GATE1_AUTHORIZATION.json`; SHA-256 `1793038EB1E10A9A0ADA5C974B1A0C9C48AED4DCE25C7041397F3E84F5C51D18`.
+- Budget state: Candidate 001's family budget remains consumed exactly once. The replacement root and launcher require `candidate_budget_before=1` and `candidate_budget_transition=ALREADY_CONSUMED`; the replacement is not a second research attempt.
+- Launcher binding: the manual planner and foreground adapter are being rebound to the replacement package and a new isolated execution root, `governance/evidence/stage14/gate1_execution_20260809_v2`. The old partial execution directory and Common-Files spool remain preserved and cannot be resumed or reused.
+- Scope: at most two sequential children per owner-invoked foreground batch. Formal OOS, holdout, demo/live broker orders, Live2, watchdog activation, scheduled/background execution, and standdown removal remain prohibited.
+
+## GOV-20260809-072
+
+- Timestamp: 2026-08-09T10:13:12+08:00
+- Type: Repaired Gate 1 replacement-launcher final verification
+- Status: READY FOR OWNER-INVOKED MANUAL FOREGROUND BATCH
+- Exact binding: replacement root `04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795`; authorization-file SHA-256 `1793038EB1E10A9A0ADA5C974B1A0C9C48AED4DCE25C7041397F3E84F5C51D18`; final manual provenance manifest SHA-256 `5561E2F50B380FC748FB7172B771D800A0F620728F0AE542B6146ED29BDECCD1`.
+- Isolation: replacement results write only under `governance/evidence/stage14/gate1_execution_20260809_v2` and new manifest-specific Common-Files spools. The preserved failed execution and its 978 partial frames remain unreachable by normal resume logic.
+- Verification: fresh provenance PASS with zero supersessions; 64 Python tests and all 18 PowerShell policies PASS. The active terminal tester EX5 matches SHA-256 `00BD0FAD6E9829510B0011C44C951735CEE7EA8BC770BBE2F36FA959DA5DC600`.
+- Safety state: MT5/MetaTester process count 0; KingEA scheduled-task count 0; Stage 9 standdown remains active with SHA-256 `8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7`; the replacement execution root does not yet exist.
+- Budget and scope: Candidate 001's family budget remains consumed once (`ALREADY_CONSUMED`). Only two-child maximum, sequential, owner-invoked foreground Gate 1 development batches are authorized. OOS, holdout, Live2, watchdog activation, background execution, and standdown removal remain prohibited.

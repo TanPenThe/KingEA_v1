@@ -20,7 +20,7 @@ class Gate1BatchError(ValueError):
 
 
 class Gate1ManualBatch:
-    EXACT_ROOT = "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889"
+    EXACT_ROOT = "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
     MAXIMUM_CHILDREN = 2
     MAXIMUM_CHILD_HOURS = 3.75
     PROJECTED_GATE_WALL_DAYS = 26.4783984375
@@ -55,6 +55,8 @@ class Gate1ManualBatch:
             or root.get("launch_count") != self.EXPECTED_LAUNCHES
             or root.get("configuration_pass_count") != 194_400
             or root.get("owner_approved") is not False
+            or root.get("candidate_budget_before") != 1
+            or root.get("candidate_budget_transition") != "ALREADY_CONSUMED"
         ):
             raise Gate1BatchError("GATE1_ROOT_SCOPE_CHANGED")
 
@@ -66,8 +68,9 @@ class Gate1ManualBatch:
         if str(approval.get("root_sha256", "")).upper() != root["root_sha256"]:
             raise Gate1BatchError("AUTHORIZATION_ROOT_MISMATCH")
         required = (
-            "I explicitly approve Gate 1 root "
-            f"{root['root_sha256']} for exhaustive development execution."
+            "I explicitly approve replacement Gate 1 root "
+            f"{root['root_sha256']} for exhaustive development execution "
+            "after infrastructure invalidation of the prior root."
         )
         if approval.get("owner_statement") != required:
             raise Gate1BatchError("OWNER_STATEMENT_MISMATCH")
@@ -198,7 +201,7 @@ class Gate1ManualBatch:
             if path != policy_path:
                 raise Gate1BatchError("UNGOVERNED_BASE_SOURCE_CHANGE")
             superseded.append(str(path))
-        if superseded != [str(policy_path)]:
+        if superseded not in ([], [str(policy_path)]):
             raise Gate1BatchError("POLICY_SUPERSESSION_SET_INVALID")
         for record in manual_manifest.get("sources", []):
             path = Path(str(record.get("path", ""))).resolve()
@@ -213,7 +216,11 @@ class Gate1ManualBatch:
             raise Gate1BatchError("POLICY_SUPERSESSION_NOT_BOUND")
         return {
             "passed": True,
-            "reason": "PASS_GOVERNED_POLICY_SUPERSESSION",
+            "reason": (
+                "PASS_FRESH_PROVENANCE"
+                if not superseded
+                else "PASS_GOVERNED_POLICY_SUPERSESSION"
+            ),
             "governed_supersessions": superseded,
         }
 

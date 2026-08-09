@@ -14,7 +14,7 @@ class Gate1ManualBatchTests(unittest.TestCase):
             / "governance"
             / "evidence"
             / "stage14"
-            / "gate1_preparation_20260808"
+            / "gate1_replacement_20260809"
         )
         self.root = json.loads((self.package / "GATE1_ROOT.json").read_text())
         self.index = json.loads((self.package / "CHILD_INDEX.json").read_text())
@@ -25,8 +25,9 @@ class Gate1ManualBatchTests(unittest.TestCase):
             "gate": 1,
             "root_sha256": self.root["root_sha256"],
             "owner_statement": (
-                "I explicitly approve Gate 1 root "
-                f"{self.root['root_sha256']} for exhaustive development execution."
+                "I explicitly approve replacement Gate 1 root "
+                f"{self.root['root_sha256']} for exhaustive development execution "
+                "after infrastructure invalidation of the prior root."
             ),
             "oos_authorized": False,
             "holdout_authorized": False,
@@ -80,6 +81,22 @@ class Gate1ManualBatchTests(unittest.TestCase):
         with self.assertRaisesRegex(Gate1BatchError, "AUTHORIZATION_ROOT_MISMATCH"):
             planner.plan(self.root, self.index, altered, completed_run_ids=[])
 
+    def test_replacement_root_must_preserve_the_consumed_candidate_budget(self):
+        planner = Gate1ManualBatch(self.workspace)
+        altered = json.loads(json.dumps(self.root))
+        altered["candidate_budget_before"] = 0
+        altered["candidate_budget_transition"] = "FIRST_VALID_RESULT_PASS"
+        altered["root_sha256"] = planner.canonical_hash(
+            {key: value for key, value in altered.items() if key != "root_sha256"}
+        )
+        prior = Gate1ManualBatch.EXACT_ROOT
+        Gate1ManualBatch.EXACT_ROOT = altered["root_sha256"]
+        try:
+            with self.assertRaisesRegex(Gate1BatchError, "GATE1_ROOT_SCOPE_CHANGED"):
+                planner.plan(altered, self.index, self.approval, completed_run_ids=[])
+        finally:
+            Gate1ManualBatch.EXACT_ROOT = prior
+
     def test_child_file_hashes_are_rechecked_before_planning(self):
         planner = Gate1ManualBatch(self.workspace)
         altered_index = json.loads(json.dumps(self.index))
@@ -127,6 +144,50 @@ class Gate1ManualBatchTests(unittest.TestCase):
         # supersession of the historical execution provenance.
         with self.assertRaisesRegex(Gate1BatchError, "UNGOVERNED_BASE_SOURCE_CHANGE"):
             planner.verify_execution_provenance(base, manual)
+
+    def test_fresh_replacement_provenance_requires_no_supersession(self):
+        planner = Gate1ManualBatch(self.workspace)
+        def manifest(build_id, source_paths):
+            value = {
+                "schema": 1,
+                "kind": "PRE_TOOLING",
+                "build_id": build_id,
+                "sources": [
+                    {
+                        "path": str(path.resolve()),
+                        "size": path.stat().st_size,
+                        "sha256": planner.file_hash(path),
+                    }
+                    for path in source_paths
+                ],
+                "dependency_hashes": {
+                    "policy_source": planner.file_hash(
+                        self.workspace / "tests" / "Test-Stage14ResearchReadinessPolicy.ps1"
+                    )
+                },
+            }
+            value["manifest_sha256"] = planner.canonical_hash(value)
+            return value
+
+        base = manifest(
+            "TEST-FRESH-REPLACEMENT-BASE",
+            [
+                self.workspace / "MQL5" / "Experts" / "KingEA" / "GuardedResearchTester.mq5",
+                self.workspace / "research_pipeline" / "stage14.py",
+                self.workspace / "research_pipeline" / "stage14_cli.py",
+                self.workspace / "tests" / "test_stage14_pipeline.py",
+            ],
+        )
+        source_paths = [
+            self.workspace / "research_pipeline" / "gate1_manual_batch.py",
+            self.workspace / "research_pipeline" / "gate1_manual_cli.py",
+            self.workspace / "operations" / "Start-Gate1ManualBatch.ps1",
+            self.workspace / "tests" / "test_gate1_manual_batch.py",
+        ]
+        manual = manifest("TEST-FRESH-REPLACEMENT-PROVENANCE", source_paths)
+        result = planner.verify_execution_provenance(base, manual)
+        self.assertTrue(result["passed"])
+        self.assertEqual([], result["governed_supersessions"])
 
 
 if __name__ == "__main__":

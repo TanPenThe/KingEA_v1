@@ -17,9 +17,9 @@ from .gate1_manual_batch import Gate1BatchError, Gate1ManualBatch
 from .stage14 import ResearchRunCoordinator, Stage14Error
 
 
-ROOT_SHA256 = "BC4D5D84DBF45AAB6628AA0E1D39D984F715217BB1CA1C092DE1EE97385FA889"
+ROOT_SHA256 = "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
 STANDDOWN_SHA256 = "8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7"
-APPROVAL_FILE_SHA256 = "6FF67C9D7AB21DDAF50357E030C62E1FB377DD5EEBCB0B78BCE5FBC8EADACDC4"
+APPROVAL_FILE_SHA256 = "1793038EB1E10A9A0ADA5C974B1A0C9C48AED4DCE25C7041397F3E84F5C51D18"
 MAX_CHILD_SECONDS = int(Gate1ManualBatch.MAXIMUM_CHILD_HOURS * 60 * 60)
 
 
@@ -185,8 +185,8 @@ def _wait_for_completion(
 
 def _run(args: argparse.Namespace) -> dict:
     workspace = args.workspace.resolve()
-    package = workspace / "governance/evidence/stage14/gate1_preparation_20260808"
-    execution_root = workspace / "governance/evidence/stage14/gate1_execution_20260808"
+    package = workspace / "governance/evidence/stage14/gate1_replacement_20260809"
+    execution_root = workspace / "governance/evidence/stage14/gate1_execution_20260809_v2"
     root = _read_json(package / "GATE1_ROOT.json")
     index = _read_json(package / "CHILD_INDEX.json")
     approval_path = package / "GATE1_AUTHORIZATION.json"
@@ -216,10 +216,10 @@ def _run(args: argparse.Namespace) -> dict:
     identity = _verify_demo2_terminal_identity(args.terminal)
     coordinator = ResearchRunCoordinator()
     base_pre_tooling = _read_json(
-        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_PREP_V3_20260808.json"
+        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_REPLACEMENT_PREP_V1_20260809.json"
     )
     manual_pre_tooling = _read_json(
-        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_MANUAL_BATCH_V7_20260809.json"
+        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_REPLACEMENT_MANUAL_V2_20260809.json"
     )
     planner.verify_execution_provenance(base_pre_tooling, manual_pre_tooling)
 
@@ -310,7 +310,7 @@ def _run(args: argparse.Namespace) -> dict:
                     "candidate_id": "CAND-ETH-ST-001",
                     "status": "RUNNING",
                     "candidate_budget_consumed": 1,
-                    "transition_trigger": "FIRST_VALID_RESULT_BEARING_CHILD_COMPLETE",
+                    "transition_trigger": "ALREADY_CONSUMED_REPLACEMENT_AFTER_INFRASTRUCTURE_INVALIDATION",
                     "first_run_id": run_id,
                     "root_sha256": ROOT_SHA256,
                     "at": completion["completed_at"],
