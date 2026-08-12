@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "kind": "PRE_TOOLING",
+  "build_id": "KINGEA-GATE1-ARCHIVE-RECOVERY-20260812-V1",
+  "sources": [
+    {"path":"C:\\KingEA_v1\\research_pipeline\\gate1_evidence_archive.py","size":12522,"sha256":"2FF6DADE6B08EB38C288E96A7B300F3BC981B13DE563FCC3D9A6DB5AD0A01D0A"},
+    {"path":"C:\\KingEA_v1\\research_pipeline\\gate1_archive_cli.py","size":1969,"sha256":"42D2F6F85441DE1053AF50BE515AF24750C7CAF2951B4C7F1C4A266B99FE2301"},
+    {"path":"C:\\KingEA_v1\\tests\\test_gate1_evidence_archive.py","size":4170,"sha256":"24AD24580C605809AF0F42A4B5B31C7E3E6A2F373C4EC9530ADC7CCA89AE9727"},
+    {"path":"C:\\KingEA_v1\\operations\\Start-Gate1ArchiveMaintenance.ps1","size":941,"sha256":"DD871ACE97A69FC81C09EF43E6588C994B083CCAB1C3722FC406C54948701259"},
+    {"path":"C:\\KingEA_v1\\operations\\Resume-Gate1AfterStorageRecovery.ps1","size":1947,"sha256":"6D3E8BB49D93E5F575FF5950EA355B72271456D9A23D2221DA6C1292C52E9C14"}
+  ],
+  "authorization":"OWNER_APPROVED_LOSSLESS_ARCHIVAL_AND_G1_0037_RECOVERY",
+  "performance_authorization":false,
+  "oos_authorized":false,
+  "holdout_authorized":false
+}
