@@ -6,11 +6,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $workspace = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Import-Module -Force (Join-Path $PSScriptRoot 'Gate1StorageGuard.psm1')
 
 Push-Location $workspace
 try {
     $archiveProcess = Get-CimInstance Win32_Process | Where-Object {
-        $_.CommandLine -match '[\\/]Start-Gate1ArchiveMaintenance\.ps1(?:\s|")'
+        Test-Gate1ArchiveMaintenanceProcess $_
     }
     if ($archiveProcess) {
         throw 'ARCHIVE_MAINTENANCE_ACTIVE: Gate 1 research must not overlap archival.'

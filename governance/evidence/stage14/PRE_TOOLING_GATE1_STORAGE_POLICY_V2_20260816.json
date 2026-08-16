@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "kind": "PRE_TOOLING",
+  "build_id": "KINGEA-GATE1-STORAGE-POLICY-20260816-V2",
+  "supersedes_build_id": "KINGEA-GATE1-STORAGE-POLICY-20260815-V1",
+  "change_reason": "ARCHIVE_PROCESS_FALSE_POSITIVE_FROM_OUTER_WORKFLOW_COMMAND_TEXT",
+  "sources": [
+    {"path":"C:\\KingEA_v1\\research_pipeline\\gate1_storage_policy.py","size":4024,"sha256":"21F35F211107C4B2497C36B16983D09FC0FE3F56D2310F1654964DAA6D3EEEBA"},
+    {"path":"C:\\KingEA_v1\\research_pipeline\\gate1_storage_cli.py","size":793,"sha256":"17AD3C861BD8F02326209A6F2435EBD6FACFA4F0C70B21FC5B5AF7AFA7C0B258"},
+    {"path":"C:\\KingEA_v1\\operations\\Gate1StorageGuard.psm1","size":524,"sha256":"56C11497B0B94D8757C80D347796A26114BF634102B07868433DFBBC562352EB"},
+    {"path":"C:\\KingEA_v1\\operations\\Start-Gate1ManagedBatch.ps1","size":995,"sha256":"6C74ED0B06340858168C32AFAA29EC5F845E0E37DA00E9D96731639444C57D4B"},
+    {"path":"C:\\KingEA_v1\\tests\\test_gate1_storage_policy.py","size":6108,"sha256":"D8AB03FAF7489597DE4F95450B332300761943BB5F0290780C726F83CFEC13DA"}
+  ],
+  "dependency_hashes": {
+    "frozen_manual_launcher": "733C09A71857F2770A8304C29AD01C48D211E48119E62FA5C69E53A567E793CC",
+    "archive_maintenance": "DD871ACE97A69FC81C09EF43E6588C994B083CCAB1C3722FC406C54948701259",
+    "evidence_archive_module": "2FF6DADE6B08EB38C288E96A7B300F3BC981B13DE563FCC3D9A6DB5AD0A01D0A",
+    "gate1_root": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
+  },
+  "storage_policy": {
+    "archive_trigger_unarchived_runs": 30,
+    "archive_trigger_free_gb": 45,
+    "research_launch_floor_gb": 30,
+    "hard_floor_gb": 16,
+    "archive_and_research_overlap_prohibited": true,
+    "archive_process_detection": "POWERSHELL_EXE_WITH_EXACT_FILE_INVOCATION"
+  },
+  "authorization": "OWNER_APPROVED_GATE1_PERIODIC_ARCHIVAL_PASS",
+  "performance_authorization": false,
+  "oos_authorized": false,
+  "holdout_authorized": false
+}

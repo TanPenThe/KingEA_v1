@@ -1,5 +1,6 @@
 import unittest
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -117,6 +118,43 @@ class Gate1StoragePolicyTests(unittest.TestCase):
         self.assertIn("STORAGE_POLICY_BLOCKED", source)
         self.assertIn("ARCHIVE_MAINTENANCE_ACTIVE", source)
         self.assertNotRegex(source, r"Start-Job|Register-ScheduledTask|New-Service")
+
+    def test_archive_process_detection_ignores_workflow_text_but_detects_real_file_invocation(self):
+        workspace = Path(__file__).resolve().parents[1]
+        module = workspace / "operations/Gate1StorageGuard.psm1"
+        command = f"""
+$ErrorActionPreference='Stop'
+Import-Module -Force '{module}'
+$workflow = [pscustomobject]@{{
+  Name='pwsh.exe'
+  CommandLine='pwsh -Command later call Start-Gate1ArchiveMaintenance.ps1'
+}}
+$archive = [pscustomobject]@{{
+  Name='powershell.exe'
+  CommandLine='powershell.exe -NoProfile -File C:\\KingEA_v1\\operations\\Start-Gate1ArchiveMaintenance.ps1 -From 68 -To 69'
+}}
+@(
+  Test-Gate1ArchiveMaintenanceProcess $workflow
+  Test-Gate1ArchiveMaintenanceProcess $archive
+) -join ','
+"""
+
+        completed = subprocess.run(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                command,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual("False,True", completed.stdout.strip())
 
 
 if __name__ == "__main__":
