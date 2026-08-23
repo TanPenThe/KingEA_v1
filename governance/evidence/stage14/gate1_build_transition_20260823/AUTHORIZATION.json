@@ -1,0 +1,18 @@
+{
+  "authorization_sha256": "7E7DE253CC734546963FB693FE7A33742137DCAA7F653A97F43F430D2455CF7B",
+  "authorized_runs": [
+    "BP-0000-B6140",
+    "BP-0039-B6140",
+    "BP-0080-B6140",
+    "BP-0119-B6140"
+  ],
+  "candidate_budget_increment": 0,
+  "holdout_authorized": false,
+  "kind": "GATE1_MT5_BUILD_PARITY_AUTHORIZATION",
+  "oos_authorized": false,
+  "owner_approved": true,
+  "owner_statement": "ok do it now, let me know when to run the script",
+  "parity_root_sha256": "77A3878AEC0E33E4454FFA65B5FB39880D6E9D98964587CD9490513FE5A85FA6",
+  "schema": 1,
+  "selection_eligible": false
+}
