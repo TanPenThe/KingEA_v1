@@ -14,29 +14,21 @@ class Gate1ManualBatchTests(unittest.TestCase):
             / "governance"
             / "evidence"
             / "stage14"
-            / "gate1_replacement_20260809"
+            / "gate1_continuation_20260824_v2"
         )
         self.root = json.loads((self.package / "GATE1_ROOT.json").read_text())
         self.index = json.loads((self.package / "CHILD_INDEX.json").read_text())
-        self.approval = {
-            "schema": 1,
-            "kind": "GATE1_OWNER_AUTHORIZATION",
-            "owner_approved": True,
-            "gate": 1,
-            "root_sha256": self.root["root_sha256"],
-            "owner_statement": (
-                "I explicitly approve replacement Gate 1 root "
-                f"{self.root['root_sha256']} for exhaustive development execution "
-                "after infrastructure invalidation of the prior root."
-            ),
-            "oos_authorized": False,
-            "holdout_authorized": False,
-        }
+        self.approval = json.loads(
+            (self.package / "GATE1_AUTHORIZATION.json").read_text()
+        )
+        self.completed = [f"G1-{number:04d}" for number in range(120)]
 
     def test_owner_can_plan_the_next_two_foreground_children(self):
         planner = Gate1ManualBatch(self.workspace)
-        plan = planner.plan(self.root, self.index, self.approval, completed_run_ids=[])
-        self.assertEqual(plan["run_ids"], ["G1-0000", "G1-0001"])
+        plan = planner.plan(
+            self.root, self.index, self.approval, completed_run_ids=self.completed
+        )
+        self.assertEqual(plan["run_ids"], ["G1-0120", "G1-0121"])
         self.assertEqual(plan["maximum_children"], 2)
         self.assertEqual(plan["execution_mode"], "MANUAL_FOREGROUND")
         self.assertLess(plan["projected_batch_hours"], 8.0)
@@ -49,7 +41,7 @@ class Gate1ManualBatchTests(unittest.TestCase):
                 self.root,
                 self.index,
                 self.approval,
-                completed_run_ids=[],
+                completed_run_ids=self.completed,
                 requested_children=3,
             )
 
@@ -59,15 +51,15 @@ class Gate1ManualBatchTests(unittest.TestCase):
             self.root,
             self.index,
             self.approval,
-            completed_run_ids=["G1-0000", "G1-0001"],
+            completed_run_ids=self.completed + ["G1-0120", "G1-0121"],
         )
-        self.assertEqual(resumed["run_ids"], ["G1-0002", "G1-0003"])
+        self.assertEqual(resumed["run_ids"], ["G1-0122", "G1-0123"])
         with self.assertRaisesRegex(Gate1BatchError, "COMPLETION_SEQUENCE_GAP"):
             planner.plan(
                 self.root,
                 self.index,
                 self.approval,
-                completed_run_ids=["G1-0001"],
+                completed_run_ids=self.completed + ["G1-0121"],
             )
 
     def test_wrong_root_or_owner_words_do_not_authorize_execution(self):
@@ -75,11 +67,15 @@ class Gate1ManualBatchTests(unittest.TestCase):
         altered = dict(self.approval)
         altered["owner_statement"] = "approved"
         with self.assertRaisesRegex(Gate1BatchError, "OWNER_STATEMENT_MISMATCH"):
-            planner.plan(self.root, self.index, altered, completed_run_ids=[])
+            planner.plan(
+                self.root, self.index, altered, completed_run_ids=self.completed
+            )
         altered = dict(self.approval)
         altered["root_sha256"] = "0" * 64
         with self.assertRaisesRegex(Gate1BatchError, "AUTHORIZATION_ROOT_MISMATCH"):
-            planner.plan(self.root, self.index, altered, completed_run_ids=[])
+            planner.plan(
+                self.root, self.index, altered, completed_run_ids=self.completed
+            )
 
     def test_replacement_root_must_preserve_the_consumed_candidate_budget(self):
         planner = Gate1ManualBatch(self.workspace)
@@ -105,7 +101,12 @@ class Gate1ManualBatchTests(unittest.TestCase):
             {key: value for key, value in altered_index.items() if key != "index_sha256"}
         )
         with self.assertRaisesRegex(Gate1BatchError, "CHILD_FILE_HASH_MISMATCH"):
-            planner.plan(self.root, altered_index, self.approval, completed_run_ids=[])
+            planner.plan(
+                self.root,
+                altered_index,
+                self.approval,
+                completed_run_ids=self.completed,
+            )
 
     def test_completion_requires_every_expected_result_frame_and_no_hard_failure(self):
         planner = Gate1ManualBatch(self.workspace)

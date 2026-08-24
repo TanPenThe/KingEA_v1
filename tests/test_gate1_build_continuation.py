@@ -7,6 +7,7 @@ from research_pipeline.gate1_build_continuation import (
     BuildContinuationError,
     Gate1BuildContinuation,
 )
+from research_pipeline.gate1_manual_batch import Gate1BatchError, Gate1ManualBatch
 
 
 class Gate1BuildContinuationTests(unittest.TestCase):
@@ -63,6 +64,44 @@ class Gate1BuildContinuationTests(unittest.TestCase):
                 completed_run_ids=self.completed,
                 completed_evidence_inventory_sha256=self.inventory_sha256,
                 continuation_pre_tooling_sha256="B" * 64,
+            )
+
+    def test_approved_continuation_plans_only_after_the_accepted_prefix(self):
+        package = (
+            self.workspace
+            / "governance"
+            / "evidence"
+            / "stage14"
+            / "gate1_continuation_20260824_v2"
+        )
+        root = json.loads((package / "GATE1_ROOT.json").read_text())
+        index = json.loads((package / "CHILD_INDEX.json").read_text())
+        statement = json.loads((package / "OWNER_APPROVAL_PACKET.json").read_text())[
+            "required_owner_statement"
+        ]
+        approval = {
+            "owner_approved": True,
+            "gate": 1,
+            "root_sha256": root["root_sha256"],
+            "owner_statement": statement,
+            "oos_authorized": False,
+            "holdout_authorized": False,
+        }
+        plan = Gate1ManualBatch(self.workspace).plan(
+            root,
+            index,
+            approval,
+            completed_run_ids=self.completed,
+        )
+        self.assertEqual(plan["run_ids"], ["G1-0120", "G1-0121"])
+        with self.assertRaisesRegex(
+            Gate1BatchError, "BUILD_CONTINUATION_PREFIX_INCOMPLETE"
+        ):
+            Gate1ManualBatch(self.workspace).plan(
+                root,
+                index,
+                approval,
+                completed_run_ids=self.completed[:-1],
             )
 
 

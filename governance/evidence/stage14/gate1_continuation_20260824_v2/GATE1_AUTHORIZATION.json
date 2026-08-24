@@ -1,0 +1,22 @@
+{
+  "approved_at": "2026-08-24T10:18:47.2795098+08:00",
+  "approved_by": "OWNER",
+  "candidate_budget_before": 1,
+  "candidate_budget_transition": "ALREADY_CONSUMED",
+  "execution_mode": "MANUAL_FOREGROUND_BATCHES_WITH_GOVERNED_ARCHIVAL",
+  "gate": 1,
+  "holdout_authorized": false,
+  "kind": "GATE1_CONTINUATION_OWNER_AUTHORIZATION",
+  "maximum_children_per_batch": 2,
+  "oos_authorized": false,
+  "owner_approved": true,
+  "owner_statement": "I explicitly approve Gate 1 continuation root B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF for exhaustive development continuation from G1-0120 after MT5 build 6140 parity PASS.",
+  "prior_root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+  "parity_result_sha256": "462B8DB87D53CD072360D21333ED33E5DC71053378E560F04BEB1891ABE5F7B6",
+  "completed_evidence_inventory_sha256": "00C4FDD3C94B7284A1402A74A4F801E174E98BEC51501005EE53A906C0F730BB",
+  "accepted_completed_count": 120,
+  "resume_run_id": "G1-0120",
+  "root_file_sha256": "3F3AD7E37B99F1CCBFE1BBCDFEEF41A30781C82D2796049CB543BD07EB567189",
+  "root_sha256": "B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF",
+  "schema": 1
+}

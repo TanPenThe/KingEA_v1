@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "kind": "PRE_TOOLING",
+  "build_id": "KINGEA-STAGE14-20260824-GATE1-CONTINUATION-MANUAL-V2",
+  "supersedes_manifest_sha256": "CCF021AB931862BD319CCBD75C7FEC10A23831BE3F0FB422531D997916CCAD9A",
+  "supersession_reason": "Full regression exposed historical parity validation coupled to the current launcher root; separate preserved prior root from approved continuation root.",
+  "candidate_budget_increment": 0,
+  "oos_authorized": false,
+  "holdout_authorized": false,
+  "dependency_hashes": {
+    "policy_source": "086A5F7724E09A62BDA8333168FFFFACCB3803B51A686301B719ED42111AC84D"
+  },
+  "sources": [
+    {"path": "C:\\KingEA_v1\\research_pipeline\\gate1_manual_batch.py", "size": 13321, "sha256": "5ADB44C0DC74D249BF857F6A90A35D755A5088AE17763D6C28C9F56FEA5D4216"},
+    {"path": "C:\\KingEA_v1\\research_pipeline\\gate1_manual_cli.py", "size": 14764, "sha256": "9E108315A555AB62BDB00B49174A1ADA547945A8793FAF2C6B7565C405BA0C17"},
+    {"path": "C:\\KingEA_v1\\research_pipeline\\gate1_build_transition.py", "size": 11411, "sha256": "5819EF010BBB0C06F63E9A5302B6669AEC80E84C9B4DED9CA87E56DC819EB66B"},
+    {"path": "C:\\KingEA_v1\\operations\\Start-Gate1ManualBatch.ps1", "size": 936, "sha256": "9658AB9B1EEE68D780B8D1F36C5103188A8A07A872B75F29A9F152C8B9B4ADA7"},
+    {"path": "C:\\KingEA_v1\\tests\\Test-Stage14ResearchReadinessPolicy.ps1", "size": 23770, "sha256": "086A5F7724E09A62BDA8333168FFFFACCB3803B51A686301B719ED42111AC84D"},
+    {"path": "C:\\KingEA_v1\\tests\\test_gate1_manual_batch.py", "size": 8807, "sha256": "3611E67D78B15E0E900906F07069AEA40DCFC30D7DDF1100C08CA92C2F8A48AC"},
+    {"path": "C:\\KingEA_v1\\tests\\test_gate1_build_continuation.py", "size": 4388, "sha256": "00A147EF36A61F64BF069D54C712D8241DA5EAD1E65C1106AA8D958DB3BBFCB3"},
+    {"path": "C:\\KingEA_v1\\tests\\test_gate1_build_transition.py", "size": 5645, "sha256": "456A5A341B8BDFE71BAC74454439FC33DBB3A9C85355662B2B07E2DD29D23173"}
+  ],
+  "dependencies": [
+    {"path": "C:\\KingEA_v1\\research_pipeline\\stage14.py", "size": 74011, "sha256": "189F6137289682CED2B6D0BEE569C3E76AD5234B66A6032B61BE350A269E4859"},
+    {"path": "C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\GuardedResearchTester.mq5", "size": 60517, "sha256": "E94B71AAC7C6320A4518C69D9AC10D4E2E4F5EF747D19487D0C94971D861D069"},
+    {"path": "C:\\KingEA_v1\\operations\\Start-Gate1ManagedBatch.ps1", "size": 995, "sha256": "6C74ED0B06340858168C32AFAA29EC5F845E0E37DA00E9D96731639444C57D4B"},
+    {"path": "C:\\KingEA_v1\\operations\\Start-Gate1ArchiveMaintenance.ps1", "size": 941, "sha256": "DD871ACE97A69FC81C09EF43E6588C994B083CCAB1C3722FC406C54948701259"},
+    {"path": "C:\\KingEA_v1\\operations\\Gate1StorageGuard.psm1", "size": 524, "sha256": "56C11497B0B94D8757C80D347796A26114BF634102B07868433DFBBC562352EB"},
+    {"path": "C:\\KingEA_v1\\research_pipeline\\gate1_storage_policy.py", "size": 4024, "sha256": "21F35F211107C4B2497C36B16983D09FC0FE3F56D2310F1654964DAA6D3EEEBA"},
+    {"path": "C:\\KingEA_v1\\research_pipeline\\gate1_evidence_archive.py", "size": 12522, "sha256": "2FF6DADE6B08EB38C288E96A7B300F3BC981B13DE563FCC3D9A6DB5AD0A01D0A"},
+    {"path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\gate1_continuation_20260824_v2\\GATE1_ROOT.json", "size": 53229, "sha256": "3F3AD7E37B99F1CCBFE1BBCDFEEF41A30781C82D2796049CB543BD07EB567189"},
+    {"path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\gate1_continuation_20260824_v2\\CHILD_INDEX.json", "size": 64062, "sha256": "C6B7E0ACC6A8EB0431D1F93D8D921DF2EBB90D4AFAEC4653EC46F5D87F570D34"},
+    {"path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\gate1_continuation_20260824_v2\\GATE1_AUTHORIZATION.json", "size": 1195, "sha256": "2AA03FEF5A52B987EF5E40EC22A618A78ECBBFE3B9620271D057ACDEF4939FD5"},
+    {"path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\gate1_continuation_20260824_v2\\PACKAGE_MANIFEST.json", "size": 32337, "sha256": "B7F54B3B0F4342F4839E74687626073F8217191582BABD4098CE848C11C50B10"},
+    {"path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\gate1_build_transition_20260823_v2\\PARITY_RESULT.json", "size": 3233, "sha256": "AE60713A3E1C6493053529CFEAD1023C1A89ED45B77130D03961896348E60B2C"}
+  ],
+  "manifest_sha256": "26EE3772F85695BC7831108C0B6FC043B0F8DA113D5AD0ADE6F00D47ADE4A5E4"
+}

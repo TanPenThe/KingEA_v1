@@ -43,7 +43,7 @@ class Gate1BuildTransition:
         stored = str(root.get("root_sha256", "")).upper()
         unhashed = {key: value for key, value in root.items() if key != "root_sha256"}
         if (
-            stored != Gate1ManualBatch.EXACT_ROOT
+            stored != Gate1ManualBatch.PRIOR_ROOT
             or self.coordinator.canonical_hash(unhashed) != stored
             or int(root.get("mt5_build", 0)) <= 0
         ):

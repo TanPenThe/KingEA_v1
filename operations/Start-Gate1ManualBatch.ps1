@@ -8,8 +8,8 @@ $ErrorActionPreference = 'Stop'
 $workspace = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 
 Write-Host 'KingEA Gate 1 manual foreground batch'
-Write-Host "Root: 04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
-Write-Host 'Replacement root after preserved infrastructure invalidation; candidate budget already consumed once.'
+Write-Host "Root: B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF"
+Write-Host 'Build-6140 continuation after parity PASS; G1-0000 through G1-0119 retained; candidate budget already consumed once.'
 Write-Host "Children: $Children (two projects take about 6.4 hours; hard batch ceiling 7.5 hours)"
 Write-Host 'This is development-only Strategy Tester research. OOS and holdout remain blocked.'
 

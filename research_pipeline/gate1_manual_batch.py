@@ -20,7 +20,11 @@ class Gate1BatchError(ValueError):
 
 
 class Gate1ManualBatch:
-    EXACT_ROOT = "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
+    EXACT_ROOT = "B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF"
+    PRIOR_ROOT = "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
+    PARITY_RESULT = "462B8DB87D53CD072360D21333ED33E5DC71053378E560F04BEB1891ABE5F7B6"
+    CONTINUATION_PRE_TOOLING = "07B96D23E685879AFD2D64D3D40B2E778F809B4B4EF9C771DB027E2441B5D8BA"
+    ACCEPTED_COMPLETED_COUNT = 120
     MAXIMUM_CHILDREN = 2
     MAXIMUM_CHILD_HOURS = 3.75
     PROJECTED_GATE_WALL_DAYS = 26.4783984375
@@ -50,6 +54,7 @@ class Gate1ManualBatch:
         unhashed = {key: value for key, value in root.items() if key != "root_sha256"}
         if stored != self.EXACT_ROOT or self.canonical_hash(unhashed) != stored:
             raise Gate1BatchError("GATE1_ROOT_HASH_MISMATCH")
+        transition = root.get("build_transition")
         if (
             root.get("gate") != 1
             or root.get("launch_count") != self.EXPECTED_LAUNCHES
@@ -57,6 +62,19 @@ class Gate1ManualBatch:
             or root.get("owner_approved") is not False
             or root.get("candidate_budget_before") != 1
             or root.get("candidate_budget_transition") != "ALREADY_CONSUMED"
+            or root.get("mt5_build") != 6140
+            or not isinstance(transition, Mapping)
+            or transition.get("prior_root_sha256") != self.PRIOR_ROOT
+            or transition.get("parity_result_sha256") != self.PARITY_RESULT
+            or transition.get("continuation_pre_tooling_sha256")
+            != self.CONTINUATION_PRE_TOOLING
+            or transition.get("accepted_completed_count")
+            != self.ACCEPTED_COMPLETED_COUNT
+            or transition.get("resume_run_id") != "G1-0120"
+            or transition.get("candidate_budget_increment") != 0
+            or transition.get("selection_eligible") is not False
+            or transition.get("oos_authorized") is not False
+            or transition.get("holdout_authorized") is not False
         ):
             raise Gate1BatchError("GATE1_ROOT_SCOPE_CHANGED")
 
@@ -68,9 +86,9 @@ class Gate1ManualBatch:
         if str(approval.get("root_sha256", "")).upper() != root["root_sha256"]:
             raise Gate1BatchError("AUTHORIZATION_ROOT_MISMATCH")
         required = (
-            "I explicitly approve replacement Gate 1 root "
-            f"{root['root_sha256']} for exhaustive development execution "
-            "after infrastructure invalidation of the prior root."
+            "I explicitly approve Gate 1 continuation root "
+            f"{root['root_sha256']} for exhaustive development continuation from "
+            "G1-0120 after MT5 build 6140 parity PASS."
         )
         if approval.get("owner_statement") != required:
             raise Gate1BatchError("OWNER_STATEMENT_MISMATCH")
@@ -136,6 +154,8 @@ class Gate1ManualBatch:
         self._validate_approval(root, approval)
         children = self._validate_index(root, index)
         completed = list(completed_run_ids)
+        if len(completed) < self.ACCEPTED_COMPLETED_COUNT:
+            raise Gate1BatchError("BUILD_CONTINUATION_PREFIX_INCOMPLETE")
         expected_prefix = [f"G1-{number:04d}" for number in range(len(completed))]
         if completed != expected_prefix:
             raise Gate1BatchError("COMPLETION_SEQUENCE_GAP")

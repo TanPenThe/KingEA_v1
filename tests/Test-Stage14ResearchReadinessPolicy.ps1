@@ -19,12 +19,13 @@ $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
 $preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_REPLACEMENT_PREP_V1_20260809.json'
-$manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_REPLACEMENT_MANUAL_V2_20260809.json'
-$gate1AuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\GATE1_AUTHORIZATION.json'
+$manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_CONTINUATION_MANUAL_V3_20260824.json'
+$gate1AuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_continuation_20260824_v2\GATE1_AUTHORIZATION.json'
+$historicalAuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\GATE1_AUTHORIZATION.json'
 $invalidationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_execution_20260808\INFRASTRUCTURE_INVALIDATION_G1-0000.json'
-$replacementRootPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\GATE1_ROOT.json'
-$replacementIndexPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\CHILD_INDEX.json'
-$replacementPacketPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\OWNER_APPROVAL_PACKET.json'
+$replacementRootPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_continuation_20260824_v2\GATE1_ROOT.json'
+$replacementIndexPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_continuation_20260824_v2\CHILD_INDEX.json'
+$replacementPacketPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_continuation_20260824_v2\OWNER_APPROVAL_PACKET.json'
 $replacementStatusPath = Join-Path $Workspace 'governance\evidence\stage14\GATE1_REPLACEMENT_STATUS_20260809.json'
 $replacementAuthorizedStatusPath = Join-Path $Workspace 'governance\evidence\stage14\GATE1_REPLACEMENT_AUTHORIZED_20260809.json'
 $manualPlannerPath = Join-Path $Workspace 'research_pipeline\gate1_manual_batch.py'
@@ -153,7 +154,7 @@ foreach ($source in $preTooling.sources) {
                  ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "source changed after PRE_TOOLING: $($source.path)"
 }
 $manualPreTooling = Get-Content -LiteralPath $manualPreToolingPath -Raw | ConvertFrom-Json
-Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260809-GATE1-REPLACEMENT-MANUAL-V2') 'replacement manual-batch PRE_TOOLING manifest must exist'
+Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260824-GATE1-CONTINUATION-MANUAL-V3') 'continuation manual-batch PRE_TOOLING manifest must exist'
 foreach ($source in $manualPreTooling.sources) {
     Assert-True ((Test-Path -LiteralPath $source.path) -and
                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
@@ -164,7 +165,9 @@ $manualPlanner = Get-Content -LiteralPath $manualPlannerPath -Raw
 $manualCli = Get-Content -LiteralPath $manualCliPath -Raw
 $manualLauncher = Get-Content -LiteralPath $manualLauncherPath -Raw
 Assert-True ([bool]$gate1Authorization.owner_approved -and $gate1Authorization.gate -eq 1 -and
-             $gate1Authorization.root_sha256 -eq '04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795' -and
+             $gate1Authorization.root_sha256 -eq 'B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF' -and
+             $gate1Authorization.resume_run_id -eq 'G1-0120' -and
+             $gate1Authorization.accepted_completed_count -eq 120 -and
              $gate1Authorization.candidate_budget_before -eq 1 -and
              $gate1Authorization.candidate_budget_transition -eq 'ALREADY_CONSUMED' -and
              -not [bool]$gate1Authorization.oos_authorized -and
@@ -182,22 +185,26 @@ Assert-True ($invalidation.status -eq 'INVALIDATED_PRESERVED_NOT_SELECTION_ELIGI
              $invalidation.tester_guard_refusal_count -eq 22 -and
              $invalidation.missing_configuration_ids.Count -eq 22 -and
              $invalidation.hard_failure_configuration_ids.Count -eq 2) 'failed child must remain invalidated, preserved, and unavailable to selection or replacement reuse'
-Assert-True ($replacementRoot.root_sha256 -eq '04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795' -and
+Assert-True ($replacementRoot.root_sha256 -eq 'B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF' -and
              $replacementRoot.candidate_budget_before -eq 1 -and
              $replacementRoot.candidate_budget_transition -eq 'ALREADY_CONSUMED' -and
+             $replacementRoot.mt5_build -eq 6140 -and
+             $replacementRoot.build_transition.parity_result_sha256 -eq '462B8DB87D53CD072360D21333ED33E5DC71053378E560F04BEB1891ABE5F7B6' -and
+             $replacementRoot.build_transition.accepted_completed_count -eq 120 -and
+             $replacementRoot.build_transition.resume_run_id -eq 'G1-0120' -and
              $replacementRoot.launch_count -eq 200 -and
              $replacementRoot.configuration_pass_count -eq 194400 -and
              -not [bool]$replacementRoot.owner_approved -and
              $replacementIndex.children.Count -eq 200 -and
-             $replacementPacket.status -eq 'AWAITING_EXPLICIT_OWNER_APPROVAL' -and
-             -not [bool]$replacementPacket.execution_authorized) 'replacement root and historical approval packet must preserve the consumed budget and exact approved scope'
+             -not [bool]$replacementPacket.owner_approved -and
+             $replacementPacket.resume_run_id -eq 'G1-0120') 'continuation root and approval packet must preserve the consumed budget and exact approved scope'
 Assert-True ($replacementStatus.status -eq 'REPLACEMENT_ROOT_VERIFIED_AWAITING_OWNER_APPROVAL' -and
              $replacementStatus.candidate_budget_consumed -eq 1 -and
              -not [bool]$replacementStatus.prior_results_reusable -and
              $replacementStatus.launcher_state -eq 'OLD_ROOT_ONLY_FAIL_CLOSED_DO_NOT_RUN') 'pre-approval status must retain the invalidation, consumed budget, and historical launcher prohibition'
 Assert-True ($replacementAuthorizedStatus.status -eq 'REPLACEMENT_GATE1_AUTHORIZED_MANUAL_FOREGROUND_ONLY' -and
-             $replacementAuthorizedStatus.root_sha256 -eq $replacementRoot.root_sha256 -and
-             $replacementAuthorizedStatus.authorization_file_sha256 -eq (Get-FileHash -Algorithm SHA256 -LiteralPath $gate1AuthorizationPath).Hash -and
+             $replacementAuthorizedStatus.root_sha256 -eq '04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795' -and
+             $replacementAuthorizedStatus.authorization_file_sha256 -eq (Get-FileHash -Algorithm SHA256 -LiteralPath $historicalAuthorizationPath).Hash -and
              $replacementAuthorizedStatus.candidate_budget_before -eq 1 -and
              -not [bool]$replacementAuthorizedStatus.oos_authorized -and
              -not [bool]$replacementAuthorizedStatus.holdout_authorized) 'current governance status must bind the exact replacement authorization without broadening scope'
@@ -206,12 +213,12 @@ Assert-True ($manualPlanner.Contains('MAXIMUM_CHILDREN = 2') -and
              $manualPlanner.Contains('COMPLETION_SEQUENCE_GAP') -and
              $manualPlanner.Contains('RESULT_FRAME_HARD_FAILURE')) 'manual planner must cap batches and fail closed on resume or result defects'
 Assert-True ($manualLauncher.Contains('manual foreground batch') -and
-             $manualLauncher.Contains('04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795') -and
+             $manualLauncher.Contains('B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF') -and
              -not [regex]::IsMatch($manualLauncher, '\b(Start-Job|Register-ScheduledTask|New-Service)\b')) 'launcher must remain foreground-only with no task, job, or service installation'
 Assert-True ($manualCli.Contains('MT5_OR_TESTER_ALREADY_RUNNING') -and
-             $manualCli.Contains('gate1_replacement_20260809') -and
+             $manualCli.Contains('gate1_continuation_20260824_v2') -and
              $manualCli.Contains('gate1_execution_20260809_v2') -and
-             $manualCli.Contains('ALREADY_CONSUMED_REPLACEMENT_AFTER_INFRASTRUCTURE_INVALIDATION') -and
+             $manualCli.Contains('ALREADY_CONSUMED_BUILD_CONTINUATION_AFTER_PARITY_PASS') -and
              $manualCli.Contains('DEMO2_ACCOUNT_IDENTITY_MISMATCH') -and
              $manualCli.Contains('KINGEA_SCHEDULED_TASK_PRESENT') -and
              $manualCli.Contains('TERMINAL_BUILD_MISMATCH') -and
@@ -246,4 +253,4 @@ Assert-True ($contractJson.status -eq 'READINESS_IMPLEMENTED_INPUTS_ACCEPTED_BEN
              -not [bool]$contractJson.authorization.gate1_execution -and
              -not [bool]$contractJson.authorization.holdout) 'historical readiness contract must remain retained and deny all then-unapproved gates'
 
-Write-Output 'STAGE14_RESEARCH_READINESS_POLICY_PASS: prior child invalidated and preserved, concurrent-read repair compiled cleanly, replacement root exactly authorized for bounded manual execution, consumed budget retained, and OOS/holdout denied.'
+Write-Output 'STAGE14_RESEARCH_READINESS_POLICY_PASS: build-6140 parity and 120-run archive inventory retained, continuation root exactly authorized from G1-0120 for bounded manual execution, consumed budget retained, and OOS/holdout denied.'

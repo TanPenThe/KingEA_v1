@@ -17,9 +17,9 @@ from .gate1_manual_batch import Gate1BatchError, Gate1ManualBatch
 from .stage14 import ResearchRunCoordinator, Stage14Error
 
 
-ROOT_SHA256 = "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795"
+ROOT_SHA256 = "B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF"
 STANDDOWN_SHA256 = "8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7"
-APPROVAL_FILE_SHA256 = "1793038EB1E10A9A0ADA5C974B1A0C9C48AED4DCE25C7041397F3E84F5C51D18"
+APPROVAL_FILE_SHA256 = "2AA03FEF5A52B987EF5E40EC22A618A78ECBBFE3B9620271D057ACDEF4939FD5"
 MAX_CHILD_SECONDS = int(Gate1ManualBatch.MAXIMUM_CHILD_HOURS * 60 * 60)
 
 
@@ -185,7 +185,7 @@ def _wait_for_completion(
 
 def _run(args: argparse.Namespace) -> dict:
     workspace = args.workspace.resolve()
-    package = workspace / "governance/evidence/stage14/gate1_replacement_20260809"
+    package = workspace / "governance/evidence/stage14/gate1_continuation_20260824_v2"
     execution_root = workspace / "governance/evidence/stage14/gate1_execution_20260809_v2"
     root = _read_json(package / "GATE1_ROOT.json")
     index = _read_json(package / "CHILD_INDEX.json")
@@ -219,7 +219,7 @@ def _run(args: argparse.Namespace) -> dict:
         workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_REPLACEMENT_PREP_V1_20260809.json"
     )
     manual_pre_tooling = _read_json(
-        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_REPLACEMENT_MANUAL_V2_20260809.json"
+        workspace / "governance/evidence/stage14/PRE_TOOLING_GATE1_CONTINUATION_MANUAL_V3_20260824.json"
     )
     planner.verify_execution_provenance(base_pre_tooling, manual_pre_tooling)
 
@@ -310,7 +310,7 @@ def _run(args: argparse.Namespace) -> dict:
                     "candidate_id": "CAND-ETH-ST-001",
                     "status": "RUNNING",
                     "candidate_budget_consumed": 1,
-                    "transition_trigger": "ALREADY_CONSUMED_REPLACEMENT_AFTER_INFRASTRUCTURE_INVALIDATION",
+                    "transition_trigger": "ALREADY_CONSUMED_BUILD_CONTINUATION_AFTER_PARITY_PASS",
                     "first_run_id": run_id,
                     "root_sha256": ROOT_SHA256,
                     "at": completion["completed_at"],
