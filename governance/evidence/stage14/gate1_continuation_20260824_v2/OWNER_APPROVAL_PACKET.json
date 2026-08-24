@@ -1,0 +1,12 @@
+{
+  "accepted_completed_count": 120,
+  "candidate_budget_increment": 0,
+  "holdout_authorized": false,
+  "kind": "GATE1_CONTINUATION_OWNER_APPROVAL_PACKET",
+  "oos_authorized": false,
+  "owner_approved": false,
+  "required_owner_statement": "I explicitly approve Gate 1 continuation root B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF for exhaustive development continuation from G1-0120 after MT5 build 6140 parity PASS.",
+  "resume_run_id": "G1-0120",
+  "root_sha256": "B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF",
+  "schema": 1
+}

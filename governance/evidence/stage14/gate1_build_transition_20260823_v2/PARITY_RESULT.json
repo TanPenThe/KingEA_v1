@@ -1,0 +1,75 @@
+{
+  "candidate_budget_increment": 0,
+  "comparisons": [
+    {
+      "compared_frames": 639000,
+      "completed_at": "2026-08-23T16:23:33.040228+00:00",
+      "new_mt5_build": 6140,
+      "new_terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+      "normalized_stage13_frames": 638000,
+      "parity_archive_sha256": "706FC48853AF486424082DB678FE101F7E50D126BEEB877AFFC3A15E361F3E35",
+      "parity_run_id": "BP-0000-B6140",
+      "reference_run_id": "G1-0000",
+      "schema": 1,
+      "status": "PASS",
+      "substantive_frame_set_sha256": "1A1BA42389B8E36DD86E10B95BBA78F7E28E9E5D2FA0FA61FFA2A1B00C5E6494"
+    },
+    {
+      "compared_frames": 240240,
+      "completed_at": "2026-08-23T17:12:34.453859+00:00",
+      "new_mt5_build": 6140,
+      "new_terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+      "normalized_stage13_frames": 239800,
+      "parity_archive_sha256": "D69CD861DD1BC59704B9545D3B64440B64FC5F157CCBDD7D823A1C507A699D74",
+      "parity_run_id": "BP-0039-B6140",
+      "reference_run_id": "G1-0039",
+      "schema": 1,
+      "status": "PASS",
+      "substantive_frame_set_sha256": "C9111FD3272FAE7A4142B433B2506E55A4EBD944A3A961B68C350BD76D162E33"
+    },
+    {
+      "compared_frames": 636000,
+      "completed_at": "2026-08-23T19:23:26.293831+00:00",
+      "new_mt5_build": 6140,
+      "new_terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+      "normalized_stage13_frames": 635000,
+      "parity_archive_sha256": "EE041F14E9E0F1788A7D2D0D72608A9D097BBD5898CF41C411F3CB06EDCA6D6D",
+      "parity_run_id": "BP-0080-B6140",
+      "reference_run_id": "G1-0080",
+      "schema": 1,
+      "status": "PASS",
+      "substantive_frame_set_sha256": "2014B80E433FE9223437676CF0F8F7F31B4D6835B92A22D41F9A39CE0A39C745"
+    },
+    {
+      "compared_frames": 279840,
+      "completed_at": "2026-08-23T20:52:54.437453+00:00",
+      "new_mt5_build": 6140,
+      "new_terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+      "normalized_stage13_frames": 279400,
+      "parity_archive_sha256": "86C921E90666FA18365BFDC14C63C38842E7482606A6874A572AF861BA1183CD",
+      "parity_run_id": "BP-0119-B6140",
+      "reference_run_id": "G1-0119",
+      "schema": 1,
+      "status": "PASS",
+      "substantive_frame_set_sha256": "212CA0AEE3A0BCC260DB329424E21BD3AF3C04F366295D272C8FBFC42734CFCF"
+    }
+  ],
+  "completed_at": "2026-08-23T20:55:54.204574+00:00",
+  "continuation_authorized": false,
+  "identity": {
+    "account_suffix": "1768",
+    "checked_at": "2026-08-23T14:36:46.789133+00:00",
+    "raw_login_stored": false,
+    "server": "JustMarkets-Demo2",
+    "terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2"
+  },
+  "kind": "GATE1_MT5_BUILD_PARITY_RESULT",
+  "new_mt5_build": 6140,
+  "new_terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+  "parity_root_sha256": "6ACD4F8AA23662766F90A996F2391EFDF1388B17BDA7C51BA897C2847F6700F3",
+  "prior_mt5_build": 6090,
+  "result_sha256": "462B8DB87D53CD072360D21333ED33E5DC71053378E560F04BEB1891ABE5F7B6",
+  "schema": 1,
+  "selection_eligible": false,
+  "status": "PASS"
+}

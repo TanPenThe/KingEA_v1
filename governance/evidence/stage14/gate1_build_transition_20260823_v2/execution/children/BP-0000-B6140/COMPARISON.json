@@ -1,0 +1,12 @@
+{
+  "compared_frames": 639000,
+  "completed_at": "2026-08-23T16:23:33.040228+00:00",
+  "new_mt5_build": 6140,
+  "new_terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+  "normalized_stage13_frames": 638000,
+  "parity_run_id": "BP-0000-B6140",
+  "reference_run_id": "G1-0000",
+  "schema": 1,
+  "status": "PASS",
+  "substantive_frame_set_sha256": "1A1BA42389B8E36DD86E10B95BBA78F7E28E9E5D2FA0FA61FFA2A1B00C5E6494"
+}

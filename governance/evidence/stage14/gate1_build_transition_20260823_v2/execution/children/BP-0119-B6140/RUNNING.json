@@ -1,0 +1,8 @@
+{
+  "manifest_sha256": "C898571CD21F5BD90FF4081928A864E585B5ACD14BE30A5DFB4A913D56E173B5",
+  "maximum_child_seconds": 13500,
+  "run_id": "BP-0119-B6140",
+  "schema": 1,
+  "started_at": "2026-08-23T19:30:15.683608+00:00",
+  "status": "RUNNING"
+}
