@@ -1,8 +1,0 @@
-{
-  "manifest_sha256": "3180EF3A5DF884E9803C57E8E6D9F4E0610B17687A518C5AA1979B2F53830B06",
-  "maximum_child_seconds": 13500,
-  "run_id": "G1-0187",
-  "schema": 1,
-  "started_at": "2026-08-30T05:22:40.081963+00:00",
-  "status": "RUNNING"
-}

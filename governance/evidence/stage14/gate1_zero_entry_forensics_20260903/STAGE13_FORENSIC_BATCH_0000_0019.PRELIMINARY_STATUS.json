@@ -1,9 +1,0 @@
-{
-  "schema": 1,
-  "kind": "PRELIMINARY_FORENSIC_OUTPUT_PENDING_AUDIT_HARDENING",
-  "artifact": "STAGE13_FORENSIC_BATCH_0000_0019.json",
-  "artifact_sha256": "66ADAA9679CFA63020C5C5D50B44E49DE437EAC36A1D4DE7755360503E8AAC97",
-  "scope": ["G1-0000", "G1-0019"],
-  "classification_eligible": false,
-  "reason": "Output predates governed manifest binding, zero-event root contract, and configuration-level distribution hardening."
-}

@@ -1,8 +1,0 @@
-{
-  "pid": 8588,
-  "at": "2026-09-07T06:45:06.641834+00:00",
-  "command": [
-    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
-    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\decision_s_native_20260907\\DS-NATIVE-LONG-01\\tester.ini"
-  ]
-}
