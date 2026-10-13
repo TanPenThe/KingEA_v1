@@ -1,0 +1,12 @@
+{
+  "adoption_sha256": "3A2DE74C7E185891CD63FDB6335136C8C2B82AEA9B89DB4245C72F65F3F1FF4C",
+  "b2": "LOCKED",
+  "budget": 0,
+  "candidate_execution": false,
+  "holdout": false,
+  "oos": false,
+  "owner_scope_sha256": "E0F04ECBFD487A00F4DE7883A56A7E1632B3CB95B68ACBA90067CFAB1E3368C0",
+  "run_id": "NC-FOK-08-SEALED-V2",
+  "scope": "NON_CANDIDATE_FOK_INFRASTRUCTURE",
+  "simulated_entry_limit": 1
+}

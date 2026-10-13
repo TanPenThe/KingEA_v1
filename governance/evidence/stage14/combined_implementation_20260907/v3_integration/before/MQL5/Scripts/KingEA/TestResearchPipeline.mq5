@@ -1,0 +1,218 @@
+#property copyright "KingEA"
+#property version   "1.01"
+#property script_show_inputs
+#property description "Synthetic, non-performance Stage 12 execution-contract tests."
+
+#include <KingEA/ResearchExecution.mqh>
+
+int g_checks=0;
+int g_failures=0;
+
+void Check(const bool condition,const string name)
+  {
+   g_checks++;
+   if(condition)
+      Print("PASS: ",name);
+   else
+     {
+      g_failures++;
+      Print("FAIL: ",name);
+     }
+  }
+
+void WriteContractReport()
+  {
+   string utc=TimeToString(TimeGMT(),TIME_DATE|TIME_SECONDS);
+   StringReplace(utc,".","-");
+   StringReplace(utc,":","-");
+   StringReplace(utc," ","_");
+   string filename="KingEA\\stage14_research_contract_"+utc+".csv";
+   int report=FileOpen(filename,FILE_WRITE|FILE_CSV|FILE_ANSI|FILE_COMMON|FILE_SHARE_READ,',',CP_UTF8);
+   if(report==INVALID_HANDLE)
+     {
+      g_failures++;
+      PrintFormat("FAIL: report FileOpen error=%d",GetLastError());
+      return;
+     }
+   FileWrite(report,"key","value");
+   FileWrite(report,"build_id","KINGEA-STAGE14-20260802-R");
+   FileWrite(report,"result",g_failures==0 ? "PASS" : "FAIL");
+   FileWrite(report,"checks",g_checks);
+   FileWrite(report,"failures",g_failures);
+   FileWrite(report,"fixture","SYNTHETIC_ONLY");
+   FileWrite(report,"performance_authorization","DENIED");
+   FileWrite(report,"candidate_budget_consumed",0);
+   FileWrite(report,"order_capability","PROHIBITED_AND_ABSENT");
+   FileWrite(report,"standdown_required","ACTIVE");
+   FileFlush(report);
+   FileClose(report);
+   PrintFormat("KingEA Stage 12 contract report: %s\\Files\\%s",
+               TerminalInfoString(TERMINAL_COMMONDATA_PATH),filename);
+  }
+
+void OnStart()
+  {
+   KingEACandidateParameters parameters={};
+   Check(KingEAResearchDecodeConfiguration(0,parameters) &&
+         parameters.atr_period==10 && parameters.maximum_holding_bars==48,
+         "configuration zero decodes in frozen order");
+   Check(KingEAResearchDecodeConfiguration(19439,parameters) &&
+         parameters.atr_period==22 && parameters.maximum_holding_bars==96,
+         "configuration 19439 decodes in frozen order");
+   Check(!KingEAResearchDecodeConfiguration(19440,parameters),
+         "off-grid configuration id fails closed");
+
+   KingEAResearchAuthorization authorization={};
+   authorization.in_tester=true;
+   authorization.every_tick_real=true;
+   authorization.local_agents_only=true;
+   authorization.manifest_hash_valid=true;
+   authorization.detached_authorization_valid=true;
+   authorization.status_running=true;
+   authorization.partition_authorized=true;
+   Check(KingEAResearchAuthorized(authorization),
+         "complete tester authorization permits the adapter seam");
+   authorization.detached_authorization_valid=false;
+   Check(!KingEAResearchAuthorized(authorization),
+         "missing detached authorization blocks every execution path");
+
+   KingEAResearchStress stress={};
+   stress.spread_multiplier=3.0;
+   stress.cost_multiplier=1.3;
+   stress.slippage_spread_fraction=0.5;
+   stress.missed_entry_fraction=0.10;
+   stress.seed=12345;
+   KingEAResearchVirtualFill first={};
+   KingEAResearchVirtualFill second={};
+   KingEAResearchApplyVirtualStress(stress,"SYNTHETIC-SIGNAL-1",100.0,101.0,
+                                    KINGEA_DIRECTION_LONG,first);
+   KingEAResearchApplyVirtualStress(stress,"SYNTHETIC-SIGNAL-1",100.0,101.0,
+                                    KINGEA_DIRECTION_LONG,second);
+   Check(first.missed==second.missed && first.entry_price==second.entry_price,
+         "seeded virtual stress is deterministic");
+   Check(first.stressed_spread==3.0 && first.entry_price==104.5,
+         "spread and adverse long slippage are applied exactly");
+
+   KingEAResearchVirtualPosition virtual_position={};
+   virtual_position.equity=1000.0;
+   KingEAResearchEntryRoute virtual_route={};
+   KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_VIRTUAL,stress,
+                            "SENTINEL-STRESS",100.0,101.0,
+                            KINGEA_DIRECTION_LONG,95.0,0.01,1000,
+                            1800000,0.0,false,virtual_position,virtual_route);
+   Check(virtual_route.healthy && virtual_route.outcome==KINGEA_RESEARCH_VIRTUAL_FILL &&
+         !virtual_route.native_order_required &&
+         virtual_route.fill_price==104.5 &&
+         virtual_position.entry_price==104.5 &&
+         virtual_route.accounting_price==104.5,
+         "virtual sentinel fill reaches position and accounting without native order");
+
+   KingEAResearchVirtualPosition native_unused={};
+   native_unused.equity=1000.0;
+   KingEAResearchEntryRoute native_route={};
+   KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_NATIVE,stress,
+                            "SENTINEL-NATIVE",100.0,101.0,
+                            KINGEA_DIRECTION_LONG,95.0,0.01,1000,
+                            1800000,100.75,true,native_unused,native_route);
+   Check(native_route.healthy && native_route.native_order_required &&
+         native_route.fill_price==100.75 &&
+         native_route.accounting_price==100.75 &&
+         !native_unused.has_position,
+         "native route consumes only tester result price and leaves virtual state unused");
+
+   KingEAResearchStress native_delay=stress;
+   native_delay.delay_ms=20;
+   KingEAResearchVirtualPosition native_delay_unused={};
+   native_delay_unused.equity=1000.0;
+   KingEAResearchEntryRoute native_delay_route={};
+   KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_NATIVE,native_delay,
+                            "SENTINEL-NATIVE-20MS",100.0,101.0,
+                            KINGEA_DIRECTION_LONG,95.0,0.01,1000,
+                            1800000,100.75,true,native_delay_unused,
+                            native_delay_route);
+   Check(native_delay_route.healthy && native_delay_route.native_order_required &&
+         native_delay_route.outcome==KINGEA_RESEARCH_NATIVE_ORDER_REQUIRED &&
+         !native_delay_route.enqueued && !native_delay_unused.has_position,
+         "native 20ms route never queues or creates virtual pending state");
+
+   KingEAResearchVirtualPosition missed_position={};
+   missed_position.equity=1000.0;
+   KingEAResearchEntryRoute missed_route={};
+   KingEAResearchStress always_missed=stress;
+   always_missed.missed_entry_fraction=1.0;
+   KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_VIRTUAL,always_missed,
+                            "MISSED",100.0,101.0,KINGEA_DIRECTION_LONG,
+                            95.0,0.01,1000,1800000,0.0,false,
+                            missed_position,missed_route);
+   Check(missed_route.outcome==KINGEA_RESEARCH_SEEDED_MISS &&
+         !missed_route.enqueued && !missed_position.has_position,
+         "seeded miss is terminal and never enters the delay queue");
+
+   long interval_start[]={100,150,170,400};
+   long interval_end[]={200,160,250,450};
+   long prefix_max_end[]={200,200,250,450};
+   string interval_type[]={"MAINTENANCE_ENTRY_BLOCK","MAINTENANCE_RECOVERY",
+                           "NEWS_BLOCK","MAINTENANCE_FORCE_FLAT"};
+   string selected="";
+   Check(KingEAResearchSelectMarketInterval(interval_start,interval_end,
+                                             prefix_max_end,interval_type,
+                                             175,selected) &&
+         selected=="NEWS_BLOCK",
+         "indexed interval lookup preserves overlapping priority");
+   selected="";
+   Check(!KingEAResearchSelectMarketInterval(interval_start,interval_end,
+                                              prefix_max_end,interval_type,
+                                              250,selected) && selected=="",
+         "indexed interval lookup preserves half-open end boundary");
+   KingEAResearchMarketIntervalSnapshot interval_snapshot={};
+   Check(KingEAResearchResolveMarketInterval(interval_start,interval_end,
+                                               prefix_max_end,interval_type,
+                                               175,interval_snapshot) &&
+         interval_snapshot.blocked &&
+         interval_snapshot.kind=="NEWS_BLOCK" &&
+         interval_snapshot.next_change_msc==200,
+         "calendar snapshot caches only until the earliest active boundary");
+   Check(KingEAResearchResolveMarketInterval(interval_start,interval_end,
+                                               prefix_max_end,interval_type,
+                                               250,interval_snapshot) &&
+         !interval_snapshot.blocked &&
+         interval_snapshot.next_change_msc==400,
+         "calendar snapshot wakes exactly at the next future interval");
+   string normalized="";
+   bool entry_block=false;
+   Check(KingEAResearchNormalizeProtectionType("KINGEA_ENTRY_BLACKOUT",
+                                                normalized,entry_block) &&
+         normalized=="NEWS_BLOCK" && entry_block,
+         "KingEA entry blackout maps to the entry gate");
+   normalized=""; entry_block=true;
+   Check(KingEAResearchNormalizeProtectionType("BROKER_HMR_SCHEDULED",
+                                                normalized,entry_block) &&
+         normalized=="BROKER_HMR_SCHEDULED" && !entry_block,
+         "broker HMR remains margin-only and separate from entry blackout");
+
+   KingEAResearchSpreadBaselineCache spread_cache={};
+   double cached_baseline=0.0;
+   Check(!KingEAResearchSpreadBaselineCacheHit(spread_cache,1800,
+                                                cached_baseline),
+         "uninitialized spread baseline cache misses closed");
+   KingEAResearchStoreSpreadBaseline(spread_cache,1800,2.5);
+   Check(KingEAResearchSpreadBaselineCacheHit(spread_cache,1800,
+                                               cached_baseline) &&
+         cached_baseline==2.5,
+         "spread baseline cache reuses the exact value inside one M30 slot");
+   Check(!KingEAResearchSpreadBaselineCacheHit(spread_cache,3600,
+                                                cached_baseline),
+         "spread baseline cache expires exactly at the next M30 slot");
+   KingEAResearchStoreSpreadBaseline(spread_cache,3600,0.0);
+   Check(KingEAResearchSpreadBaselineCacheHit(spread_cache,3600,
+                                               cached_baseline) &&
+         cached_baseline==0.0,
+         "unavailable early-history baseline is cached for the full slot");
+   Check(KingEAResearchObservedSpreadValid(0.0) &&
+         !KingEAResearchObservedSpreadValid(-0.01),
+         "zero observed spread is valid data while negative spread distance fails");
+
+   WriteContractReport();
+   PrintFormat("STAGE14_RESEARCH_CONTRACT_%s: checks=%d; failures=%d; synthetic only; no performance authorization.",
+               g_failures==0 ? "PASS" : "FAIL",g_checks,g_failures);
+  }

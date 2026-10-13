@@ -1,0 +1,14 @@
+{
+  "completed_at": "2026-08-26T01:00:16.856721+00:00",
+  "elapsed_seconds": 5839.875,
+  "first_configuration_id": 0,
+  "frame_count": 1000,
+  "last_configuration_id": 999,
+  "manifest_sha256": "DF66EB4EDB46CFD58957BBA69DA693265E9B81CC68083B149AED22C47A9EC29F",
+  "result_frame_set_sha256": "9BD08D2A798CD18D98469FA8DD00053320C3ED95697AFBFCA37D020337B1E579",
+  "run_id": "G1-0140",
+  "schema": 1,
+  "spool_path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\KingEA\\stage14_spool\\DF66EB4EDB46CFD58957BBA69DA693265E9B81CC68083B149AED22C47A9EC29F",
+  "status": "COMPLETE",
+  "terminal_exit_code": 0
+}

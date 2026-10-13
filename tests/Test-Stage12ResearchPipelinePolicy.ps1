@@ -34,7 +34,10 @@ $drill = Get-Content -LiteralPath $drillPath -Raw | ConvertFrom-Json
 $watchdog = Get-Content -LiteralPath $watchdogPath -Raw | ConvertFrom-Json
 
 Assert-True (([regex]::Matches($ea, '\bOrderSend\s*\(')).Count -eq 1) 'the tester EA must have exactly one guarded order seam'
-Assert-True ($ea.Contains('if(!g_initialized || !ResearchAuthorizationValid())') -and
+Assert-True ($ea.Contains('if(!g_initialized || !ResearchActiveAuthorizationValid() ||') -and
+             $ea.Contains('if(InpNativeConformance)') -and
+             $ea.Contains('return ResearchConformanceAuthorizationValidate();') -and
+             $ea.Contains('return ResearchAuthorizationValid();') -and
              $ea.Contains('return OrderSend(request,result);')) 'authorization must be revalidated immediately before OrderSend'
 Assert-True ($ea.Contains('MQLInfoInteger(MQL_TESTER)') -and
              $ea.Contains('InpTesterModel!=4') -and

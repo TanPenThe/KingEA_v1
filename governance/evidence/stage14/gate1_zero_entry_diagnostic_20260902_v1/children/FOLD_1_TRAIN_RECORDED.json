@@ -1,0 +1,19 @@
+{
+  "artifact_sha256": "F5275BB1E5FECD9CC0D6C26A82ACA88D70E993AEC210A5E023C468E73DBAB79B",
+  "branch": "RECORDED",
+  "candidate_id": "CAND-ETH-ST-001",
+  "configuration_id": 7168,
+  "diagnostic": "FOLD_1_TRAIN_RECORDED",
+  "diagnostic_root_sha256": "B17EA4E5AA3A6D823B522252D5997F63BC8C0A6CD620C0DDDBA26851E194185D",
+  "execution": "TESTER_FUNNEL_NO_ORDERS",
+  "holdout_authorized": false,
+  "kind": "GATE1_ZERO_ENTRY_DIAGNOSTIC_CHILD",
+  "manifest_sha256": "0DACB4BA1E67629A9253FFAF5CC959A87EE648581B67C053CA8EAF96D7EC1819",
+  "oos_authorized": false,
+  "orders_authorized": false,
+  "owner_approved": false,
+  "partition": "FOLD_1_TRAIN",
+  "returns_authorized": false,
+  "schema": 1,
+  "status": "PLANNED"
+}

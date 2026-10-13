@@ -1,0 +1,32 @@
+{
+  "classification": "IMPLEMENTATION_GAP_REPRODUCED_NOT_ACCEPTANCE",
+  "synthetic_only": true,
+  "reduced_normal_close_signed_swap": true,
+  "consumer_currently_accepts": true,
+  "interval_records": [
+    {
+      "after_snapshot_hash": "28892AC2FD5AD69CD7361C81D6FA669C31FA78950E67E5A017D6211EBC5D3C62",
+      "before_snapshot_hash": "CCA026A8FA9625A1BF031BD99DB033E9DE03AF06A16DB3C9950AE47BCE399096",
+      "deal_id": 201,
+      "group_id": "SYNTHETIC-GROUP-1",
+      "native_swap_profile_hash": "4F5FBFC5FC18DD9D5BCB180646D94A9DCA775BD48D7E77A8A2B64476B0C7D824",
+      "no_accrual_authenticated": true,
+      "run_id": "7E3B8DEC3926B19E45FF7B3BCA5166F1B235A4FB7046462F88D9104C1EC66B8E"
+    },
+    {
+      "after_snapshot_hash": "93D1A81D9D9E1201051F1DB6F59AA9737DE0DB6A6A2A2CF2DA7905ED8F0BC252",
+      "before_snapshot_hash": "28892AC2FD5AD69CD7361C81D6FA669C31FA78950E67E5A017D6211EBC5D3C62",
+      "deal_id": 202,
+      "group_id": "SYNTHETIC-GROUP-1",
+      "native_swap_profile_hash": "4F5FBFC5FC18DD9D5BCB180646D94A9DCA775BD48D7E77A8A2B64476B0C7D824",
+      "no_accrual_authenticated": true,
+      "run_id": "7E3B8DEC3926B19E45FF7B3BCA5166F1B235A4FB7046462F88D9104C1EC66B8E"
+    }
+  ],
+  "interval_authority_from_independent_control": false,
+  "native_general_interval_source_provided": false,
+  "final_seal_authority": "COMPLETED_PACKAGE_INTEGRITY_ONLY",
+  "production_source_changed": false,
+  "accepted_result_written": false,
+  "runtime_executed": false
+}

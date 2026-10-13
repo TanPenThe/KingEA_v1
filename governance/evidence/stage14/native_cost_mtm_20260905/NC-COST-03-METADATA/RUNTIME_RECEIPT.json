@@ -1,0 +1,36 @@
+{
+  "b2": "LOCKED",
+  "ended": "2026-09-05T06:26:01.009370+00:00",
+  "exit_code": 0,
+  "journals": [
+    {
+      "path": "runtime\\journal-0.log",
+      "sha256": "F7FA7765D4FAE437BE5504793AB08EF2E06B5D529BB0CF862B5AD917261FAF6D",
+      "source": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\logs\\20260905.log"
+    },
+    {
+      "path": "runtime\\journal-1.log",
+      "sha256": "7CABE5587FC49329B878BA45A7110C476B1C1B60ED70DDC5D39E10D0E057AEA4",
+      "source": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\Tester\\logs\\20260905.log"
+    },
+    {
+      "path": "runtime\\journal-2.log",
+      "sha256": "CEC2D597A7ED6C8E24067F055575F7E135FBE1DC2FA8E52462159F308C9D9419",
+      "source": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Tester\\D0E8209F77C8CF37AD8BF550E51FF075\\Agent-127.0.0.1-3000\\logs\\20260905.log"
+    }
+  ],
+  "pid": 10928,
+  "result": {
+    "b2": "LOCKED",
+    "boundary_count": 1,
+    "candidate_execution": false,
+    "contract_checks": 62,
+    "contract_failures": 0,
+    "exit_callbacks": 0,
+    "metadata_captured": true,
+    "receipt_reconciled": true,
+    "run_id": "NC-COST-03-METADATA",
+    "status": "PASS"
+  },
+  "started": "2026-09-05T06:25:55.365293+00:00"
+}

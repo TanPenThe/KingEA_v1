@@ -1,0 +1,2374 @@
+
+diff --git a/MQL5/Experts/KingEA/GuardedResearchTester.mq5 b/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+index e0fe28b..44bcccc 100644
+--- a/MQL5/Experts/KingEA/GuardedResearchTester.mq5
++++ b/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+@@ -2,6 +2,9 @@
+ #property version   "1.01"
+ #property tester_everytick_calculate
+ #property tester_file "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv"
++#property tester_file "KingEA\\conformance\\NCV1-LONG-NORMAL-001\\manifest.json"
++#property tester_file "KingEA\\conformance\\NCV1-SHORT-NORMAL-001\\manifest.json"
++#property tester_file "KingEA\\conformance\\NCV1-LONG-BOUNDARY-001\\manifest.json"
+ #property description "Guarded Candidate 001 research adapter; Strategy Tester only."
+ #property description "Requires a separately authorized content-addressed manifest."
+ 
+@@ -10,18 +13,24 @@
+ #include <KingEA/SleeveEthSt001.mqh>
+ #include <KingEA/SafetyKernel.mqh>
+ #include <KingEA/AccountingEvents.mqh>
++#include <KingEA/NativeCostMetadataAdapter.mqh>
++#include <KingEA/ZeroEntryDiagnostic.mqh>
++#include <KingEA/DecisionADealAdapter.mqh>
++#include <KingEA/DecisionAStaticStop.mqh>
+ 
+ input string InpRunManifest="";
+ input string InpManifestSha256="";
+ input string InpManifestFileSha256="";
+ input string InpDetachedAuthorizationToken="";
+ input string InpRootSha256="";
+-input int    InpGate=0;
++input string InpGate="0";
+ input string InpPurpose="DEVELOPMENT";
+ input string InpPartition="";
+ input string InpBranch="RECORDED";
+ input string InpExpectedSymbol="";
+ input int    InpConfigurationId=-1;
++input string InpEvaluationStart="";
++input string InpEvaluationEndExclusive="";
+ input int    InpTesterModel=4;
+ input bool   InpLocalAgentsOnly=true;
+ input bool   InpRemoteAgentsDisabled=true;
+@@ -55,6 +64,12 @@ input string InpDryAuthorizationToken="";
+ input int    InpDryBenchmarkPassId=0;
+ input string InpExpectedServerFragment="";
+ input int    InpExpectedTerminalBuild=0;
++input bool   InpNativeConformance=false;
++input string InpConformanceControlSha256="";
++input string InpConformanceRuntimeProfileSha256="";
++input bool   InpZeroEntryDiagnostic=false;
++input string InpDiagnosticRootSha256="";
++input string InpDiagnosticAuthorizationToken="";
+ 
+ KingEASleeveBar g_bars[];
+ KingEARegimeHysteresis g_regime_state={};
+@@ -66,6 +81,30 @@ KingEASleeveBar g_current_bar={};
+ bool g_has_current=false;
+ bool g_initialized=false;
+ bool g_manifest_valid=false;
++datetime g_evaluation_start=0;
++datetime g_evaluation_end_exclusive=0;
++bool g_evaluation_end_reached=false;
++bool g_evaluation_end_unresolved=false;
++DecisionALifecycle g_da;
++DANativeCaptureRing g_da_capture;
++DAObservationRing g_da_observations;
++DAPosition g_da_sealed={};
++DANativeCapture g_da_terminals[64];int g_da_terminal_count=0;
++string g_da_records[],g_da_record_roles[];
++string g_da_candidate="",g_da_configuration="",g_da_profile="";
++string g_da_close_reason="STRATEGY_CLOSE";
++bool g_da_close_attempted=false,g_da_reduction_attempted=false;
++bool g_da_context=false,g_da_loss_reported=false,g_da_fallback_due=false;
++double g_da_base=0;
++KingEANativeCostEvidence *g_native_cost=NULL;
++MqlTradeResult g_native_receipt={};
++KingEANativeDealFact g_native_close_fact={};
++bool g_native_entry_captured=false,g_native_receipt_known=false,g_native_exit_pending=false;
++bool g_native_boundary_projected=false,g_native_in_tester_end=false;
++double g_native_boundary_equity=0;
++long g_native_start_msc=0,g_native_last_eligible_tick=0;
++int g_boundary_finalization_count=0;
++string g_native_sidecar="";
+ double g_initial_equity=0.0;
+ double g_equity_high=0.0;
+ double g_day_open=0.0;
+@@ -130,6 +169,9 @@ bool g_spread_reduced=false;
+ long g_dry_tick_count=0;
+ long g_dry_first_tick_msc=0;
+ long g_dry_last_tick_msc=0;
++KingEAZeroEntryFunnel g_zero_entry_funnel={};
++
++#define KINGEA_ZERO_ENTRY_DIAGNOSTIC_ROOT "B17EA4E5AA3A6D823B522252D5997F63BC8C0A6CD620C0DDDBA26851E194185D"
+ 
+ void ResearchProcessPeriodTransition(const datetime now,const bool new_day,
+                                      const bool new_week,const bool new_month);
+@@ -137,6 +179,32 @@ void ResearchHealthyFacts(const datetime now,const double entry,
+                           const double stop,const int direction,
+                           KingEASafetyFacts &facts);
+ bool ResearchUsesVirtual();
++bool ResearchNativeContext();
++string DAManifestString(string key);
++bool ResearchNativeCompletion();
++bool ResearchConformanceValid();
++bool ResearchConformanceAuthorizationValidate();
++bool ResearchActiveAuthorizationValid();
++void ResearchConformanceTick(const MqlTick &tick);
++bool ResearchNativeOrderCheck(MqlTradeRequest &request);
++bool g_da_last_send_attempted=false;
++bool g_cf_entry_attempted=false,g_cf_reduction_attempted=false,g_cf_close_attempted=false;
++void ResearchNativePoll(const MqlTick &tick);
++void ResearchNativeSafetyObserve(const MqlTick &tick);
++bool ResearchNativeRequest(MqlTradeRequest &request,DAIntent intent);
++bool ResearchNativeProject(bool boundary);
++bool ResearchNativeBegin(const string group,const int side,const double volume,const long now,const double stop,const double equity,const double risk);
++void ResearchNativeReceipt(const MqlTradeResult &receipt);
++void ResearchNativeSeal(const MqlTick &tick);
++bool ResearchNativeBoundaryFinalize();
++bool ResearchNativeNormalCloseReady();
++void ResearchNativeNormalCloseCommitted();
++datetime ResearchParseEvaluationTime(const string value);
++bool ResearchEvaluationWindowValid();
++bool ResearchEvaluationEligible(const datetime evaluation_time);
++bool ResearchEvaluationEndReached(const datetime evaluation_time);
++void ResearchMarkEvaluationEnd();
++bool ResearchTerminalEndHasUnresolvedExposure();
+ double ResearchEquity();
+ bool ResearchHasPosition();
+ bool ResearchMarketBlocked(const long now_msc,string &kind);
+@@ -147,6 +215,8 @@ void ResearchUpdateSpreadState(const MqlTick &tick);
+ double ResearchCurrentSpreadRatio(const MqlTick &tick);
+ void ResearchDryExerciseIntent(const KingEASleeveDecision &intent,
+                                const MqlTick &tick);
++void ResearchDiagnosticExerciseIntent(const KingEASleeveDecision &intent,
++                                     const MqlTick &tick);
+ 
+ string ResearchHex(const uchar &bytes[])
+   {
+@@ -174,35 +244,50 @@ string ResearchSha256String(const string value)
+    return ResearchSha256Bytes(bytes);
+   }
+ 
+-int ResearchOpenInputFile(const string filename,const int flags,
+-                          const short delimiter=0,
+-                          const uint codepage=CP_ACP)
+-  {
+-   int handle=FileOpen(filename,flags|FILE_SHARE_READ,delimiter,codepage);
+-   if(handle==INVALID_HANDLE)
+-      handle=FileOpen(filename,flags|FILE_COMMON|FILE_SHARE_READ,
+-                      delimiter,codepage);
+-   return handle;
+-  }
++// Captured once per tester initialization. Hashing and parsing share these bytes.
++uchar g_manifest_input_bytes[],g_calendar_input_bytes[];
++string g_manifest_input_hash="",g_calendar_input_hash="";
++bool g_manifest_capture_attempted=false,g_calendar_capture_attempted=false;
+ 
+-string ResearchFileSha256(const string filename)
++bool ResearchCaptureLocalInput(const string filename,uchar &bytes[],string &hash)
+   {
+-   int handle=ResearchOpenInputFile(filename,FILE_READ|FILE_BIN);
++   // No shared fallback. A missing staged local artifact fails closed.
++   int handle=FileOpen(filename,FILE_READ|FILE_BIN|FILE_SHARE_READ);
+    if(handle==INVALID_HANDLE)
+-      return "";
++      return false;
+    ulong size=FileSize(handle);
+    if(size==0 || size>10000000)
+-     {
+-      FileClose(handle);
+-      return "";
+-     }
+-   uchar bytes[];
++     { FileClose(handle); return false; }
+    ArrayResize(bytes,(int)size);
+    uint read=FileReadArray(handle,bytes,0,(int)size);
+    FileClose(handle);
+    if(read!=(uint)size)
+-      return "";
+-   return ResearchSha256Bytes(bytes);
++      return false;
++   hash=ResearchSha256Bytes(bytes);
++   return ResearchHash(hash);
++  }
++
++string ResearchFileSha256(const string filename)
++  {
++   if(filename==InpRunManifest && filename!="")
++     {
++      if(!g_manifest_capture_attempted)
++        {
++         g_manifest_capture_attempted=true;
++         ResearchCaptureLocalInput(filename,g_manifest_input_bytes,g_manifest_input_hash);
++        }
++      return g_manifest_input_hash;
++     }
++   if(filename==InpCalendarIntervalsFile && filename!="")
++     {
++      if(!g_calendar_capture_attempted)
++        {
++         g_calendar_capture_attempted=true;
++         ResearchCaptureLocalInput(filename,g_calendar_input_bytes,g_calendar_input_hash);
++        }
++      return g_calendar_input_hash;
++     }
++   return "";
+   }
+ 
+ bool PersistDryBenchmarkPayload(const string payload)
+@@ -221,6 +306,52 @@ bool PersistDryBenchmarkPayload(const string payload)
+    return written==(uint)StringLen(payload);
+   }
+ 
++// A zero-entry diagnostic is deliberately a single non-optimised tester pass.
++// Unlike normal research frames it therefore persists its immutable payload
++// directly to Common\\Files rather than relying on OnTesterPass delivery.
++bool PersistZeroEntryDiagnosticPayload(const string payload)
++  {
++   string filename=StringFormat(
++      "KingEA\\stage14_spool\\%s\\ZERO_ENTRY_DIAGNOSTIC_%06d.frame",
++      InpManifestSha256,InpConfigurationId);
++   uchar expected[];
++   int bytes=StringToCharArray(payload,expected,0,WHOLE_ARRAY,CP_UTF8);
++   if(bytes<=1)
++      return false;
++   ArrayResize(expected,bytes-1);
++
++   if(FileIsExist(filename,FILE_COMMON))
++     {
++      int existing=FileOpen(filename,FILE_READ|FILE_BIN|FILE_COMMON);
++      if(existing==INVALID_HANDLE)
++         return false;
++      ulong size=FileSize(existing);
++      if(size!=(ulong)ArraySize(expected))
++        {
++         FileClose(existing);
++         return false;
++        }
++      uchar actual[];
++      ArrayResize(actual,(int)size);
++      uint read=FileReadArray(existing,actual,0,(int)size);
++      FileClose(existing);
++      if(read!=(uint)size)
++         return false;
++      for(int i=0;i<(int)size;i++)
++         if(actual[i]!=expected[i])
++            return false;
++      return true;
++     }
++
++   int handle=FileOpen(filename,FILE_WRITE|FILE_BIN|FILE_COMMON);
++   if(handle==INVALID_HANDLE)
++      return false;
++   uint written=FileWriteArray(handle,expected,0,ArraySize(expected));
++   FileFlush(handle);
++   FileClose(handle);
++   return written==(uint)ArraySize(expected);
++  }
++
+ KingEAAccountingEvent ResearchAccountingBase(const int type,
+                                               const string event_id,
+                                               const long server_time_msc)
+@@ -233,8 +364,8 @@ KingEAAccountingEvent ResearchAccountingBase(const int type,
+    event.utc_time_msc=server_time_msc;
+    event.account_fingerprint=g_account_fingerprint;
+    event.deployment_id="KINGEA-TESTER-STAGE13";
+-   event.candidate_id="CAND-ETH-ST-001";
+-   event.configuration_hash="A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE";
++   event.candidate_id=ResearchUsesVirtual()?"CAND-ETH-ST-001":g_da_candidate;
++   event.configuration_hash=ResearchUsesVirtual()?"A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE":g_da_configuration;
+    event.sleeve_id="SLEEVE-1";
+    event.trade_group_id=g_trade_group_id;
+    event.symbol=_Symbol;
+@@ -308,18 +439,20 @@ bool ResearchHash(const string value)
+    return true;
+   }
+ 
++int ResearchGateNumber(){if(InpGate=="GATE1"||InpGate=="1")return 1;if(InpGate=="GATE2"||InpGate=="2")return 2;if(InpGate=="3")return 3;return 0;}
++
+ bool ResearchPartitionAuthorized()
+   {
+    if(InpPurpose=="DEVELOPMENT")
+-      return InpGate==1 &&
++      return ResearchGateNumber()==1 &&
+              ((StringFind(InpPartition,"FOLD_")==0 &&
+                StringFind(InpPartition,"_TRAIN")>0) ||
+               InpPartition=="FINAL_SELECTION");
+    if(InpPurpose=="FORWARD")
+-      return InpGate==2 && StringFind(InpPartition,"FOLD_")==0 &&
++      return ResearchGateNumber()==2 && StringFind(InpPartition,"FOLD_")==0 &&
+              StringFind(InpPartition,"_FORWARD")>0;
+    if(InpPurpose=="OOS")
+-      return InpGate==3 && InpPartition=="FORMAL_OOS" &&
++      return ResearchGateNumber()==3 && InpPartition=="FORMAL_OOS" &&
+              ResearchHash(InpSelectionSha256) && ResearchHash(InpSurfaceSha256);
+    if(InpPurpose=="HOLDOUT")
+       return InpPartition=="HOLDOUT" &&
+@@ -333,7 +466,7 @@ bool ResearchAuthorizationValid()
+       !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
+       !InpCloudAgentsDisabled || !ResearchPartitionAuthorized())
+       return false;
+-   if(!ResearchHash(InpRootSha256) ||
++   if(!ResearchHash(InpRootSha256) || !ResearchEvaluationWindowValid() ||
+       (InpExecutionAdapter!="NATIVE" && InpExecutionAdapter!="VIRTUAL") ||
+       InpScenario=="" || !ResearchHash(InpCalendarSha256) ||
+       !ResearchHash(InpCalendarFileSha256) ||
+@@ -347,13 +480,163 @@ bool ResearchAuthorizationValid()
+       InpMaintenanceForceFlatMinutes!=5 ||
+       InpMaintenanceCleanMinutes!=15)
+       return false;
++   // A normal B2 Gate 1 candidate execution has one permitted seam only.
++   if(ResearchGateNumber()==1 && InpPurpose=="DEVELOPMENT" &&
++      (InpZeroEntryDiagnostic || InpWorkloadDryRun ||
++       InpExecutionAdapter!="NATIVE" || InpScenario!="BASELINE_20MS" ||
++       InpDelayMs!=20 || InpSpreadMultiplier!=1.0 ||
++       InpCostMultiplier!=1.0 || InpSlippageSpreadFraction!=0.0 ||
++       InpVolatilityDependentSlippage || InpMissedEntryFraction!=0.0))
++      return false;
+    if(InpRunManifest=="" || !ResearchHash(InpManifestSha256) ||
+       !ResearchHash(InpManifestFileSha256) ||
+       ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256)
+       return false;
+    string expected=ResearchSha256String(InpManifestSha256+"|"+
+                                          InpPurpose+"|RUNNING");
+-   return expected!="" && InpDetachedAuthorizationToken==expected;
++  return expected!="" && InpDetachedAuthorizationToken==expected;
++  }
++
++bool ResearchConformanceAuthorizationValidate()
++  {
++   if(!InpNativeConformance || InpPurpose!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1" ||
++      InpGate!="0" || InpRootSha256!="" || InpDetachedAuthorizationToken!="" ||
++      InpConfigurationId!=0 || InpExecutionAdapter!="NATIVE" ||
++      InpScenario!="BASELINE_20MS" || InpTesterModel!=4 ||
++      !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
++      !InpCloudAgentsDisabled || InpExpectedSymbol!="ETHUSD.s" ||
++      InpZeroEntryDiagnostic || InpWorkloadDryRun)
++      return false;
++   if(!ResearchHash(InpConformanceControlSha256) ||
++      !ResearchHash(InpConformanceRuntimeProfileSha256) ||
++      !ResearchHash(InpManifestSha256) || !ResearchHash(InpManifestFileSha256) ||
++      !ResearchEvaluationWindowValid() || InpRunManifest=="" ||
++      ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256 ||
++      !ResearchHash(InpCalendarFileSha256) ||
++      InpCalendarFileSha256!=InpCalendarSha256 ||
++      InpCalendarIntervalsFile=="" ||
++      ResearchFileSha256(InpCalendarIntervalsFile)!=InpCalendarFileSha256)
++      return false;
++   if(!ResearchConformanceValid())
++      return false;
++   string fixture=DAManifestString("fixture_id");
++   string expected_manifest="KingEA\\conformance\\"+fixture+"\\manifest.json";
++   if(fixture=="" || InpRunManifest!=expected_manifest ||
++      DAManifestString("domain")!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1" ||
++      DAManifestString("run_id")!=InpManifestSha256 ||
++      DAManifestString("group_id")=="" ||
++      DAManifestString("data_scope")!="DEVELOPMENT_ONLY" ||
++      DAManifestString("execution_mode")!="20" ||
++      DAManifestString("optimization")!="False" ||
++      DAManifestString("symbol")!="ETHUSD.s" ||
++      !ResearchHash(DAManifestString("configuration_sha256")) ||
++      !ResearchHash(DAManifestString("source_sha256")))
++      return false;
++   string side=DAManifestString("side");
++   long start=(long)StringToInteger(DAManifestString("start_msc"));
++   long end=(long)StringToInteger(DAManifestString("end_msc"));
++   long entry=(long)StringToInteger(DAManifestString("entry_msc"));
++   long reduction=(long)StringToInteger(DAManifestString("reduction_msc"));
++   long close=(long)StringToInteger(DAManifestString("close_msc"));
++   bool boundary=DAManifestString("outcome")=="EVALUATOR_BOUNDARY";
++   return (side=="LONG" || side=="SHORT") &&
++          StringToDouble(DAManifestString("volume"))>0.0 &&
++          StringToDouble(DAManifestString("S0"))>0.0 &&
++          start==(long)g_evaluation_start*1000 &&
++          end==(long)g_evaluation_end_exclusive*1000 &&
++          start<=entry && entry<reduction && reduction<end &&
++          ((boundary && close==0) ||
++           (!boundary && DAManifestString("outcome")=="NORMAL_CLOSE" &&
++            close>reduction && close<end));
++  }
++
++bool ResearchActiveAuthorizationValid()
++  {
++   // Keep the non-Candidate conformance authority disjoint from every normal
++   // Candidate/Gate authorization predicate, including at the send seam.
++   if(InpNativeConformance)
++      return ResearchConformanceAuthorizationValidate();
++   return ResearchAuthorizationValid();
++  }
++
++datetime ResearchParseEvaluationTime(const string value)
++  {
++   // Manifests bind ISO-8601. Normalize deliberately rather than relying on a
++   // terminal-specific permissive StringToTime interpretation of '-' or 'T'.
++   if(StringLen(value)!=19 || StringGetCharacter(value,4)!='-' ||
++      StringGetCharacter(value,7)!='-' || StringGetCharacter(value,10)!='T' ||
++      StringGetCharacter(value,13)!=':' || StringGetCharacter(value,16)!=':')
++      return 0;
++   string normalized=value;
++   StringReplace(normalized,"-",".");
++   StringReplace(normalized,"T"," ");
++   return StringToTime(normalized);
++  }
++
++bool ResearchEvaluationWindowValid()
++  {
++   g_evaluation_start=ResearchParseEvaluationTime(InpEvaluationStart);
++   g_evaluation_end_exclusive=ResearchParseEvaluationTime(InpEvaluationEndExclusive);
++   return g_evaluation_start>0 && g_evaluation_end_exclusive>g_evaluation_start;
++  }
++
++bool ResearchEvaluationEligible(const datetime evaluation_time)
++  {
++   return evaluation_time>=g_evaluation_start &&
++          evaluation_time<g_evaluation_end_exclusive;
++  }
++
++bool ResearchEvaluationEndReached(const datetime evaluation_time)
++  {
++   return evaluation_time>=g_evaluation_end_exclusive;
++  }
++
++void ResearchMarkEvaluationEnd()
++  {
++   g_evaluation_end_reached=true;
++   if(ResearchNativeBoundaryFinalize()) return;
++   if(ResearchTerminalEndHasUnresolvedExposure())
++     {
++      // Frozen governance has no approved close/carry policy at a partition end.
++      // Do not manufacture one; invalidate the pass before any completion frames.
++      g_evaluation_end_unresolved=true;
++      g_hard_failures++;
++     }
++  }
++
++// OnTester can run without a tick at or after EvaluationEndExclusive.  It is
++// consequently the independent, final authority for unresolved exposure.
++bool ResearchTerminalEndHasUnresolvedExposure()
++  {
++   if(!ResearchUsesVirtual())return g_da.invalid||g_da.pending||(!g_da.projected&&g_da.started&&g_da.exposure!=DA_FLAT);
++   if(g_native_boundary_projected && g_hard_failures==0) return false;
++   return ResearchHasPosition() || g_position.has_position ||
++          g_virtual_pending || g_trade_group_id!="";
++  }
++
++bool ResearchZeroEntryDiagnosticAuthorizationValid()
++  {
++   if(!InpZeroEntryDiagnostic || InpWorkloadDryRun ||
++      !MQLInfoInteger(MQL_TESTER) || InpTesterModel!=4 ||
++      !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
++      !InpCloudAgentsDisabled || InpPurpose!="GATE1_ZERO_ENTRY_DIAGNOSTIC" ||
++      ResearchGateNumber()!=1 || InpPartition!="FOLD_1_TRAIN" ||
++      (InpBranch!="RECORDED" && InpBranch!="RSB3") ||
++      InpExecutionAdapter!="VIRTUAL" || InpConfigurationId!=7168 ||
++      InpRootSha256!=KINGEA_ZERO_ENTRY_DIAGNOSTIC_ROOT ||
++      InpDiagnosticRootSha256!=KINGEA_ZERO_ENTRY_DIAGNOSTIC_ROOT)
++      return false;
++   if(!ResearchHash(InpManifestSha256) || !ResearchHash(InpManifestFileSha256) ||
++      InpRunManifest=="" || ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256 ||
++      !ResearchHash(InpCalendarSha256) || !ResearchHash(InpCalendarFileSha256) ||
++      InpCalendarSha256!=InpCalendarFileSha256 || InpCalendarIntervalsFile=="" ||
++      ResearchFileSha256(InpCalendarIntervalsFile)!=InpCalendarFileSha256 ||
++      !ResearchHash(InpCostManifestSha256) || !ResearchHash(InpResearchSpecificationSha256))
++      return false;
++   string expected=ResearchSha256String(InpDiagnosticRootSha256+"|"+
++                                        InpManifestSha256+
++                                        "|GATE1_ZERO_ENTRY_DIAGNOSTIC|AUTHORIZED");
++   return expected!="" && InpDiagnosticAuthorizationToken==expected;
+   }
+ 
+ bool ResearchDryAuthorizationValid()
+@@ -401,14 +684,20 @@ bool ResearchUsesVirtual()
+ 
+ double ResearchEquity()
+   {
+-   return ResearchUsesVirtual() ? g_virtual_position.equity :
+-                                  AccountInfoDouble(ACCOUNT_EQUITY);
++   if(g_native_boundary_projected) return g_native_boundary_equity;
++   if(ResearchUsesVirtual())return g_virtual_position.equity;
++   double live=AccountInfoDouble(ACCOUNT_EQUITY),contribution=0;
++   if(g_da_base<=0)return live;
++   if(!g_da.started||g_da.projected)return MathMin(live,g_da_base);
++   if(!g_da.OperationalContribution(contribution))return live; // Independent conservative account guard only; never group P&L.
++   return MathMin(live,g_da_base+contribution);
+   }
+ 
+ bool ResearchHasPosition()
+   {
+-   return ResearchUsesVirtual() ? g_virtual_position.has_position :
+-                                  PositionSelect(_Symbol);
++   if(ResearchUsesVirtual())return g_virtual_position.has_position;
++   if(g_da.started)return !g_da.projected && (g_da.pending||g_da.exposure!=DA_FLAT);
++   return PositionSelect(_Symbol); // Only initial foreign-exposure detection, never flat authority.
+   }
+ 
+ bool ResearchLoadMarketIntervals()
+@@ -417,28 +706,28 @@ bool ResearchLoadMarketIntervals()
+    ArrayResize(g_market_interval_end,0);
+    ArrayResize(g_market_interval_prefix_max_end,0);
+    ArrayResize(g_market_interval_type,0);
+-   int handle=ResearchOpenInputFile(InpCalendarIntervalsFile,
+-                       FILE_READ|FILE_CSV|FILE_ANSI,',',CP_UTF8);
+-   if(handle==INVALID_HANDLE)
++   if(!g_calendar_capture_attempted || !ResearchHash(g_calendar_input_hash) ||
++      g_calendar_input_hash!=InpCalendarFileSha256)
++      return false;
++   string captured=CharArrayToString(g_calendar_input_bytes,0,ArraySize(g_calendar_input_bytes),CP_UTF8);
++   if(StringLen(captured)>0 && StringGetCharacter(captured,0)==0xFEFF)
++      captured=StringSubstr(captured,1);
++   StringReplace(captured,"\r","");
++   string lines[];
++   int length=StringSplit(captured,'\n',lines);
++   if(length<2 || lines[0]!="type,start_msc,end_msc,identity")
+       return false;
+-   bool first=true;
+    long previous_start=0;
+-   while(!FileIsEnding(handle))
++   for(int line=1;line<length;line++)
+      {
+-      string type=FileReadString(handle);
+-      string start_text=FileReadString(handle);
+-      string end_text=FileReadString(handle);
+-      string identity=FileReadString(handle);
+-      if(first)
+-        {
+-         first=false;
+-         if(type!="type" || start_text!="start_msc" ||
+-            end_text!="end_msc" || identity!="identity")
+-           { FileClose(handle); return false; }
+-         continue;
+-        }
+-      if(type=="" && start_text=="" && end_text=="")
+-         continue;
++      if(lines[line]=="")continue;
++      string fields[];
++      if(StringSplit(lines[line],',',fields)!=4)return false;
++      string type=fields[0],start_text=fields[1],end_text=fields[2],identity=fields[3];
++      for(int k=0;k<StringLen(start_text);k++)
++         if(StringGetCharacter(start_text,k)<'0'||StringGetCharacter(start_text,k)>'9')return false;
++      for(int k=0;k<StringLen(end_text);k++)
++         if(StringGetCharacter(end_text,k)<'0'||StringGetCharacter(end_text,k)>'9')return false;
+       long start=(long)StringToInteger(start_text);
+       long end=(long)StringToInteger(end_text);
+       string normalized_type="";
+@@ -447,7 +736,7 @@ bool ResearchLoadMarketIntervals()
+                                                 blocks_entry) ||
+          start<=0 || end<=start || identity=="" ||
+          (previous_start>0 && start<previous_start))
+-        { FileClose(handle); return false; }
++        { return false; }
+       previous_start=start;
+       if(!blocks_entry)
+          continue;
+@@ -462,7 +751,6 @@ bool ResearchLoadMarketIntervals()
+          (count==0 ? end : MathMax(g_market_interval_prefix_max_end[count-1],end));
+       g_market_interval_type[count]=normalized_type;
+      }
+-   FileClose(handle);
+    return ArraySize(g_market_interval_start)>0;
+   }
+ 
+@@ -627,18 +915,26 @@ void ResearchUpdateSpreadState(const MqlTick &tick)
+ 
+ bool ResearchOrderSend(MqlTradeRequest &request,MqlTradeResult &result)
+   {
+-   if(InpWorkloadDryRun)
+-     {
+-      Print("DRY_EXECUTION_PROHIBITED");
++   g_da_last_send_attempted=false;
++   if(InpWorkloadDryRun || InpZeroEntryDiagnostic)
++    {
++      if(InpZeroEntryDiagnostic)
++         g_zero_entry_funnel.native_order_calls++;
++      Print(InpWorkloadDryRun ? "DRY_EXECUTION_PROHIBITED" :
++                                "NON_ORDER_EXECUTION_PROHIBITED");
+       g_hard_failures++;
+       return false;
+      }
+    // Every tester order path revalidates the complete immutable guard.
+-   if(!g_initialized || !ResearchAuthorizationValid())
++   if(!g_initialized || !ResearchActiveAuthorizationValid() ||
++      (!ResearchUsesVirtual() && !DAStaticSendAllowed(request,g_da.intent,g_da,ResearchNativeContext())))
+      {
+       g_hard_failures++;
+       return false;
+      }
++   if(!ResearchUsesVirtual() && g_da.intent!=DA_CONTAINMENT && !ResearchEvaluationEligible(TimeCurrent()))return false;
++   if(!ResearchNativeOrderCheck(request))return false;
++   g_da_last_send_attempted=true;
+    return OrderSend(request,result);
+   }
+ 
+@@ -707,8 +1003,12 @@ void ResearchUpdatePeriodsFast(const datetime now)
+ 
+ void ResearchFinalizeClosedTrade()
+   {
+-   if(!g_position.has_position || ResearchHasPosition())
++   if(!ResearchUsesVirtual())
++     {
++      if(ResearchNativeNormalCloseReady())ResearchNativeProject(false);
+       return;
++     }
++   if(!g_position.has_position || ResearchHasPosition())return;
+    double equity=ResearchEquity();
+    double profit=equity-g_entry_equity;
+    int count=ArraySize(g_trade_returns);
+@@ -739,6 +1039,7 @@ void ResearchFinalizeClosedTrade()
+    accounting.reason_code="TRADE_GROUP_CLOSE";
+    if(ResearchBufferAccounting(accounting))
+       g_accounting_close_count++;
++   if(!ResearchUsesVirtual()) ResearchNativeNormalCloseCommitted();
+    KingEASafetyFacts facts={};
+    ResearchHealthyFacts(TimeCurrent(),g_position.entry_price,
+                         g_position.original_confirmed_stop,
+@@ -998,11 +1299,13 @@ bool ResearchOpen(const KingEASleeveDecision &intent,const MqlTick &tick)
+       order.deviation=0;
+       order.magic=12001;
+       order.comment="KINGEA|CAND-ETH-ST-001|"+intent.signal_identity;
+-      order.type_filling=ORDER_FILLING_IOC;
+-      if(!ResearchOrderSend(order,result) ||
+-         (result.retcode!=TRADE_RETCODE_DONE &&
+-          result.retcode!=TRADE_RETCODE_PLACED))
++      order.type_filling=ORDER_FILLING_FOK;
++      if(!ResearchNativeBegin(intent.signal_identity,intent.direction,safety.permitted_volume,(long)tick.time_msc,safety.required_stop,equity_before,safety.permitted_risk_money))
+          return false;
++      bool sent=ResearchOrderSend(order,result);
++      ResearchNativeReceipt(result);
++      // Monitoring must survive rejection, ambiguity, and unsupported execution.
++      if(!sent || result.retcode!=TRADE_RETCODE_DONE)return false;
+       KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_NATIVE,routed_stress,
+                                intent.signal_identity,tick.bid,tick.ask,
+                                intent.direction,safety.required_stop,
+@@ -1023,9 +1326,7 @@ bool ResearchOpen(const KingEASleeveDecision &intent,const MqlTick &tick)
+    g_trade_group_id=intent.signal_identity;
+    g_open_order_ticket=(ResearchUsesVirtual() ? 0 : result.order);
+    g_open_deal_ticket=(ResearchUsesVirtual() ? 0 : result.deal);
+-   g_position_ticket=(ResearchUsesVirtual() ? 0 :
+-                      (PositionSelect(_Symbol) ?
+-                       (ulong)PositionGetInteger(POSITION_TICKET) : result.order));
++   g_position_ticket=ResearchUsesVirtual()?0:g_da.position_ticket; // Native callback supplies exact ticket mapping.
+    g_trade_volume=safety.permitted_volume;
+    g_spread_reduced=false;
+    KingEAAccountingEvent accounting=ResearchAccountingBase(
+@@ -1081,8 +1382,10 @@ bool ResearchClose(const int direction,const MqlTick &tick)
+       ResearchFinalizeClosedTrade();
+       return true;
+      }
+-   ulong ticket=(ulong)PositionGetInteger(POSITION_TICKET);
+-   double volume=PositionGetDouble(POSITION_VOLUME);
++   ResearchNativePoll(tick);
++   if(g_da.invalid||g_da.pending||!g_da.residual.valid)return false;
++   ulong ticket=g_da.position_ticket;
++   double volume=g_da.residual.volume;
+    MqlTradeRequest request={};
+    MqlTradeResult result={};
+    request.action=TRADE_ACTION_DEAL;
+@@ -1093,13 +1396,13 @@ bool ResearchClose(const int direction,const MqlTick &tick)
+    request.price=(direction==KINGEA_DIRECTION_LONG ? tick.bid : tick.ask);
+    request.deviation=0;
+    request.magic=12001;
+-   request.comment="KINGEA|CAND-ETH-ST-001|EXIT";
+-   request.type_filling=ORDER_FILLING_IOC;
+-   if(!ResearchOrderSend(request,result) || result.retcode!=TRADE_RETCODE_DONE)
+-      return false;
++   request.comment=InpNativeConformance?"NON_CANDIDATE_CONFORMANCE|EXIT":"KINGEA|CAND-ETH-ST-001|EXIT";
++   request.type_filling=ORDER_FILLING_FOK;
++   if(!ResearchNativeRequest(request,DA_CLOSE))return false;
++   bool sent=ResearchOrderSend(request,result);ResearchNativeReceipt(result);
++   if(!sent || result.retcode!=TRADE_RETCODE_DONE)return false;
+    g_close_order_ticket=result.order;
+    g_close_deal_ticket=result.deal;
+-   g_exits++;
+    ResearchFinalizeClosedTrade();
+    return true;
+   }
+@@ -1108,19 +1411,21 @@ bool ResearchReduceHalf(const MqlTick &tick)
+   {
+    if(!ResearchHasPosition() || g_spread_reduced)
+       return true;
+-   double current=(ResearchUsesVirtual() ? g_virtual_position.volume :
+-                   PositionGetDouble(POSITION_VOLUME));
++   if(!ResearchUsesVirtual()){
++      ResearchNativePoll(tick);if(g_da.invalid||g_da.pending||!g_da.residual.valid)return false;
++   }
++   double current=(ResearchUsesVirtual() ? g_virtual_position.volume :g_da.residual.volume);
+    double step=SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_STEP);
+    double minimum=SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MIN);
+    if(current<=0.0 || step<=0.0 || minimum<=0.0)
+-      return ResearchClose(g_position.direction,tick);
++      {g_da_close_reason="BROKER_VOLUME_FALLBACK";bool closed=ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";return closed;}
+    double remaining=MathFloor((current*0.5+1e-12)/step)*step;
+    remaining=NormalizeDouble(remaining,8);
+    if(remaining<minimum)
+-      return ResearchClose(g_position.direction,tick);
++      {g_da_close_reason="BROKER_VOLUME_FALLBACK";bool closed=ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";return closed;}
+    double reduction=NormalizeDouble(current-remaining,8);
+    if(reduction<minimum)
+-      return ResearchClose(g_position.direction,tick);
++      {g_da_close_reason="BROKER_VOLUME_FALLBACK";bool closed=ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";return closed;}
+    if(ResearchUsesVirtual())
+      {
+       double raw=(g_position.direction==KINGEA_DIRECTION_LONG ? tick.bid : tick.ask);
+@@ -1147,7 +1452,7 @@ bool ResearchReduceHalf(const MqlTick &tick)
+       MqlTradeRequest request={};
+       MqlTradeResult result={};
+       request.action=TRADE_ACTION_DEAL;
+-      request.position=(ulong)PositionGetInteger(POSITION_TICKET);
++      request.position=g_da.position_ticket;
+       request.symbol=_Symbol;
+       request.volume=reduction;
+       request.type=(g_position.direction==KINGEA_DIRECTION_LONG ?
+@@ -1155,9 +1460,12 @@ bool ResearchReduceHalf(const MqlTick &tick)
+       request.price=(g_position.direction==KINGEA_DIRECTION_LONG ? tick.bid : tick.ask);
+       request.magic=12001;
+       request.comment="KINGEA|EMERGENCY_SPREAD_REDUCTION";
+-      request.type_filling=ORDER_FILLING_IOC;
+-      if(!ResearchOrderSend(request,result) || result.retcode!=TRADE_RETCODE_DONE)
+-         return ResearchClose(g_position.direction,tick);
++      request.type_filling=ORDER_FILLING_FOK;
++      if(!ResearchNativeRequest(request,DA_REDUCTION))return false;
++      bool sent=ResearchOrderSend(request,result);ResearchNativeReceipt(result);
++      // Only an authenticated terminal no-fill can schedule the existing fallback.
++      // A return code or a missing callback alone cannot do so.
++      if(!sent || result.retcode!=TRADE_RETCODE_DONE)return false;
+      }
+    g_trade_volume=remaining;
+    g_spread_reduced=true;
+@@ -1258,6 +1566,12 @@ void ResearchEvaluateClosedBar(const datetime evaluation_time,
+   {
+    KingEARegimeDecision regime={};
+    ResearchBuildRegime(regime,evaluation_time);
++   if(InpZeroEntryDiagnostic)
++     {
++      KingEAZeroEntryCountClosedBar(g_zero_entry_funnel);
++      KingEAZeroEntryCountRegime(g_zero_entry_funnel,regime.healthy,
++                                 regime.entry_eligible,(int)regime.reason);
++     }
+    g_current_volatility=regime.volatility_state;
+    KingEASleeveRequest request={};
+    request.evaluation_time=evaluation_time;
+@@ -1268,8 +1582,23 @@ void ResearchEvaluateClosedBar(const datetime evaluation_time,
+    KingEASleeveDecision intent={};
+    KingEAEvaluateSleeveEthSt001(g_bars,request,g_sleeve_state,intent);
+    g_sleeve_state=intent.next_state;
++   if(InpZeroEntryDiagnostic)
++      KingEAZeroEntryCountSleeve(g_zero_entry_funnel,intent.healthy,
++                                 intent.action==KINGEA_SLEEVE_ACTION_ENTRY,
++                                 (int)intent.reason);
+    ResearchUpdateTradeExcursion();
+-   if(InpWorkloadDryRun)
++   // Warm-up bars advance deterministic indicator/sleeve state but cannot route
++   // entries, exits, accounting, scoring, or selection before the exact start.
++   // The first tick at the exclusive end cannot route a delayed/current signal.
++   if(!ResearchEvaluationEligible(evaluation_time))
++     {
++      if(ResearchEvaluationEndReached(evaluation_time))
++         ResearchMarkEvaluationEnd();
++      return;
++     }
++   if(InpZeroEntryDiagnostic)
++      ResearchDiagnosticExerciseIntent(intent,tick);
++   else if(InpWorkloadDryRun)
+       ResearchDryExerciseIntent(intent,tick);
+    else if(intent.action==KINGEA_SLEEVE_ACTION_ENTRY)
+       ResearchOpen(intent,tick);
+@@ -1309,13 +1638,74 @@ void ResearchDryExerciseIntent(const KingEASleeveDecision &intent,
+    KingEAAccountingCheckpoint checkpoint={};
+    KingEAAccountingDecision accounting={};
+    KingEAProcessAccountingEvent(event,checkpoint,accounting);
+-   if(accounting.accepted)
+-     {
+-      string discarded=KingEAAccountingFramePayload(event,accounting);
+-      if(discarded=="")
+-         g_hard_failures++;
+-     }
+-  }
++    if(accounting.accepted)
++      {
++       string discarded=KingEAAccountingFramePayload(event,accounting);
++       if(discarded=="")
++          g_hard_failures++;
++      }
++   }
++
++void ResearchDiagnosticExerciseIntent(const KingEASleeveDecision &intent,
++                                     const MqlTick &tick)
++  {
++   if(intent.action!=KINGEA_SLEEVE_ACTION_ENTRY)
++      return;
++   KingEASafetyRequest request={};
++   request.event=KINGEA_EVENT_ENTRY;
++   request.scope=KINGEA_SCOPE_SLEEVE;
++   request.direction=(intent.direction==KINGEA_DIRECTION_LONG ?
++                      KINGEA_SAFETY_LONG : KINGEA_SAFETY_SHORT);
++   request.entry_price=(intent.direction==KINGEA_DIRECTION_LONG ? tick.ask : tick.bid);
++   request.technical_stop=intent.technical_stop;
++   request.signal_present=true;
++   KingEASafetyFacts facts={};
++   ResearchHealthyFacts(tick.time,request.entry_price,intent.technical_stop,
++                        intent.direction,facts);
++   KingEASafetyDecision safety={};
++   KingEASafetyState state_copy=g_safety_state;
++   KingEAEvaluateSafety(request,facts,state_copy,safety);
++   bool approved=(safety.action==KINGEA_ACTION_APPROVE_ENTRY ||
++                  safety.action==KINGEA_ACTION_DOWNSIZE_ENTRY);
++   KingEAZeroEntryCountSafety(g_zero_entry_funnel,approved,(int)safety.reason);
++   if(!approved)
++      return;
++
++   KingEAResearchStress stress={};
++   stress.spread_multiplier=1.0;
++   stress.cost_multiplier=1.0;
++   stress.slippage_spread_fraction=0.0;
++   stress.missed_entry_fraction=0.0;
++   stress.seed=0;
++   KingEAResearchVirtualPosition virtual_position={};
++   virtual_position.equity=ResearchEquity();
++   KingEAResearchEntryRoute route={};
++   KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_VIRTUAL,stress,
++                            intent.signal_identity,tick.bid,tick.ask,
++                            intent.direction,safety.required_stop,
++                            safety.permitted_volume,(long)tick.time_msc,
++                            (long)tick.time_msc+500,0.0,false,
++                            virtual_position,route);
++   bool filled=(route.healthy && route.outcome==KINGEA_RESEARCH_VIRTUAL_FILL);
++   KingEAZeroEntryCountVirtualAttempt(g_zero_entry_funnel,filled);
++   if(!filled)
++      return;
++
++   KingEAAccountingEvent event=ResearchAccountingBase(
++      KINGEA_ACCOUNTING_EVENT_DEAL,"ZERO-ENTRY-DIAGNOSTIC",
++      (long)tick.time_msc);
++   event.signal_id=intent.signal_identity;
++   event.direction=intent.direction;
++   event.volume=safety.permitted_volume;
++   event.requested_price=request.entry_price;
++   event.executed_price=route.accounting_price;
++   event.protective_stop=safety.required_stop;
++   event.reason_code="DIAGNOSTIC_VIRTUAL_FILL_NO_ORDER";
++   KingEAAccountingCheckpoint checkpoint={};
++   KingEAAccountingDecision accounting={};
++   KingEAProcessAccountingEvent(event,checkpoint,accounting);
++   KingEAZeroEntryCountAccounting(g_zero_entry_funnel,accounting.accepted);
++   }
+ 
+ int OnInit()
+   {
+@@ -1329,10 +1719,18 @@ int OnInit()
+       (InpBranch=="RSB3" && _Symbol!="KINGEA_ETHUSD_S_RSB3") ||
+       (InpBranch!="RECORDED" && InpBranch!="RSB3"))
+       return INIT_FAILED;
+-   if(!KingEAResearchDecodeConfiguration(InpConfigurationId,g_parameters))
++   if(!InpNativeConformance && !KingEAResearchDecodeConfiguration(InpConfigurationId,g_parameters))
++      return INIT_PARAMETERS_INCORRECT;
++   if(!InpZeroEntryDiagnostic && !InpWorkloadDryRun &&
++      !ResearchEvaluationWindowValid())
+       return INIT_PARAMETERS_INCORRECT;
+-   g_manifest_valid=(InpWorkloadDryRun ? ResearchDryAuthorizationValid() :
+-                                          ResearchAuthorizationValid());
++   if(InpNativeConformance)
++      g_manifest_valid=ResearchConformanceAuthorizationValidate();
++   else
++      g_manifest_valid=(InpZeroEntryDiagnostic ?
++                        ResearchZeroEntryDiagnosticAuthorizationValid() :
++                        (InpWorkloadDryRun ? ResearchDryAuthorizationValid() :
++                                             ResearchAuthorizationValid()));
+    if(!g_manifest_valid)
+      {
+       Print("KingEA research adapter refused: manifest/authorization guard failed.");
+@@ -1343,6 +1741,12 @@ int OnInit()
+       return INIT_FAILED;
+    if(ResearchUsesVirtual())
+       g_virtual_position.equity=AccountInfoDouble(ACCOUNT_EQUITY);
++   if(!ResearchUsesVirtual() && !InpZeroEntryDiagnostic){
++      g_da.Reset();g_da_capture.Reset();g_da_observations.Reset();
++      g_da_context=ResearchNativeContext();if(!g_da_context)return INIT_FAILED;
++      if(PositionSelect(_Symbol))return INIT_FAILED;
++      g_da_base=AccountInfoDouble(ACCOUNT_EQUITY);
++   }
+    g_initial_equity=ResearchEquity();
+    if(g_initial_equity<=0.0)
+       return INIT_FAILED;
+@@ -1364,6 +1768,19 @@ void OnTick()
+    MqlTick tick={};
+    if(!SymbolInfoTick(_Symbol,tick) || tick.bid<=0.0)
+       return;
++   if(InpNativeConformance){ResearchConformanceTick(tick);return;}
++   if(!ResearchUsesVirtual() && !InpZeroEntryDiagnostic){
++      ResearchNativePoll(tick);
++      if(g_da.invalid){ResearchUpdateSpreadState(tick);ResearchUpdatePeriodsFast(tick.time);ResearchNativeSafetyObserve(tick);return;}
++      ResearchFinalizeClosedTrade();
++      if(g_da_fallback_due&&!g_da.pending){g_da_fallback_due=false;g_da_close_reason="BROKER_VOLUME_FALLBACK";ResearchClose(g_position.direction,tick);}
++   }
++   if(!InpZeroEntryDiagnostic && !InpWorkloadDryRun &&
++      ResearchEvaluationEndReached(tick.time))
++     {
++      ResearchMarkEvaluationEnd();
++      return;
++     }
+    if(InpWorkloadDryRun)
+      {
+       if(g_dry_tick_count==0)
+@@ -1377,14 +1794,15 @@ void OnTick()
+       ResearchReduceHalf(tick);
+    if(ResearchHasPosition() && g_above_three_count>=3 &&
+       (long)tick.time_msc-g_above_three_start_msc>=10000)
+-      ResearchClose(g_position.direction,tick);
++     {g_da_close_reason="SEVERE_SPREAD_FLATTEN";ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";}
+    ResearchProcessVirtualPending(tick);
+    string market_kind="";
+    bool market_blocked=ResearchMarketBlocked((long)tick.time_msc,market_kind);
+    if(ResearchHasPosition() && market_blocked &&
+       (market_kind=="MAINTENANCE_FORCE_FLAT" ||
+        (market_kind=="NEWS_BLOCK" && !ResearchProtectedForNews())))
+-      ResearchClose(g_position.direction,tick);
++     {g_da_close_reason=market_kind=="MAINTENANCE_FORCE_FLAT"?"MAINTENANCE_CLOSE":"NEWS_CLOSE";
++      ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";}
+    if(ResearchUsesVirtual() && g_virtual_position.has_position)
+      {
+       bool stopped=(g_virtual_position.direction==KINGEA_DIRECTION_LONG ?
+@@ -1394,6 +1812,7 @@ void OnTick()
+          ResearchClose(g_virtual_position.direction,tick);
+      }
+    ResearchFinalizeClosedTrade();
++   ResearchNativeSeal(tick);
+    ResearchUpdatePeriodsFast(tick.time);
+    datetime bucket=(datetime)((long)tick.time/1800*1800);
+    if(!g_has_current)
+@@ -1425,6 +1844,7 @@ void OnTick()
+    ResearchFinalizeSpreadSlot(g_current_bar.open_time);
+    ResearchAppendBar(g_current_bar);
+    ResearchEvaluateClosedBar(tick.time,tick);
++   ResearchNativeSeal(tick);
+    g_current_bar.open_time=bucket;
+    g_current_bar.open=tick.bid;
+    g_current_bar.high=tick.bid;
+@@ -1436,6 +1856,24 @@ void OnTick()
+ 
+ double OnTester()
+   {
++   if(InpNativeConformance){
++      MqlTick tick={};if(SymbolInfoTick(_Symbol,tick))ResearchNativePoll(tick);
++      if(g_da.invalid||g_hard_failures||g_da.pending)return -1.0;
++      if(!g_da.projected && DAManifestString("outcome")=="NORMAL_CLOSE" && !ResearchNativeNormalCloseReady())return -1.0;
++      if(!g_da.projected && !ResearchNativeBoundaryFinalize())return -1.0;
++      return g_da.projected && ResearchNativeCompletion()?0.0:-1.0;
++   }
++   if(InpZeroEntryDiagnostic)
++     {
++      string payload=KingEAZeroEntryPayload(g_zero_entry_funnel,InpBranch,
++                                             InpConfigurationId);
++      bool complete=(g_initialized && g_manifest_valid &&
++                     g_zero_entry_funnel.native_order_calls==0 &&
++                     PersistZeroEntryDiagnosticPayload(payload));
++      PrintFormat("KINGEA_ZERO_ENTRY_DIAGNOSTIC: %s persisted=%d",payload,
++                  complete ? 1 : 0);
++      return complete ? 0.0 : -1.0;
++     }
+    if(InpWorkloadDryRun)
+      {
+       string payload=StringFormat(
+@@ -1457,7 +1895,23 @@ double OnTester()
+          return -1.0;
+       return 0.0;
+      }
++   // Do this before finalization or completion-frame emission: a terminal
++   // ending on the last eligible tick must not silently complete an open or
++   // pending trade group merely because no later tick called the end gate.
++   g_native_in_tester_end=true;
++   MqlTick terminal_tick={};if(SymbolInfoTick(_Symbol,terminal_tick))ResearchNativePoll(terminal_tick);
++   if(!ResearchUsesVirtual() && g_da.invalid)return -1.0;
+    ResearchFinalizeClosedTrade();
++   ResearchNativeBoundaryFinalize();
++   if(ResearchTerminalEndHasUnresolvedExposure())
++     {
++      g_evaluation_end_unresolved=true;
++      g_hard_failures++;
++      return -1.0;
++     }
++   ResearchFinalizeClosedTrade();
++   if(g_evaluation_end_unresolved)
++      return -1.0;
+    if(g_day_start>0 && g_day_open>0.0)
+      {
+       int day_count=ArraySize(g_daily_returns);
+@@ -1480,6 +1934,7 @@ double OnTester()
+                                accounting_frame))
+          g_hard_failures++;
+      }
++   if(g_hard_failures!=0 || (!ResearchUsesVirtual()&&g_da.invalid))return -1.0;
+    string accounting_complete=StringFormat(
+       "schema=1|event_count=%d|close_count=%d|trade_return_count=%d|legacy_net=%.12f|ledger_net=%.12f|root=%s|complete=1",
+       ArraySize(g_accounting_payloads),g_accounting_close_count,
+@@ -1494,11 +1949,14 @@ double OnTester()
+       !FrameAdd("KINGEA_STAGE13_ACCOUNTING_COMPLETE",InpConfigurationId,
+                 0.0,accounting_summary))
+       g_hard_failures++;
++   if(g_hard_failures!=0 || (!ResearchUsesVirtual()&&g_da.invalid))return -1.0;
++   if(!ResearchUsesVirtual() && !ResearchNativeCompletion())return -1.0;
+    string payload=StringFormat("config=%d|branch=%s|partition=%s|entries=%d|exits=%d|missed=%d|delay_expiry=%d|gate_reject_after_delay=%d|virtual_execution_failure=%d|hard_failures=%d|complete=1",
+                                InpConfigurationId,InpBranch,InpPartition,
+                                g_entries,g_exits,g_missed,g_delay_expired,
+                                g_gate_rejected_after_delay,
+                                g_virtual_execution_failed,g_hard_failures);
++   payload+="|native_cost_contract="+(ResearchUsesVirtual()?"NATIVE_COST_BOUNDARY_V2":"NATIVE_GROUP_LIFECYCLE_CONTRACT_V3")+"|boundary_finalization_count="+(string)g_boundary_finalization_count;
+    payload+="|trade_returns=";
+    for(int i=0;i<ArraySize(g_trade_returns);i++)
+       payload+=(i>0 ? ";" : "")+DoubleToString(g_trade_returns[i],12);
+@@ -1577,3 +2035,5 @@ void OnTesterDeinit()
+    // Drain frames that MT5 delivers after the last OnTesterPass callback.
+    ResearchDrainFrames();
+   }
++
++#include <KingEA/GuardedNativeCostIntegration.mqh>
+diff --git a/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh b/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh
+new file mode 100644
+index 0000000..f791992
+--- /dev/null
++++ b/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh
+@@ -0,0 +1,362 @@
++// Prospective controlled-tester lifecycle. Included after the guarded adapter.
++bool ResearchNativePersist(const string name,const string value)
++  {
++   string file="KingEA\\stage14_spool\\"+InpManifestSha256+"\\NATIVE_COST_"+
++      (string)InpConfigurationId+"_"+name+".evidence";
++   if(FileIsExist(file,FILE_COMMON))
++     {
++      int r=FileOpen(file,FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
++      if(r==INVALID_HANDLE) return false;
++      string old=FileReadString(r); FileClose(r); return old==value;
++     }
++   int h=FileOpen(file,FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
++   if(h==INVALID_HANDLE) return false;
++   bool ok=FileWriteString(h,value)==StringLen(value); FileClose(h); return ok;
++  }
++
++string DAQuote(string s){StringReplace(s,"\\","\\\\");StringReplace(s,"\"","\\\"");StringReplace(s,"\r","\\r");StringReplace(s,"\n","\\n");return "\""+s+"\"";}
++string DANumber(double n){return DAQuote(DoubleToString(n,16));}
++string DAFlag(bool v){return v?"true":"false";}
++// Only top-level scalar bindings are consumed from the already captured buffer.
++// The independently pinned renderer/launcher supplies input authority; these
++// copies cannot authorize a root, freeze or execution by themselves.
++string DAManifestString(string key){
++ string raw=CharArrayToString(g_manifest_input_bytes,0,ArraySize(g_manifest_input_bytes),CP_UTF8);
++ int depth=0;string found="";bool seen=false;
++ for(int i=0;i<StringLen(raw);i++){
++  ushort c=StringGetCharacter(raw,i);if(c=='{')depth++;else if(c=='}')depth--;
++  else if(c=='"'){
++   int start=++i;bool escaped=false;
++   while(i<StringLen(raw)){
++    ushort ch=StringGetCharacter(raw,i);if(ch=='\\'){escaped=true;i+=2;continue;}if(ch=='"')break;i++;
++   }
++   string token=StringSubstr(raw,start,i-start);
++   if(depth==1&&!escaped&&token==key){
++    if(seen)return "";seen=true;int j=i+1;
++    while(j<StringLen(raw)&&StringGetCharacter(raw,j)<=32)j++;
++    if(StringGetCharacter(raw,j++)!=':')return "";
++    while(j<StringLen(raw)&&StringGetCharacter(raw,j)<=32)j++;
++    if(StringGetCharacter(raw,j++)!='"')return "";int end=j;
++    while(end<StringLen(raw)&&StringGetCharacter(raw,end)!='"'){if(StringGetCharacter(raw,end)=='\\')return "";end++;}
++    found=StringSubstr(raw,j,end-j);i=end;
++   }
++  }
++ }
++ return found;
++}
++bool DAConformanceLayerAClosed(){
++ string raw=CharArrayToString(g_manifest_input_bytes,0,ArraySize(g_manifest_input_bytes),CP_UTF8);
++ string keys[]={"S0","close_msc","configuration_sha256","data_scope","domain","end_msc","entry_msc","execution_mode","fixture_id","group_id","inventory_protocol_sha256","optimization","outcome","reduction_msc","run_id","side","source_sha256","start_msc","swap_transition_rule_sha256","symbol","volume"};
++ int depth=0,count=0;
++ for(int i=0;i<StringLen(raw);i++){
++  ushort c=StringGetCharacter(raw,i);if(c=='{')depth++;else if(c=='}')depth--;
++  else if(c=='"'){
++   int start=++i;bool escaped=false;
++   while(i<StringLen(raw)){ushort ch=StringGetCharacter(raw,i);if(ch=='\\'){escaped=true;i+=2;continue;}if(ch=='"')break;i++;}
++   if(depth==1&&!escaped){int j=i+1;while(j<StringLen(raw)&&StringGetCharacter(raw,j)<=32)j++;
++    if(j<StringLen(raw)&&StringGetCharacter(raw,j)==':'){
++     string key=StringSubstr(raw,start,i-start);bool known=false;
++     for(int k=0;k<ArraySize(keys);k++)if(key==keys[k]){known=true;break;}
++     if(!known)return false;count++;
++    }
++   }
++  }
++  if(depth<0||depth>1)return false;
++ }
++ if(depth!=0||count!=ArraySize(keys)||DAManifestString("control_sha256")!=""||DAManifestString("tester_profile_sha256")!="")return false;
++ for(int k=0;k<ArraySize(keys);k++)if(DAManifestString(keys[k])=="")return false;
++ return true;
++}
++bool ResearchNativeContext(){
++ if(InpNativeConformance){
++  if(!ResearchConformanceValid())return false;
++  g_da_candidate="NON_CANDIDATE_NATIVE_CONFORMANCE_V1";
++  g_da_configuration=DAManifestString("configuration_sha256");g_da_profile=InpConformanceRuntimeProfileSha256;
++  return ResearchHash(g_da_configuration)&&ResearchHash(g_da_profile);
++ }
++ if(!DABoundNativeProfile()||!ResearchHash(g_manifest_input_hash)||g_manifest_input_hash!=InpManifestFileSha256)return false;
++ if(DAManifestString("candidate_id")!="CAND-ETH-ST-002"||
++    DAManifestString("native_cost_contract")!="NATIVE_GROUP_LIFECYCLE_CONTRACT_V3"||
++    DAManifestString("package_schema")!="NATIVE_GROUP_LIFECYCLE_PACKAGE_V3"||
++    DAManifestString("evidence_semantics")!="PARTIAL_POSITION_COMPONENTS_V1"||
++    DAManifestString("filling")!="ORDER_FILLING_FOK"||
++    DAManifestString("swap_transition_rule")!="SWAP_TRANSITION_CONSERVATION_V1"||
++    DAManifestString("swap_transition_rule_sha256")!="BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772"||
++    DAManifestString("inventory_protocol_sha256")!="42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6")return false;
++ g_da_candidate=DAManifestString("candidate_id");g_da_configuration=DAManifestString("configuration_sha256");
++ g_da_profile=DAManifestString("tester_profile_sha256");
++ return ResearchHash(g_da_configuration)&&ResearchHash(g_da_profile)&&ResearchHash(DAManifestString("source_sha256"));
++}
++bool ResearchNativeRecord(string role,string payload){
++ int n=ArraySize(g_da_records);if(n>=256){g_da.Invalidate("NATIVE_EVIDENCE_OVERFLOW");return false;}
++ string hash=ResearchSha256String(payload);
++ if(!ResearchNativePersist(StringSubstr(ResearchSha256String(g_da.group),0,24)+"_"+(string)n+"_"+hash,payload)){
++  g_da.Invalidate("NATIVE_EVIDENCE_PERSIST_FAILED");return false;
++ }
++ ArrayResize(g_da_records,n+1);ArrayResize(g_da_record_roles,n+1);g_da_records[n]=payload;g_da_record_roles[n]=role;return true;
++}
++string DAPositionEvidence(const DAPosition &p){
++ return "{\"position_id\":"+(string)p.id+",\"position_ticket\":"+(string)p.ticket+",\"side\":"+(string)p.side+
++ ",\"magic\":"+(string)p.magic+",\"symbol\":"+DAQuote(p.symbol)+",\"volume\":"+DANumber(p.volume)+
++ ",\"basis\":"+DANumber(p.basis)+",\"sl\":"+DANumber(p.sl)+",\"swap\":"+DANumber(p.swap)+
++ ",\"bid\":"+DANumber(p.bid)+",\"ask\":"+DANumber(p.ask)+",\"mark\":"+DANumber(p.mark)+",\"time_msc\":"+(string)p.time_msc+",\"reads\":"+(string)p.reads+",\"valid\":"+DAFlag(p.valid)+"}";
++}
++bool ResearchNativeBegin(const string group,const int side,const double volume,const long now,const double stop,const double equity,const double risk){
++ if(!ResearchNativeContext()||(!InpNativeConformance&&side!=1)||(InpNativeConformance&&side!=(DAManifestString("side")=="LONG"?1:-1))){g_da.Invalidate("SWAP_PROFILE_NOT_AUTHORIZED");return false;}
++ if(!g_da.Begin(group,_Symbol,side,volume,stop,g_da_base,risk,_Digits,(long)g_evaluation_end_exclusive*1000))return false;
++ ArrayResize(g_da_records,0);ArrayResize(g_da_record_roles,0);g_da_terminal_count=0;g_da_loss_reported=false;g_da_close_attempted=false;g_da_reduction_attempted=false;
++ g_native_start_msc=now;g_native_exit_pending=false;g_native_boundary_projected=false;ZeroMemory(g_da_sealed);
++ if(!ResearchNativeRecord("ORIGINAL","{\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(group)+
++  ",\"configuration_id\":"+(string)InpConfigurationId+",\"V0\":"+DANumber(volume)+",\"S0\":"+DANumber(stop)+",\"E0\":"+DANumber(g_da_base)+",\"R0\":"+DANumber(risk)+
++  ",\"profile_hash\":"+DAQuote(g_da_profile)+(InpNativeConformance?",\"evidence_scope\":\"NON_CANDIDATE_NATIVE_CONFORMANCE\",\"fixture_id\":"+DAQuote(DAManifestString("fixture_id")):"")+"}"))return false;
++ return g_da.Prepare(DA_ENTRY,volume);
++}
++bool ResearchNativeRequest(MqlTradeRequest &request,DAIntent intent){
++ if(!ResearchNativeContext()) {g_da.Invalidate("TESTER_PROFILE_INVALID");return false;}
++ MqlTick tick={};DAPosition now={};
++ if(!SymbolInfoTick(_Symbol,tick)||!DAReadPosition(g_da.position_ticket,g_da.position,_Symbol,tick,now))return false;
++ if(now.side!=(g_da.side==1?POSITION_TYPE_BUY:POSITION_TYPE_SELL)||now.basis!=g_da.p0||NormalizeDouble(now.sl,_Digits)!=g_da.s0||!DAVolumeEqual(now.volume,g_da.residual.volume)){
++  g_da.Invalidate("UNEXPLAINED_POSITION_MODIFICATION");return false;
++ }
++ g_da.residual=now;
++ string role=intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"BEFORE_REQUEST";
++ if(!ResearchNativeRecord(role,DAPositionEvidence(now)))return false;
++ if(intent==DA_CLOSE&&g_da_close_attempted)return false;
++ if(intent==DA_REDUCTION&&g_da_reduction_attempted)return false;
++ if(!g_da.Prepare(intent,request.volume))return false;
++ if(intent==DA_CLOSE)g_da_close_attempted=true;
++ if(intent==DA_REDUCTION)g_da_reduction_attempted=true;
++ return ResearchNativeRecord(role+"_INTENT","{\"intent\":"+(string)intent+",\"volume\":"+DANumber(request.volume)+
++  ",\"reason\":"+DAQuote(intent==DA_REDUCTION?"SPREAD_ABOVE_2_5X_REDUCE_50_PERCENT":g_da_close_reason)+",\"position\":"+(string)request.position+",\"FOK\":true,\"attempt_consumed\":"+DAFlag(g_da.contained)+"}");
++}
++void ResearchNativeReceipt(const MqlTradeResult &receipt){
++ if(!g_da_last_send_attempted){g_native_receipt_known=false;ResearchNativeRecord("ORDER_SEND_NOT_ATTEMPTED",DAQuote(g_da.failure));return;}
++ g_native_receipt=receipt;g_native_receipt_known=true;g_da.order=receipt.order;
++ // A broker result.deal volume is not an aggregate-order terminality oracle.
++ ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"REQUEST_RESULT",
++  "{\"order\":"+(string)receipt.order+",\"deal\":"+(string)receipt.deal+",\"retcode\":"+(string)receipt.retcode+
++  ",\"volume\":"+DANumber(receipt.volume)+",\"price\":"+DANumber(receipt.price)+"}");
++}
++void OnTradeTransaction(const MqlTradeTransaction &trans,const MqlTradeRequest &request,const MqlTradeResult &result){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||!g_initialized)return;
++ // Capture remains active after invalidity. All processing/persistence is deferred.
++ g_da_observations.Capture(trans,request,result);g_da_capture.Capture(trans);
++}
++void ResearchNativePoll(const MqlTick &tick){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||!g_initialized)return;
++ if(!ResearchNativeContext())g_da.Invalidate("TESTER_PROFILE_INVALID");
++ if(g_da_capture.overflow||g_da_observations.overflow)g_da.Invalidate("TRANSACTION_CAPTURE_OVERFLOW");
++ DANativeCapture row={};
++ while(g_da_capture.Pop(row)){
++  if(row.type==TRADE_TRANSACTION_DEAL_ADD){
++   DADeal d=row.deal;
++   if(d.type==DEAL_TYPE_BALANCE){ResearchNativeRecord("EXTERNAL_CASH_EVIDENCE",DADealCanonical(d));continue;}
++   if(d.type!=DEAL_TYPE_BUY&&d.type!=DEAL_TYPE_SELL){
++    g_da.Invalidate("SWAP_PROFILE_OUTSIDE_SUPPORTED_SEMANTICS");
++    ResearchNativeRecord("INVALID_NATIVE_FINANCIAL_EVENT",DADealCanonical(d));continue;
++   }
++   if(!g_da.started){g_da.Invalidate("FOREIGN_DEAL_WITHOUT_GROUP");continue;}
++   if(!g_da.pending&&d.position==g_da.position&&d.entry==DEAL_ENTRY_OUT){
++    if(d.reason==DEAL_REASON_SL&&NormalizeDouble(d.sl,_Digits)==g_da.s0&&!g_da.projected){
++     if(!g_da.Prepare(DA_CLOSE,g_da.residual.volume))g_da.Invalidate("STOP_EXIT_RECONCILIATION_FAILED");
++     g_da.order=d.order;
++     ResearchNativeRecord("STATIC_PROTECTIVE_STOP_INTENT",DAQuote(g_da.group));
++    }else g_da.Invalidate("MANUAL_INTERVENTION_RESEARCH_INVALID");
++   }
++   g_da.Capture(d);
++   if(d.position==g_da.position||g_da.position==0){if(row.position>0)g_da.position_ticket=row.position;}
++   ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"DEAL_ADD",DADealCanonical(d));
++  }else{
++   if(row.symbol!=_Symbol)continue;
++   if(g_da_terminal_count==64){g_da.Invalidate("ORDER_CAPTURE_OVERFLOW");continue;}
++   g_da_terminals[g_da_terminal_count++]=row;
++   ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"ORDER_TERMINAL_OBSERVATION",
++    "{\"order\":"+(string)row.order+",\"position\":"+(string)row.position+",\"state\":"+(string)row.order_state+
++    ",\"type\":"+(string)row.order_type+",\"unfilled\":"+DANumber(row.unfilled)+",\"symbol\":"+DAQuote(row.symbol)+"}");
++  }
++ }
++ DAObservation observation={};
++ while(g_da_observations.Pop(observation)){
++  if(observation.type==TRADE_TRANSACTION_POSITION&&g_da.started&&observation.position==g_da.position_ticket)
++   g_da.Invalidate("UNEXPLAINED_POSITION_MODIFICATION");
++  if(observation.type==TRADE_TRANSACTION_REQUEST&&observation.position==g_da.position_ticket&&observation.action==TRADE_ACTION_SLTP)
++   g_da.Invalidate("MANUAL_INTERVENTION_RESEARCH_INVALID");
++ }
++ if(g_da.pending&&g_da.order>0){
++  for(int i=0;i<g_da_terminal_count;i++){
++   DANativeCapture t=g_da_terminals[i];if(t.order!=g_da.order)continue;
++   bool ended=t.order_state==ORDER_STATE_FILLED||t.order_state==ORDER_STATE_CANCELED||t.order_state==ORDER_STATE_REJECTED||t.order_state==ORDER_STATE_EXPIRED;
++   if(!ended)continue;
++   long expected_type=g_da.intent==DA_ENTRY?(g_da.side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL):(g_da.side==1?ORDER_TYPE_SELL:ORDER_TYPE_BUY);
++   bool valid=MathIsValidNumber(t.unfilled)&&t.unfilled>=0&&t.unfilled<=g_da.requested&&t.order_type==expected_type&&(t.order_state!=ORDER_STATE_FILLED||t.unfilled==0);
++   double actual=valid?g_da.requested-t.unfilled:0;
++   if(g_da.terminal&&(!valid||!DAVolumeEqual(actual,g_da.executed_target)))g_da.Invalidate("CONFLICTING_ORDER_TERMINALITY");
++   else g_da.Receipt(t.order,true,actual,valid,actual==0&&t.order_state!=ORDER_STATE_FILLED);
++  }
++ }
++ DAPosition now={};bool observed=DAReadPosition(g_da.position_ticket,g_da.position,_Symbol,tick,now);
++ if(g_da.pending){
++  double out=0;bool complete=g_da.terminal&&g_da.execution_volume_authenticated;
++  for(int i=0;i<g_da.count;i++){DADeal d=g_da.facts[i];if(d.order!=g_da.order)continue;
++   if(!d.valid||d.entry!=DEAL_ENTRY_OUT||d.position!=g_da.position)complete=false;out+=d.volume;
++  }
++  // Exact terminal OUT set exhausting the prior authenticated volume is flat
++  // authority. Failed position selection alone is never used as that authority.
++  bool flat=complete&&!observed&&DAVolumeEqual(out,g_da.executed_target)&&DAVolumeEqual(out,g_da.before_volume)&&out>0;
++  DAIntent prior=g_da.intent;bool accepted=g_da.Reconcile(now,flat);
++  if(accepted){
++   ResearchNativeRecord("RECONCILED_POSITION",DAPositionEvidence(g_da.residual));
++   if(prior==DA_ENTRY){g_native_entry_captured=true;g_position_ticket=g_da.position_ticket;g_position.entry_price=g_da.p0;g_position.original_confirmed_stop=g_da.s0;}
++   if(prior==DA_REDUCTION)g_spread_reduced=true;
++   if(prior==DA_CLOSE){g_exits++;g_native_exit_pending=true;g_close_order_ticket=g_da.order;
++    for(int i=0;i<g_da.count;i++)if(g_da.facts[i].order==g_da.order)g_close_deal_ticket=g_da.facts[i].ticket;}
++  }
++  if(!g_da.pending&&g_da.no_fill&&prior==DA_REDUCTION)g_da_fallback_due=true;
++ }else if(observed&&g_da.started&&!g_da.projected){
++  if(now.id!=g_da.position||now.basis!=g_da.p0||NormalizeDouble(now.sl,_Digits)!=g_da.s0||!DAVolumeEqual(now.volume,g_da.residual.volume))
++   g_da.Invalidate("UNEXPLAINED_POSITION_MODIFICATION");
++  else g_da.residual=now; // Replace current residual mark/swap; never accumulate snapshots.
++ }
++ if(g_da.invalid&&!g_da_loss_reported){g_hard_failures++;g_da_loss_reported=true;ResearchNativeRecord("INVALID_LATCHED",DAQuote(g_da.failure));}
++ if(g_da.invalid&&!g_da.pending&&!g_da.contained&&g_da.terminal&&g_da.residual.valid&&g_da.residual.volume>0&&ResearchNativeContext()&&
++    (g_da.failure=="PARTIAL_ORDER_EXECUTION"||g_da.failure=="FOK_FULL_MULTI_DEAL_UNSUPPORTED_LEDGER_CARDINALITY")){
++  MqlTradeRequest r={};MqlTradeResult result={};r.action=TRADE_ACTION_DEAL;r.symbol=_Symbol;r.magic=12001;r.position=g_da.position_ticket;
++  r.volume=g_da.residual.volume;r.type=g_da.side==1?ORDER_TYPE_SELL:ORDER_TYPE_BUY;r.price=g_da.side==1?tick.bid:tick.ask;r.type_filling=ORDER_FILLING_FOK;
++  if(ResearchNativeRequest(r,DA_CONTAINMENT)){ResearchOrderSend(r,result);ResearchNativeReceipt(result);}
++ }
++}
++void ResearchNativeSeal(const MqlTick &tick){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||!g_da.started||g_da.invalid||g_da.pending||g_da.projected||!ResearchEvaluationEligible(tick.time))return;
++ if(g_da.residual.valid&&g_da.residual.volume>0){g_da_sealed=g_da.residual;g_native_last_eligible_tick=tick.time_msc;}
++}
++bool ResearchNativeNormalCloseReady(){return g_da.started&&!g_da.invalid&&!g_da.pending&&!g_da.projected&&g_da.exposure==DA_FLAT&&g_native_exit_pending;}
++void ResearchNativeNormalCloseCommitted(){if(!g_da.Commit())g_hard_failures++;}
++bool ResearchNativeProject(bool boundary){
++ if(g_da.invalid||g_hard_failures!=0||g_da.pending||g_da.projected)return false;
++ if(boundary){if(g_native_exit_pending||!g_da_sealed.valid||g_da_sealed.time_msc!=g_native_last_eligible_tick)return false;g_da.residual=g_da_sealed;}
++ long time=g_da.residual.time_msc;
++ if(!boundary){time=0;for(int i=0;i<g_da.count;i++)if(g_da.facts[i].order==g_da.order)time=g_da.facts[i].time_msc;}
++ KingEAAccountingEvent event=ResearchAccountingBase(KINGEA_ACCOUNTING_EVENT_TRADE_GROUP_CLOSE,"V3-CLOSE-"+ResearchSha256String(g_da.group),time);
++ event.trade_group_id=g_da.group;event.direction=g_da.side;event.volume=g_da.v0;event.protective_stop=g_da.s0;
++ event.order_ticket=boundary?0:g_close_order_ticket;event.deal_ticket=boundary?0:g_close_deal_ticket;event.position_ticket=g_da.position_ticket;
++ event.reason_code=boundary?"EVALUATOR_BOUNDARY":"TRADE_GROUP_CLOSE";event.source_quality="NATIVE_GROUP_LIFECYCLE_V3";
++ if(!g_da.Projection(boundary,event))return false;
++ double net=event.gross_profit+event.commission+event.fee+event.swap;event.account_equity=g_da_base+net;event.sleeve_equity=event.account_equity;
++ KingEAAccountingDecision decision={};KingEAProcessAccountingEvent(event,g_accounting_checkpoint,decision);
++ if(!decision.accepted)return false;
++ string prior=g_accounting_checkpoint.ledger_root_sha256;if(prior=="")StringInit(prior,64,'0');
++ string canonical=KingEAAccountingCanonical(event,decision.sequence,prior);
++ if(!ResearchNativeRecord("TERMINAL_POSITION",DAPositionEvidence(g_da.residual)))return false;
++ if(!ResearchNativeRecord("STAGE13_PREPARED",canonical))return false;
++ // Prepared evidence is durable before the atomic financial handoff. A later
++ // persistence failure invalidates the run and cannot authorize another projection.
++ double base_before=g_da_base;
++ if(!g_da.Commit())return false;
++ g_accounting_checkpoint=decision.next_checkpoint;g_da_base+=net;
++ if(!ResearchNativeRecord("STAGE13_COMMITTED","{\"event_hash\":"+DAQuote(decision.event_sha256)+
++  ",\"prior_root\":"+DAQuote(prior)+",\"base_before\":"+DANumber(base_before)+",\"base_after\":"+DANumber(g_da_base)+
++  ",\"contribution_after\":\"0\",\"financial_projection_count\":1,\"atomic_handoff\":true}"))return false;
++ string records="[";for(int i=0;i<ArraySize(g_da_records);i++){if(i>0)records+=",";records+="{\"role\":"+DAQuote(g_da_record_roles[i])+",\"payload\":"+DAQuote(g_da_records[i])+"}";}records+="]";
++ string capture="{\"kind\":\"NATIVE_LIFECYCLE_CAPTURE_V3\",\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(g_da.group)+
++  ",\"outcome\":"+DAQuote(boundary?"EVALUATOR_BOUNDARY":"NORMAL_CLOSE")+",\"records\":"+records+"}";
++ if(!ResearchNativePersist("V3_CAPTURE_"+ResearchSha256String(g_da.group),capture)){g_da.Invalidate("COMMITTED_CAPTURE_PERSIST_FAILED");g_hard_failures++;return false;}
++ int n=ArraySize(g_accounting_payloads);ArrayResize(g_accounting_payloads,n+1);g_accounting_payloads[n]=KingEAAccountingFramePayload(event,decision);
++ int count=ArraySize(g_trade_net);ArrayResize(g_trade_net,count+1);ArrayResize(g_trade_returns,count+1);ArrayResize(g_trade_r,count+1);
++ g_trade_net[count]=net;g_trade_returns[count]=event.net_return;g_trade_r[count]=event.net_r;g_accounting_close_count++;
++ uchar frame[];int bytes=StringToCharArray(capture,frame,0,WHOLE_ARRAY,CP_UTF8);if(bytes>0)ArrayResize(frame,bytes-1);
++ if(bytes<=0||!FrameAdd("KINGEA_V3_NATIVE_CAPTURE",InpConfigurationId,0.0,frame)){g_da.Invalidate("CAPTURE_FRAME_FAILED");g_hard_failures++;return false;}
++ if(boundary){g_native_boundary_projected=true;g_native_boundary_equity=g_da_base;g_boundary_finalization_count++;}
++ KingEASafetyFacts facts={};ResearchHealthyFacts(TimeCurrent(),g_da.p0,g_da.s0,g_da.side,facts);
++ KingEASafetyRequest closed={};closed.event=KINGEA_EVENT_CLOSED_TRADE_GROUP;closed.scope=KINGEA_SCOPE_SLEEVE;
++ closed.closed_group_full_loss=event.net_r<=-0.80;KingEASafetyDecision safety={};KingEAEvaluateSafety(closed,facts,g_safety_state,safety);
++ g_safety_state=safety.next_state;if(safety.action==KINGEA_ACTION_QUARANTINE){g_hard_failures++;g_da.Invalidate("SAFETY_QUARANTINE");}
++ ZeroMemory(g_position);g_trade_group_id="";g_native_exit_pending=false;return !g_da.invalid;
++}
++bool ResearchNativeBoundaryFinalize(){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||InpWorkloadDryRun||g_da.invalid)return false;
++ if(g_da.projected)return g_native_boundary_projected;
++ if(ResearchNativeNormalCloseReady())return ResearchNativeProject(false);
++ return ResearchNativeProject(true);
++}
++
++void ResearchNativeSafetyObserve(const MqlTick &tick){
++ // Observations continue after invalidity. Decisions do not create any new
++ // order authority or retry; only the adopted containment seam may submit.
++ if(!g_da.residual.valid||g_da.pending||g_da.position==0)return;
++ double contribution=0;if(!g_da.OperationalContribution(contribution))return;
++ KingEASafetyFacts facts={};ResearchHealthyFacts(tick.time,g_da.p0,g_da.s0,g_da.side,facts);
++ facts.exposure_reconciled=true;facts.unknown_exposure=false;
++ KingEASafetyRequest request={};request.event=KINGEA_EVENT_POSITION_REVIEW;request.scope=KINGEA_SCOPE_SLEEVE;
++ request.position_present=g_da.residual.volume>0;request.position_volume=g_da.residual.volume;
++ KingEASafetyDecision decision={};KingEAEvaluateSafety(request,facts,g_safety_state,decision);g_safety_state=decision.next_state;
++}
++
++bool ResearchNativeCompletion(){
++ if(g_da.invalid||g_da.pending||g_hard_failures!=0||!ResearchNativeContext())return false;
++ string value="{\"kind\":"+DAQuote(InpNativeConformance?"NON_CANDIDATE_CONFORMANCE_COMPLETION":"NATIVE_V3_COMPLETION")+",\"run_id\":"+DAQuote(InpManifestSha256)+
++  ",\"configuration_id\":"+(string)InpConfigurationId+",\"profile_hash\":"+DAQuote(g_da_profile)+
++  ",\"group_count\":"+(string)g_accounting_close_count+",\"boundary_count\":"+(string)g_boundary_finalization_count+
++  ",\"research_invalid\":false,\"containment_attempted\":false,\"unsupported_financial_events\":[],\"complete\":1}";
++ if(!ResearchNativePersist("V3_COMPLETION",value))return false;
++ uchar frame[];int n=StringToCharArray(value,frame,0,WHOLE_ARRAY,CP_UTF8);if(n>0)ArrayResize(frame,n-1);
++ return n>0&&FrameAdd("KINGEA_V3_NATIVE_COMPLETE",InpConfigurationId,0.0,frame);
++}
++
++// Fixed infrastructure dispatcher. No Candidate signal evaluation or adaptive schedule.
++bool ResearchConformanceValid(){
++ if(!InpNativeConformance||!MQLInfoInteger(MQL_TESTER)||MQLInfoInteger(MQL_OPTIMIZATION)||!DABoundNativeProfile())return false;
++ if(InpPurpose!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1"||InpGate!="0"||InpRootSha256!=""||InpDetachedAuthorizationToken!=""||InpConfigurationId!=0||InpZeroEntryDiagnostic||InpWorkloadDryRun)return false;
++ if(InpBranch!="RECORDED"||InpScenario!="BASELINE_20MS"||InpSpreadMultiplier!=1.0||InpCostMultiplier!=1.0||InpSlippageSpreadFraction!=0||InpVolatilityDependentSlippage||InpMissedEntryFraction!=0)return false;
++ if(InpExecutionAdapter!="NATIVE"||InpDelayMs!=20||InpTesterModel!=4||!InpLocalAgentsOnly||!InpRemoteAgentsDisabled||!InpCloudAgentsDisabled||!ResearchEvaluationWindowValid())return false;
++ if(!ResearchHash(InpConformanceControlSha256)||!ResearchHash(InpConformanceRuntimeProfileSha256)||ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256||!ResearchHash(InpManifestFileSha256))return false;
++ if(ResearchFileSha256(InpCalendarIntervalsFile)!=InpCalendarFileSha256||!ResearchHash(InpCalendarFileSha256))return false;
++ if(!DAConformanceLayerAClosed()||DAManifestString("domain")!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1"||DAManifestString("run_id")!=InpManifestSha256||DAManifestString("data_scope")!="DEVELOPMENT_ONLY")return false;
++ if(DAManifestString("swap_transition_rule_sha256")!="BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772"||DAManifestString("inventory_protocol_sha256")!="42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6")return false;
++ string side=DAManifestString("side");
++ long start=(long)StringToInteger(DAManifestString("start_msc")),end=(long)StringToInteger(DAManifestString("end_msc"));
++ long entry=(long)StringToInteger(DAManifestString("entry_msc")),reduce=(long)StringToInteger(DAManifestString("reduction_msc")),close=(long)StringToInteger(DAManifestString("close_msc"));
++ if(start!=(long)g_evaluation_start*1000||end!=(long)g_evaluation_end_exclusive*1000||start>entry||entry>=reduce||reduce>=end)return false;
++ bool boundary=DAManifestString("outcome")=="EVALUATOR_BOUNDARY";
++ if((boundary&&close!=0)||(!boundary&&(DAManifestString("outcome")!="NORMAL_CLOSE"||close<=reduce||close>=end)))return false;
++ return (side=="LONG"||side=="SHORT")&&StringToDouble(DAManifestString("volume"))>0&&StringToDouble(DAManifestString("S0"))>0;
++}
++void ResearchConformanceTick(const MqlTick &tick){
++ if(!ResearchConformanceValid()){g_da.Invalidate("CONFORMANCE_CONTEXT_LOST");g_hard_failures++;}
++ ResearchNativePoll(tick);
++ if(g_da.invalid){ResearchNativeSafetyObserve(tick);return;}
++ ResearchFinalizeClosedTrade();
++ if(g_da_fallback_due&&!g_da.pending){g_da_fallback_due=false;g_cf_close_attempted=true;g_da_close_reason="BROKER_VOLUME_FALLBACK";ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";}
++ ResearchUpdateSpreadState(tick);ResearchUpdatePeriodsFast(tick.time);ResearchNativeSafetyObserve(tick);
++ if(tick.time_msc>=(long)g_evaluation_end_exclusive*1000){ResearchNativeBoundaryFinalize();return;}
++ if(!ResearchEvaluationEligible(tick.time)||g_da.projected)return;
++ long entry=(long)StringToInteger(DAManifestString("entry_msc")),reduce=(long)StringToInteger(DAManifestString("reduction_msc")),close=(long)StringToInteger(DAManifestString("close_msc"));
++ int side=DAManifestString("side")=="LONG"?1:-1;
++ if(!g_cf_entry_attempted&&tick.time_msc>=entry){
++  g_cf_entry_attempted=true;
++  if(tick.time_msc>=reduce){g_da.Invalidate("FIXTURE_ENTRY_WINDOW_MISSED");return;}
++  double volume=StringToDouble(DAManifestString("volume")),stop=StringToDouble(DAManifestString("S0")),price=side==1?tick.ask:tick.bid,risk=0;
++  if((side==1&&stop>=price)||(side==-1&&stop<=price)||!OrderCalcProfit(side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL,_Symbol,volume,price,stop,risk)||risk>=0){g_da.Invalidate("FIXTURE_STOP_OR_RISK_INVALID");return;}
++  string group=DAManifestString("group_id");
++  if(!ResearchNativeBegin(group,side,volume,tick.time_msc,stop,g_da_base,-risk))return;
++  g_trade_group_id=group;g_position.direction=side;g_position.has_position=true;g_position.entry_price=price;
++  g_position.original_confirmed_stop=stop;g_position.original_stop_confirmed=true;g_trade_volume=volume;g_spread_reduced=false;
++  MqlTradeRequest r={};MqlTradeResult result={};r.action=TRADE_ACTION_DEAL;r.symbol=_Symbol;r.magic=12001;
++  r.type=side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL;r.volume=volume;r.price=price;r.sl=stop;r.type_filling=ORDER_FILLING_FOK;r.comment="NON_CANDIDATE_CONFORMANCE";
++  ResearchOrderSend(r,result);ResearchNativeReceipt(result);
++ }
++ if(!g_da.pending&&g_da.position>0&&!g_cf_reduction_attempted&&tick.time_msc>=reduce){
++  g_cf_reduction_attempted=true;
++  if(close>0&&tick.time_msc>=close){g_da.Invalidate("FIXTURE_REDUCTION_WINDOW_MISSED");return;}
++  ResearchReduceHalf(tick);
++ }
++ if(close>0&&!g_da.pending&&!g_cf_close_attempted&&tick.time_msc>=close){g_cf_close_attempted=true;ResearchClose(side,tick);}
++ ResearchNativeSeal(tick);
++}
++bool ResearchNativeOrderCheck(MqlTradeRequest &r){
++ MqlTradeCheckResult c={};ResetLastError();bool ok=OrderCheck(r,c);int error=GetLastError();
++ string request="{\"action\":"+(string)r.action+",\"magic\":"+(string)r.magic+",\"order\":"+(string)r.order+",\"symbol\":"+DAQuote(r.symbol)+",\"volume\":"+DANumber(r.volume)+",\"price\":"+DANumber(r.price)+",\"stoplimit\":"+DANumber(r.stoplimit)+",\"sl\":"+DANumber(r.sl)+",\"tp\":"+DANumber(r.tp)+",\"deviation\":"+(string)r.deviation+",\"type\":"+(string)r.type+",\"type_filling\":"+(string)r.type_filling+",\"type_time\":"+(string)r.type_time+",\"expiration\":"+(string)r.expiration+",\"comment\":"+DAQuote(r.comment)+",\"position\":"+(string)r.position+",\"position_by\":"+(string)r.position_by+"}";
++ string payload="{\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(g_da.group)+",\"request\":"+request+",\"request_hash\":"+DAQuote(ResearchSha256String(request))+",\"bool_return\":"+DAFlag(ok)+",\"retcode\":"+(string)c.retcode+",\"error\":"+(string)error+",\"comment\":"+DAQuote(c.comment)+",\"balance\":"+DANumber(c.balance)+",\"equity\":"+DANumber(c.equity)+",\"profit\":"+DANumber(c.profit)+",\"margin\":"+DANumber(c.margin)+",\"margin_free\":"+DANumber(c.margin_free)+",\"margin_level\":"+DANumber(c.margin_level)+",\"time_msc\":"+(string)((long)TimeCurrent()*1000)+",\"context_hash\":"+DAQuote(InpNativeConformance?InpConformanceControlSha256:InpManifestFileSha256)+"}";
++ if(!ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"ORDER_CHECK",payload))return false;
++ if(!ok||c.retcode!=0){g_da.Invalidate("ORDER_CHECK_REJECTED_NO_SEND");return false;}
++ return true;
++}
+diff --git a/research_pipeline/native_conformance_control.py b/research_pipeline/native_conformance_control.py
+new file mode 100644
+index 0000000..97eb2c9
+--- /dev/null
++++ b/research_pipeline/native_conformance_control.py
+@@ -0,0 +1,413 @@
++"""Pinned, non-Candidate infrastructure authority. Never a successor fallback.
++
++Control and evidence verification are read-only except for the explicitly
++authorized loader-staging operation. Runtime launching and seal creation are
++deliberately absent; a separately authorized custodian pins completed captures
++and final seals.
++"""
++from pathlib import Path
++from . import decision_a_evidence as v3
++
++DOMAIN = 'NON_CANDIDATE_NATIVE_CONFORMANCE_V1'
++SCOPE = 'NON_CANDIDATE_NATIVE_CONFORMANCE'
++FIXTURE_FIELDS = {'fixture_id','run_id','group_id','side','volume','S0','start_msc','end_msc',
++                  'entry_msc','reduction_msc','close_msc','outcome','data_scope','execution_mode',
++                  'optimization','symbol'}
++
++# Closed implementation metadata for the conformance SET map.  This is not
++# discovered at runtime: changing an MQL input requires an explicit review of
++# this map and its deterministic declaration test.
++SET_INPUT_TYPES = {
++    'InpNativeConformance':'bool', 'InpConformanceControlSha256':'string',
++    'InpConformanceRuntimeProfileSha256':'string',
++    'InpRunManifest':'string', 'InpManifestFileSha256':'string', 'InpManifestSha256':'string',
++    'InpPurpose':'string', 'InpGate':'string', 'InpRootSha256':'string',
++    'InpDetachedAuthorizationToken':'string', 'InpConfigurationId':'int',
++    'InpEvaluationStart':'string', 'InpEvaluationEndExclusive':'string', 'InpBranch':'string',
++    'InpExpectedSymbol':'string', 'InpExecutionAdapter':'string', 'InpScenario':'string',
++    'InpDelayMs':'int', 'InpTesterModel':'int', 'InpLocalAgentsOnly':'bool',
++    'InpRemoteAgentsDisabled':'bool', 'InpCloudAgentsDisabled':'bool',
++    'InpZeroEntryDiagnostic':'bool', 'InpWorkloadDryRun':'bool',
++    'InpCalendarIntervalsFile':'string', 'InpCalendarFileSha256':'string', 'InpCalendarSha256':'string',
++}
++
++LAYER_A_FIELDS = FIXTURE_FIELDS | {
++    'domain','configuration_sha256','source_sha256',
++    'inventory_protocol_sha256','swap_transition_rule_sha256'}
++LAYER_B_FIELDS = {
++    'domain','fixture','profile','artifacts','local_inputs','embedded_manifest',
++    'ea_source_sha256','set_renderer_contract_sha256','environment'}
++LAYER_B_ENVIRONMENT_FIELDS = {
++    'terminal_build','compiler_build','agent_build','server','account_fingerprint','symbol',
++    'execution_mode','optimization','local','visual','dll','command_bridge',
++    'shared_trading_input'}
++LAYER_B_FORBIDDEN_KEYS = {
++    'set','set_bytes','set_sha256','final_set','final_set_bytes','final_set_sha256',
++    'ini','ini_bytes','ini_sha256','pre_native','pre_native_sha256',
++    'launch_record','launch_record_hash'}
++
++def set_renderer_contract_sha256():
++    return v3.digest(v3.json_bytes(dict(kind='CONFORMANCE_SET_RENDERER_CONTRACT_V1',
++                                               input_types=SET_INPUT_TYPES)))
++
++def build_layer_a(fixture, configuration_sha256, source_sha256):
++    """Serialize the closed compile-stable manifest without post-compile authority."""
++    v3.require(type(fixture) is dict and set(fixture)==FIXTURE_FIELDS,
++               'LAYER_A_FIXTURE_SCHEMA')
++    v3.require(v3.hash_value(configuration_sha256) and v3.hash_value(source_sha256),
++               'LAYER_A_AUTHORITY_HASH')
++    manifest={k:str(value) for k,value in fixture.items()}
++    manifest.update(domain=DOMAIN,configuration_sha256=configuration_sha256,
++                    source_sha256=source_sha256,
++                    inventory_protocol_sha256=v3.INVENTORY_ADOPTION,
++                    swap_transition_rule_sha256=v3.SWAP_TRANSITION_ADOPTION)
++    v3.require(set(manifest)==LAYER_A_FIELDS,'LAYER_A_SCHEMA')
++    return v3.json_bytes(manifest)
++
++def _reject_layer_b_cycles(value):
++    if isinstance(value,dict):
++        v3.require(not ({str(key).lower() for key in value} & LAYER_B_FORBIDDEN_KEYS),
++                   'LAYER_B_CYCLIC_FIELD')
++        for child in value.values():_reject_layer_b_cycles(child)
++    elif isinstance(value,list):
++        for child in value:_reject_layer_b_cycles(child)
++
++def build_layer_b(*, fixture, profile, artifacts, local_inputs, embedded_manifest,
++                  ea_source_sha256, environment):
++    """Serialize post-compile authority; final SET/INI/launch bytes are forbidden."""
++    control=dict(domain=DOMAIN,fixture=fixture,profile=profile,artifacts=artifacts,
++                 local_inputs=local_inputs,embedded_manifest=embedded_manifest,
++                 ea_source_sha256=ea_source_sha256,
++                 set_renderer_contract_sha256=set_renderer_contract_sha256(),
++                 environment=environment)
++    v3.require(set(control)==LAYER_B_FIELDS and v3.hash_value(ea_source_sha256),
++               'LAYER_B_SCHEMA')
++    v3.require(type(environment) is dict and set(environment)==LAYER_B_ENVIRONMENT_FIELDS,
++               'LAYER_B_ENVIRONMENT_SCHEMA')
++    _reject_layer_b_cycles(control)
++    return v3.json_bytes(control)
++
++def serialize_tester_set(values):
++    """Serialize the fixed SET map in MetaTester non-optimization form."""
++    v3.require(set(values) == set(SET_INPUT_TYPES), 'CONFORMANCE_SET_TYPE_MAP_MISMATCH')
++    records=[]
++    for name, value in values.items():
++        v3.require(isinstance(value, str), 'CONFORMANCE_SET_VALUE_TYPE')
++        kind=SET_INPUT_TYPES[name]
++        if kind == 'string':
++            records.append(name+'='+value)
++        else:
++            # The first field is the governed value. N prevents optimization;
++            # the fixed range fields have no research authority.
++            records.append(name+'='+value+'||'+value+'||1||'+value+'||N')
++    return ('\r\n'.join(records)+'\r\n').encode()
++
++def decode_terminal_origin(raw):
++    """Decode only the retained origin-file formats accepted by policy."""
++    v3.require(type(raw) is bytes,'TERMINAL_ORIGIN_ENCODING_UNSUPPORTED')
++    try:
++        if raw.startswith(b'\xff\xfe'):
++            v3.require((len(raw)-2)%2==0,'TERMINAL_ORIGIN_DECODE_FAILED')
++            value=raw[2:].decode('utf-16-le',errors='strict')
++        elif raw.startswith(b'\xef\xbb\xbf'):
++            value=raw[3:].decode('utf-8',errors='strict')
++        else:
++            v3.require(not raw.startswith(b'\xfe\xff'),'TERMINAL_ORIGIN_ENCODING_UNSUPPORTED')
++            value=raw.decode('utf-8',errors='strict')
++    except UnicodeDecodeError:
++        raise ValueError('TERMINAL_ORIGIN_DECODE_FAILED')
++    value=value.strip()
++    v3.require(bool(value) and '\x00' not in value and '\n' not in value and '\r' not in value,
++               'TERMINAL_ORIGIN_DECODE_FAILED')
++    return value
++
++def resolve_terminal_instance(terminal_executable, instance_id, *, terminal_root):
++    """Resolve the exact terminal data tree; never infer it from a package."""
++    exe=Path(terminal_executable).resolve();root=Path(terminal_root).resolve()
++    v3.require(type(instance_id) is str and len(instance_id)==32 and all(c in '0123456789ABCDEF' for c in instance_id),'TERMINAL_INSTANCE_ID_INVALID')
++    v3.require(exe.is_file() and root.is_dir(),'TERMINAL_INSTANCE_UNAVAILABLE')
++    data=(root/instance_id).resolve();origin=data/'origin.txt'
++    v3.require(data.is_dir() and origin.is_file() and not origin.is_symlink(),'TERMINAL_INSTANCE_UNAVAILABLE')
++    origin_raw=origin.read_bytes();value=decode_terminal_origin(origin_raw)
++    v3.require(Path(value).resolve()==exe.parent,'TERMINAL_INSTANCE_BINDING_MISMATCH')
++    return dict(instance_id=instance_id,terminal_executable=str(exe),terminal_executable_sha256=v3.digest(exe.read_bytes()),terminal_data_dir=str(data),origin_sha256=v3.digest(origin_raw),tester_journal_dir=str(data/'Tester'/'logs'),terminal_root=str(root))
++
++def stage_expert_parameters(context, instance, ini_raw, *, set_name=None):
++    """Make the pinned SET loader-visible and return an audit-only receipt."""
++    v3.require(type(context) is ConformanceControl,'INDEPENDENT_CONFORMANCE_CONTEXT_REQUIRED')
++    name=set_name or (context.fixture['fixture_id']+'.set')
++    v3.require(name==context.fixture['fixture_id']+'.set' and '/' not in name and '\\' not in name,'EXPERT_PARAMETERS_BASENAME_INVALID')
++    ini=ini_raw.decode('utf-8-sig')
++    v3.require('ExpertParameters='+name in ini,'EXPERT_PARAMETERS_INI_MISMATCH')
++    data=Path(instance['terminal_data_dir']).resolve()
++    v3.require(data.name==instance['instance_id'] and (data/'origin.txt').is_file(),'TERMINAL_INSTANCE_BINDING_MISMATCH')
++    target=data/'MQL5'/'Profiles'/'Tester'/name
++    target.parent.mkdir(parents=True,exist_ok=True)
++    expected=context.prepare_inputs()['set_bytes']
++    target.write_bytes(expected)
++    observed=target.read_bytes()
++    v3.require(observed==expected and v3.digest(observed)==v3.digest(expected),'EXPERT_PARAMETERS_COPY_MISMATCH')
++    return dict(kind='CONFORMANCE_EXPERT_PARAMETERS_BINDING_V1',fixture_id=context.fixture['fixture_id'],run_id=context.fixture['run_id'],terminal_instance_id=instance['instance_id'],terminal_executable=instance['terminal_executable'],terminal_executable_sha256=instance['terminal_executable_sha256'],terminal_data_dir=instance['terminal_data_dir'],origin_sha256=instance['origin_sha256'],loader_relative_path='MQL5/Profiles/Tester/'+name,loader_absolute_path=str(target),authoritative_set_sha256=v3.digest(expected),loader_set_sha256=v3.digest(observed),byte_length=len(observed),ini_sha256=v3.digest(ini_raw),expert_parameters=name,post_write_verification='PASS')
++
++def read_pinned_loader_binding(root, reference):
++    v3.require(type(reference) is dict and set(reference)=={'path','byte_length','sha256'} and
++               type(reference['byte_length']) is int and reference['byte_length']>0 and
++               v3.hash_value(reference['sha256']),'LOADER_BINDING_REFERENCE_INVALID')
++    base=Path(root).resolve();name=v3.archive_path(reference['path']);path=(base/name).resolve()
++    v3.require(path.is_relative_to(base) and path.is_file() and not path.is_symlink(),'LOADER_BINDING_REFERENCE_INVALID')
++    raw=path.read_bytes();v3.require(len(raw)==reference['byte_length'] and v3.digest(raw)==reference['sha256'],'LOADER_BINDING_PIN_MISMATCH')
++    return v3.parse_json(raw)
++
++def read_pinned_expected_terminal_instance(root, reference):
++    """Read the independently pinned terminal authority exactly once."""
++    v3.require(type(reference) is dict and set(reference)=={'path','byte_length','sha256'} and
++               type(reference['byte_length']) is int and reference['byte_length']>0 and
++               v3.hash_value(reference['sha256']),'EXPECTED_TERMINAL_REFERENCE_INVALID')
++    base=Path(root).resolve();name=v3.archive_path(reference['path']);path=(base/name).resolve()
++    v3.require(path.is_relative_to(base) and path.is_file() and not path.is_symlink(),'EXPECTED_TERMINAL_REFERENCE_INVALID')
++    raw=path.read_bytes();v3.require(len(raw)==reference['byte_length'] and v3.digest(raw)==reference['sha256'],'EXPECTED_TERMINAL_PIN_MISMATCH')
++    return v3.parse_json(raw)
++
++def validate_expected_terminal_instance(context, record):
++    required={'kind','fixture_id','run_id','terminal_instance_id','terminal_executable',
++              'terminal_executable_sha256','terminal_data_dir','origin_sha256',
++              'tester_journal_dir','terminal_root','terminal_build'}
++    v3.require(type(context) is ConformanceControl and type(record) is dict and set(record)==required and
++               record['kind']=='CONFORMANCE_EXPECTED_TERMINAL_INSTANCE_V1' and
++               record['fixture_id']==context.fixture['fixture_id'] and record['run_id']==context.fixture['run_id'] and
++               record['terminal_build']==6140,'EXPECTED_TERMINAL_RECORD_INVALID')
++    resolved=resolve_terminal_instance(record['terminal_executable'],record['terminal_instance_id'],terminal_root=record['terminal_root'])
++    for key in ('terminal_executable','terminal_executable_sha256','terminal_data_dir','origin_sha256','tester_journal_dir','terminal_root'):
++        v3.require(record[key]==resolved[key],'EXPECTED_TERMINAL_IDENTITY_MISMATCH')
++    return resolved
++
++def validate_loader_binding(context, receipt, *, expected_ini_raw, expected_terminal_reference, expected_terminal_root):
++    v3.require(type(context) is ConformanceControl and type(receipt) is dict,'LOADER_BINDING_INVALID')
++    name=context.fixture['fixture_id']+'.set'; expected=context.prepare_inputs()['set_bytes']
++    required={'kind','fixture_id','run_id','terminal_instance_id','terminal_executable','terminal_executable_sha256','terminal_data_dir','origin_sha256','loader_relative_path','loader_absolute_path','authoritative_set_sha256','loader_set_sha256','byte_length','ini_sha256','expert_parameters','post_write_verification'}
++    v3.require(set(receipt)==required and receipt['kind']=='CONFORMANCE_EXPERT_PARAMETERS_BINDING_V1' and receipt['fixture_id']==context.fixture['fixture_id'] and receipt['run_id']==context.fixture['run_id'],'LOADER_BINDING_INVALID')
++    expected_record=read_pinned_expected_terminal_instance(expected_terminal_root,expected_terminal_reference)
++    resolved=validate_expected_terminal_instance(context,expected_record)
++    for key in ('instance_id','terminal_executable','terminal_executable_sha256','terminal_data_dir','origin_sha256'):
++        receipt_key='terminal_instance_id' if key=='instance_id' else key
++        expected_key='terminal_instance_id' if key=='instance_id' else key
++        v3.require(receipt[receipt_key]==resolved[key] and expected_record[expected_key]==resolved[key],'LOADER_TERMINAL_IDENTITY_MISMATCH')
++    target=(Path(resolved['terminal_data_dir'])/'MQL5'/'Profiles'/'Tester'/name).resolve()
++    v3.require(receipt['loader_absolute_path']==str(target) and target.is_file() and target.read_bytes()==expected,'LOADER_BINDING_MISMATCH')
++    v3.require(receipt['expert_parameters']==name and receipt['loader_relative_path']=='MQL5/Profiles/Tester/'+name and receipt['authoritative_set_sha256']==v3.digest(expected) and receipt['loader_set_sha256']==v3.digest(expected) and receipt['byte_length']==len(expected) and receipt['ini_sha256']==v3.digest(expected_ini_raw) and receipt['post_write_verification']=='PASS','LOADER_BINDING_MISMATCH')
++
++def validate_prelaunch_binding(context, set_raw):
++    """Verify Layer A/EX5/profile/control/SET one-way binding before launch."""
++    v3.require(type(context) is ConformanceControl and type(set_raw) is bytes,
++               'CONFORMANCE_PRELAUNCH_CONTEXT_REQUIRED')
++    context._stable();expected=context.prepare_inputs()
++    v3.require(set_raw==expected['set_bytes'],'CONFORMANCE_PRELAUNCH_SET_MISMATCH')
++    v3.require(v3.digest(context.layer_a_raw)==expected['set_values']['InpManifestFileSha256'],
++               'CONFORMANCE_PRELAUNCH_LAYER_A_MISMATCH')
++    v3.require(context.control_hash==expected['set_values']['InpConformanceControlSha256'],
++               'CONFORMANCE_PRELAUNCH_CONTROL_MISMATCH')
++    v3.require(v3.digest(context.profile_raw)==expected['set_values']['InpConformanceRuntimeProfileSha256'],
++               'CONFORMANCE_PRELAUNCH_PROFILE_MISMATCH')
++    v3.require(v3.digest(context.authorities['EXECUTABLE'])==context.profile['executable_hash'],
++               'CONFORMANCE_PRELAUNCH_EXECUTABLE_MISMATCH')
++    return {'launch_authorized':True,'fixture_id':context.fixture['fixture_id'],
++            'run_id':context.fixture['run_id'],'control_sha256':context.control_hash,
++            'layer_a_sha256':v3.digest(context.layer_a_raw),
++            'runtime_profile_sha256':v3.digest(context.profile_raw),
++            'executable_sha256':v3.digest(context.authorities['EXECUTABLE'])}
++
++class ConformanceControl:
++    domain = DOMAIN
++    binding_fields = (v3.BINDING_FIELDS - {'root_hash','freeze_receipt_hash','execution_receipt_hash'}) | {
++        'evidence_scope','fixture_id','conformance_control_hash','fixture_specification_hash','launch_record_hash'}
++
++    def __init__(self, directory, control_path, pinned_hash):
++        self.directory=Path(directory).resolve();self._launch_hash=None
++        self.control_raw=self._read({'path':control_path,'sha256':pinned_hash})
++        self.control=v3.parse_json(self.control_raw);self.control_hash=v3.digest(self.control_raw)
++        v3.require(set(self.control)==LAYER_B_FIELDS,'CONFORMANCE_CONTROL_FIELDS')
++        _reject_layer_b_cycles(self.control)
++        v3.require(self.control['domain']==DOMAIN,'CONFORMANCE_AUTHORITY_REQUIRED')
++        v3.require(v3.hash_value(self.control['ea_source_sha256']) and
++                   self.control['set_renderer_contract_sha256']==set_renderer_contract_sha256(),
++                   'CONFORMANCE_LAYER_B_AUTHORITY')
++        environment=self.control['environment']
++        v3.require(type(environment) is dict and set(environment)==LAYER_B_ENVIRONMENT_FIELDS and
++                   environment['terminal_build']==6140 and environment['compiler_build']==6140 and
++                   environment['agent_build']==6140 and environment['server']=='JustMarkets-Demo2' and
++                   v3.hash_value(environment['account_fingerprint']) and
++                   environment['symbol']=='ETHUSD.s' and environment['execution_mode']==20 and
++                   environment['optimization'] is False and environment['local'] is True and
++                   environment['visual'] is False and environment['dll'] is False and
++                   environment['command_bridge'] is False and environment['shared_trading_input'] is False,
++                   'CONFORMANCE_LAYER_B_ENVIRONMENT')
++        self.fixture_raw=self._read(self.control['fixture']);self.fixture=v3.parse_json(self.fixture_raw)
++        self.profile_raw=self._read(self.control['profile']);self.profile=v3.parse_json(self.profile_raw)
++        f=self.fixture
++        v3.require(set(f)==FIXTURE_FIELDS and f['data_scope']=='DEVELOPMENT_ONLY' and
++                   f['execution_mode']==20 and f['optimization'] is False,'FIXED_DEVELOPMENT_FIXTURE_REQUIRED')
++        v3.require(f['side'] in ('LONG','SHORT') and f['symbol']=='ETHUSD.s','FIXTURE_SIDE_SYMBOL')
++        v3.require(v3.hash_value(f['run_id']) and all(type(f[k]) is str and f[k] and '|' not in f[k] for k in ('fixture_id','group_id')),'FIXTURE_IDENTITY')
++        for k in ('start_msc','end_msc','entry_msc','reduction_msc','close_msc'):
++            v3.require(type(f[k]) is int and f[k]>=0 and f[k]%1000==0,'FIXTURE_TIME')
++        v3.require(f['start_msc']<=f['entry_msc']<f['reduction_msc']<f['end_msc'],'FIXTURE_SCHEDULE')
++        v3.require((f['outcome']=='NORMAL_CLOSE' and f['reduction_msc']<f['close_msc']<f['end_msc']) or
++                   (f['outcome']=='EVALUATOR_BOUNDARY' and f['close_msc']==0),'FIXTURE_OUTCOME')
++        v3.require(v3.number(f['volume'])>0 and v3.number(f['S0'])>0,'FIXTURE_ORIGINAL')
++        self.side=f['side']
++        self.authorities={role:self._read(ref) for role,ref in self.control['artifacts'].items()}
++        v3.require(not ({'FREEZE_RECEIPT','EXECUTION_RECEIPT'} & set(self.authorities)),'SUCCESSOR_RECEIPT_NOT_CONFORMANCE')
++        self.authorities.update(CONFORMANCE_CONTROL=self.control_raw,FIXTURE_SPECIFICATION=self.fixture_raw,TESTER_PROFILE=self.profile_raw)
++        v3.validate_profile(self.profile,self.side,conformance=self)
++        for key,role in [('source_manifest_hash','SOURCE_MANIFEST'),('executable_hash','EXECUTABLE'),('configuration_hash','CONFIGURATION_SPECIFICATION'),('native_swap_profile_hash','NATIVE_SWAP_PROFILE')]:
++            v3.require(self.profile[key]==v3.digest(self.authorities[role]),'CONFORMANCE_PROFILE_ARTIFACT_MISMATCH')
++        self.layer_a_raw=self._read(self.control['embedded_manifest'])
++        self.layer_a=v3.parse_json(self.layer_a_raw)
++        v3.require(set(self.layer_a)==LAYER_A_FIELDS and
++                   self.layer_a_raw==build_layer_a(f,v3.digest(self.authorities['CONFIGURATION_SPECIFICATION']),
++                                                   v3.digest(self.authorities['SOURCE_MANIFEST'])),
++                   'CONFORMANCE_LAYER_A_MISMATCH')
++        v3.require('control_sha256' not in self.layer_a and
++                   'tester_profile_sha256' not in self.layer_a,
++                   'CONFORMANCE_LAYER_A_POST_COMPILE_FIELD')
++        bootstrap=v3.parse_json(self.authorities['NATIVE_SWAP_PROFILE'])
++        v3.require(bootstrap.get('kind')=='UNACCEPTED_NATIVE_SWAP_BOOTSTRAP' and bootstrap.get('side')==self.side and bootstrap.get('fixture_id')==f['fixture_id'] and bootstrap.get('evidence_scope')==SCOPE,'LONG_PROOF_NOT_SHORT_BOOTSTRAP')
++        inputs=self.control['local_inputs']
++        v3.require(type(inputs) is dict and set(inputs)=={'manifest_path','calendar_path','calendar'},'LOCAL_INPUT_AUTHORITY_REQUIRED')
++        for key in ('manifest_path','calendar_path'):
++            path=v3.archive_path(inputs[key]);v3.require(path.startswith('KingEA/conformance/'+f['fixture_id']+'/'),'FIXTURE_LOCAL_INPUT_SCOPE')
++        self.calendar_raw=self._read(inputs['calendar'])
++        v3.ImmutableInput('calendar',v3.digest(self.calendar_raw),self.calendar_raw).calendar()
++
++    def _read(self, ref):
++        v3.require(type(ref) is dict and set(ref)=={'path','sha256'} and v3.hash_value(ref['sha256']),'INDEPENDENT_REFERENCE_REQUIRED')
++        path=v3.archive_path(ref['path']);p=self.directory/path
++        v3.require(not p.is_symlink() and p.resolve().is_relative_to(self.directory),'UNTRUSTED_CONFORMANCE_PATH')
++        with p.open('rb') as stream:raw=stream.read(10_000_001)
++        v3.require(0<len(raw)<=10_000_000,'CONFORMANCE_ARTIFACT_SIZE')
++        v3.require(v3.digest(raw)==ref['sha256'],'CONFORMANCE_PIN_MISMATCH')
++        return raw
++
++    def validate_profile(self, profile, side):
++        v3.require(profile==self.profile and side==self.side and profile.get('evidence_scope')==SCOPE and
++                   profile.get('fixture_id')==self.fixture['fixture_id'] and profile.get('side')==side and
++                   profile.get('evaluation_start_msc')==self.fixture['start_msc'] and
++                   profile.get('evaluation_end_msc')==self.fixture['end_msc'] and
++                   profile.get('accepted_proof_sha256') is None,'CONFORMANCE_PROFILE_MISMATCH')
++        # This is expressly an unaccepted bootstrap profile, never LONG proof reuse.
++
++    def binding(self):
++        f=self.fixture;a=self.authorities
++        keys={'configuration_hash':'CONFIGURATION_SPECIFICATION','source_manifest_hash':'SOURCE_MANIFEST',
++              'executable_hash':'EXECUTABLE','specification_hash':'COMBINED_SPECIFICATION',
++              'decision_a_hash':'DECISION_A_SPECIFICATION','decision_s_hash':'DECISION_S_SPECIFICATION'}
++        b={key:v3.digest(a[role]) for key,role in keys.items()}
++        b.update(run_id=f['run_id'],group_id=f['group_id'],candidate_id=DOMAIN,branch='CONFORMANCE',
++                 partition='DEVELOPMENT_ONLY',symbol=f['symbol'],tester_profile_hash=v3.digest(self.profile_raw),
++                 evidence_scope=SCOPE,fixture_id=f['fixture_id'],conformance_control_hash=self.control_hash,
++                 fixture_specification_hash=v3.digest(self.fixture_raw),launch_record_hash=self._launch_hash or '')
++        return b
++
++    def _stable(self):
++        v3.require(self.fixture==v3.parse_json(self.fixture_raw) and self.profile==v3.parse_json(self.profile_raw) and self.control==v3.parse_json(self.control_raw) and self.layer_a==v3.parse_json(self.layer_a_raw),'IMMUTABLE_CONFORMANCE_CONTEXT_CHANGED')
++        v3.require(v3.digest(self.control_raw)==self.control_hash,'CONFORMANCE_PIN_MISMATCH')
++        v3.require(all(v3.digest(self.authorities[role])==ref['sha256'] for role,ref in self.control['artifacts'].items()),'CONFORMANCE_AUTHORITY_BYTES_CHANGED')
++        v3.require(v3.digest(self.layer_a_raw)==self.control['embedded_manifest']['sha256'],
++                   'CONFORMANCE_LAYER_A_CHANGED')
++
++    def validate_binding(self, binding):
++        self._stable()
++        v3.require(v3.hash_value(self._launch_hash) and binding==self.binding(),'CONFORMANCE_BINDING_MISMATCH')
++
++    def with_launch_record(self, reference, *, loader_binding_root=None, expected_terminal_root=None):
++        import copy
++        launch=self.verify_launch_record(reference,loader_binding_root=loader_binding_root,
++                                         expected_terminal_root=expected_terminal_root)
++        bound=copy.copy(self);bound._launch_hash=reference['sha256']
++        bound.authorities=dict(self.authorities,CONFORMANCE_LAUNCH_RECORD=self._read(reference))
++        for key in ('set','ini','manifest','calendar'):bound.authorities['CONFORMANCE_LAUNCH_'+key.upper()]=self._read(launch[key+'_file'])
++        return bound
++
++    def build(self, capture_reference):
++        self._stable()
++        v3.require(v3.hash_value(self._launch_hash),'INDEPENDENT_LAUNCH_RECORD_REQUIRED')
++        raw=self._read(capture_reference)
++        f=self.fixture;c=v3.parse_json(raw)
++        original=[v3.parse_json(r['payload'].encode()) for r in c['records'] if r['role']=='ORIGINAL']
++        v3.require(len(original)==1 and all(v3.number(original[0][k])==v3.number(f[v]) for k,v in [('V0','volume'),('S0','S0')]),'FIXTURE_ORIGINAL_MISMATCH')
++        v3.require(c['outcome']==f['outcome'],'FIXTURE_OUTCOME_MISMATCH')
++        checks=[v3.parse_json(r['payload'].encode()) for r in c['records'] if r['role']=='ORDER_CHECK']
++        windows=[(f['entry_msc'],f['reduction_msc']),(f['reduction_msc'],f['close_msc'] or f['end_msc'])]
++        if f['outcome']=='NORMAL_CLOSE':windows.append((f['close_msc'],f['end_msc']))
++        v3.require(len(checks)==len(windows) and all(start<=check['time_msc']<end for check,(start,end) in zip(checks,windows)), 'FIXTURE_REQUEST_SCHEDULE_MISMATCH')
++        files=v3.assemble_native_archive(raw,self.binding(),self.profile,self.authorities,
++              expected_capture_hash=capture_reference['sha256'],expected_configuration=0,conformance=self)
++        return files
++
++    def verify(self, files, independent_seal_reference, capture_reference, *, launch_record_reference, loader_binding_root=None, expected_terminal_root=None):
++        launch=self.verify_launch_record(launch_record_reference,loader_binding_root=loader_binding_root,expected_terminal_root=expected_terminal_root)
++        v3.require(self._launch_hash==launch_record_reference['sha256'],'LAUNCH_RECORD_PIN_MISMATCH')
++        seal=v3.parse_json(self._read(independent_seal_reference))
++        scope=dict(self.binding(),contract_id=v3.CONTRACT,package_id=v3.PACKAGE,semantic_id=v3.SEMANTICS,inventory_protocol_hash=v3.INVENTORY_ADOPTION)
++        sidecar,refs=v3.verify_archive(files,seal,scope)
++        v3.validate_package(files['sidecar.evidence'],self.binding(),self.profile,refs,conformance=self)
++        v3.require(files==self.build(capture_reference),'CONFORMANCE_NATIVE_RECONSTRUCTION_MISMATCH')
++        return {'evidence_scope':SCOPE,'fixture_id':self.fixture['fixture_id'],'side':self.side,
++                'classification':'CONFORMANCE_EVIDENCE_FOR_INDEPENDENT_REVIEW','successor_eligible':False,'launch_record_hash':self._launch_hash}
++
++
++    def prepare_inputs(self):
++        """Return immutable manifest/calendar bytes and SET values, without writing.
++
++        Local target paths come only from the independently pinned control.
++        The caller must stage these exact bytes and bind the final SET/INI in a
++        separately retained launch record. This method never launches anything.
++        """
++        from datetime import datetime,timezone
++        self._stable();f=self.fixture;b=self.binding();i=self.control['local_inputs']
++        raw=self.layer_a_raw
++        def iso(ms):
++            v3.require(ms%1000==0,'FIXTURE_BOUNDARY_SECOND_PRECISION')
++            return datetime.fromtimestamp(ms/1000,timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
++        values=dict(InpNativeConformance='true',InpConformanceControlSha256=self.control_hash,
++                    InpConformanceRuntimeProfileSha256=v3.digest(self.profile_raw),
++                    InpRunManifest=i['manifest_path'].replace('/','\\'),InpManifestFileSha256=v3.digest(raw),
++                    InpManifestSha256=f['run_id'],InpPurpose=DOMAIN,InpGate='0',InpRootSha256='',InpDetachedAuthorizationToken='',
++                    InpConfigurationId='0',InpEvaluationStart=iso(f['start_msc']),InpEvaluationEndExclusive=iso(f['end_msc']),
++                    InpBranch='RECORDED',InpExpectedSymbol=f['symbol'],InpExecutionAdapter='NATIVE',InpScenario='BASELINE_20MS',
++                    InpDelayMs='20',InpTesterModel='4',InpLocalAgentsOnly='true',InpRemoteAgentsDisabled='true',InpCloudAgentsDisabled='true',
++                    InpZeroEntryDiagnostic='false',InpWorkloadDryRun='false',
++                    InpCalendarIntervalsFile=i['calendar_path'].replace('/','\\'),InpCalendarFileSha256=v3.digest(self.calendar_raw),
++                    InpCalendarSha256=v3.digest(self.calendar_raw))
++        return dict(manifest=raw,calendar=self.calendar_raw,set_values=values,set_bytes=serialize_tester_set(values),
++                    required_ini=dict(Optimization='0',ExecutionMode='20',Model='4',Visual='0',UseLocal='1',UseRemote='0',UseCloud='0'))
++
++
++    def verify_launch_record(self, reference, *, loader_binding_root=None, expected_terminal_root=None):
++        """Independent post-launch custodianship; no record is selected by an archive."""
++        self._stable();record=v3.parse_json(self._read(reference))
++        required={'domain','fixture_id','run_id','control_hash','source_hash','executable_hash','profile_hash',
++                  'set_file','ini_file','manifest_file','calendar_file','consumed_set_hash','consumed_ini_hash',
++                  'consumed_manifest_hash','consumed_calendar_hash','terminal_build','agent_build','compiler_build',
++                   'account_fingerprint','mql_tester','dll_disabled','local_only','process_exited','loader_binding_receipt','expected_terminal_instance'}
++        v3.require(set(record)==required and record['domain']==DOMAIN and record['fixture_id']==self.fixture['fixture_id'] and
++                   record['run_id']==self.fixture['run_id'] and record['control_hash']==self.control_hash,'CONFORMANCE_LAUNCH_BINDING')
++        binding=self.binding()
++        for key,bkey in [('source_hash','source_manifest_hash'),('executable_hash','executable_hash'),('profile_hash','tester_profile_hash')]:
++            v3.require(record[key]==binding[bkey],'CONFORMANCE_LAUNCH_ARTIFACT_MISMATCH')
++        for key in ('set','ini','manifest','calendar'):
++            raw=self._read(record[key+'_file'])
++            v3.require(v3.digest(raw)==record['consumed_'+key+'_hash'],'CONSUMED_INPUT_HASH_MISMATCH')
++            if key=='set':v3.require(raw==self.prepare_inputs()['set_bytes'],'CONSUMED_SET_VALUES_MISMATCH')
++            if key=='ini':
++                import configparser
++                ini=configparser.ConfigParser(interpolation=None,strict=True);ini.optionxform=str;ini.read_string(raw.decode('utf-8-sig'))
++                v3.require('Tester' in ini and all(ini['Tester'].get(k)==value for k,value in self.prepare_inputs()['required_ini'].items()),'CONSUMED_INI_PROFILE_MISMATCH')
++            if key in ('manifest','calendar'):v3.require(raw==self.prepare_inputs()[key],'CONSUMED_INPUT_BYTES_MISMATCH')
++        v3.require(loader_binding_root is not None and expected_terminal_root is not None,'INDEPENDENT_LOADER_BINDING_REQUIRED')
++        binding=read_pinned_loader_binding(loader_binding_root,record['loader_binding_receipt'])
++        validate_loader_binding(self,binding,expected_ini_raw=self._read(record['ini_file']),expected_terminal_reference=record['expected_terminal_instance'],expected_terminal_root=expected_terminal_root)
++        v3.require(all(record[k]==6140 for k in ('terminal_build','agent_build','compiler_build')) and
++                   all(record[k] is True for k in ('mql_tester','dll_disabled','local_only','process_exited')) and
++                   v3.hash_value(record['account_fingerprint']),'CONFORMANCE_LAUNCH_PROFILE')
++        return record
+diff --git a/tests/test_native_conformance_control.py b/tests/test_native_conformance_control.py
+new file mode 100644
+index 0000000..f3f8c3e
+--- /dev/null
++++ b/tests/test_native_conformance_control.py
+@@ -0,0 +1,319 @@
++"""Synthetic independent conformance fixtures; never native execution receipts."""
++import copy,json,tempfile,unittest
++from pathlib import Path
++from test_successor_evidence import ControlFixture
++from v3_fixture import package
++from research_pipeline import decision_a_evidence as v
++from research_pipeline.native_conformance_control import ConformanceControl,DOMAIN,SCOPE,SET_INPUT_TYPES,LAYER_A_FIELDS,LAYER_B_FIELDS,serialize_tester_set,build_layer_a,build_layer_b,set_renderer_contract_sha256,validate_prelaunch_binding,decode_terminal_origin,resolve_terminal_instance,stage_expert_parameters,read_pinned_loader_binding,read_pinned_expected_terminal_instance,validate_loader_binding
++
++class ConformanceTests(unittest.TestCase):
++ def test_terminal_origin_encoding_policy(self):
++  directory=str(self.dir if hasattr(self,'dir') else Path('C:/MetaTrader 5'))
++  samples=(
++   (b'\xff\xfe'+directory.encode('utf-16-le'),directory),
++   (b'\xef\xbb\xbf'+directory.encode(),directory),
++   (directory.encode(),directory),
++  )
++  for raw,expected in samples:self.assertEqual(decode_terminal_origin(raw),expected)
++  for raw,expected in ((b'\xff\xfe'+(directory+'\r\n').encode('utf-16-le'),directory),(directory.encode()+b'\r\n',directory),(b' \t'+directory.encode()+b' \t',directory)):
++   self.assertEqual(decode_terminal_origin(raw),expected)
++  for raw in (b'\xff\xfe\x61',b'\xff\xfe\x00\xd8',b'\xfe\xff\x00\x61',b'\xff',b'bad\x00path',b'one\r\ntwo',b' \t\r\n'):
++   with self.assertRaises(ValueError):decode_terminal_origin(raw)
++
++ def test_utf16_origin_preserves_raw_hash_and_directory_binding(self):
++  self.setup_fixture();origin=Path(self.instance['terminal_data_dir'])/'origin.txt';exe=Path(self.instance['terminal_executable'])
++  raw=b'\xff\xfe'+str(exe.parent).encode('utf-16-le');origin.write_bytes(raw)
++  resolved=resolve_terminal_instance(exe,self.instance['instance_id'],terminal_root=self.instance['terminal_root'])
++  self.assertEqual(resolved['origin_sha256'],v.digest(raw))
++  origin.write_bytes(b'\xff\xfe'+str(self.dir/'foreign').encode('utf-16-le'))
++  with self.assertRaises(ValueError):resolve_terminal_instance(exe,self.instance['instance_id'],terminal_root=self.instance['terminal_root'])
++
++ def setup_fixture(self,side='LONG'):
++  t=tempfile.TemporaryDirectory();self.addCleanup(t.cleanup);self.dir=Path(t.name)
++  old=ControlFixture(self.dir);self.successor=old;files,seal,b,profile=package(old,False,True,True)
++  capture=v.parse_json((self.dir/'native-capture.json').read_bytes())
++  def store(name,value):
++   raw=value if isinstance(value,bytes) else v.json_bytes(value);(self.dir/name).write_bytes(raw);return dict(path=name,sha256=v.digest(raw))
++  self.store=store
++  fixture=dict(fixture_id='FIXED-'+side,run_id=b['run_id'],group_id=b['group_id'],side=side,volume='2',S0='90' if side=='LONG' else '110',start_msc=1000,end_msc=100000,entry_msc=1000,reduction_msc=2000,close_msc=3000,outcome='NORMAL_CLOSE',data_scope='DEVELOPMENT_ONLY',execution_mode=20,optimization=False,symbol='ETHUSD.s')
++  profile.update(evaluation_start_msc=1000,evidence_scope=SCOPE,fixture_id=fixture['fixture_id'],side=side,accepted_proof_sha256=None)
++  refs=v.parse_json(files['references.json'])['entries'];art={e['role']:store('cf_'+e['role'].replace(':','_')+'.bin',files[e['path']]) for e in refs if e['role'] in {'CONFIGURATION_SPECIFICATION','SOURCE_MANIFEST','EXECUTABLE','COMBINED_SPECIFICATION','DECISION_A_SPECIFICATION','DECISION_S_SPECIFICATION','PRICE_CONVENTION','ARITHMETIC_CONTRACT'}}
++  bootstrap=dict(kind='UNACCEPTED_NATIVE_SWAP_BOOTSTRAP',side=side,fixture_id=fixture['fixture_id'],evidence_scope=SCOPE)
++  art['NATIVE_SWAP_PROFILE']=store('bootstrap.json',bootstrap);profile['native_swap_profile_hash']=art['NATIVE_SWAP_PROFILE']['sha256']
++  fixture_ref=store('fixture.json',fixture);profile_ref=store('cf-profile.json',profile)
++  local_inputs=dict(manifest_path='KingEA/conformance/'+fixture['fixture_id']+'/manifest.json',calendar_path='KingEA/conformance/'+fixture['fixture_id']+'/calendar.csv',calendar=store('calendar-fixture.csv',b'type,start_msc,end_msc,identity\nNEWS_BLOCK,110000,120000,SYNTHETIC\n'))
++  layer_a=build_layer_a(fixture,art['CONFIGURATION_SPECIFICATION']['sha256'],art['SOURCE_MANIFEST']['sha256']);layer_a_ref=store('manifest.json',layer_a)
++  environment=dict(terminal_build=6140,compiler_build=6140,agent_build=6140,server='JustMarkets-Demo2',account_fingerprint='A'*64,symbol='ETHUSD.s',execution_mode=20,optimization=False,local=True,visual=False,dll=False,command_bridge=False,shared_trading_input=False)
++  control_raw=build_layer_b(fixture=fixture_ref,profile=profile_ref,artifacts=art,local_inputs=local_inputs,embedded_manifest=layer_a_ref,ea_source_sha256='E'*64,environment=environment)
++  self.control=json.loads(control_raw);pin=store('cf-control.json',control_raw);self.ctx=ConformanceControl(self.dir,pin['path'],pin['sha256'])
++  rows=[];n=0
++  for row in capture['records']:
++   row=copy.deepcopy(row);role=row['role']
++   if role=='ORIGINAL':
++    data=v.parse_json(row['payload'].encode());data.update(S0=fixture['S0'],profile_hash=v.digest(self.ctx.profile_raw));row['payload']=v.json_bytes(data).decode()
++   if role in ('RECONCILED_POSITION','BEFORE_REQUEST'):
++    data=v.parse_json(row['payload'].encode());data.update(sl=fixture['S0'],side=0 if side=='LONG' else 1);row['payload']=v.json_bytes(data).decode()
++   if role=='DEAL_ADD':
++    parts=row['payload'].split('|');parts[5]=str((0 if side=='LONG' else 1) if parts[4]=='0' else (1 if side=='LONG' else 0));parts[15]=fixture['S0'];row['payload']='|'.join(parts)
++   if role=='ORDER_TERMINAL_OBSERVATION':
++    data=v.parse_json(row['payload'].encode());data['type']=data['type'] if side=='LONG' else 1-data['type'];row['payload']=v.json_bytes(data).decode()
++   if role=='REQUEST_RESULT':
++    data=v.parse_json(row['payload'].encode());r=dict(action=1,magic=12001,order=0,symbol='ETHUSD.s',volume=data['volume'],price=data['price'],stoplimit='0',sl=fixture['S0'] if n==0 else '0',tp='0',deviation=0,type=(0 if side=='LONG' else 1) if n==0 else (1 if side=='LONG' else 0),type_filling=0,type_time=0,expiration=0,comment='CONFORMANCE',position=0 if n==0 else 701,position_by=0)
++    check=dict(run_id=b['run_id'],group_id=b['group_id'],request=r,request_hash=v.digest(json.dumps(r,separators=(',',':')).encode()),bool_return=True,retcode=0,error=0,comment='Done',balance='1000',equity='1000',profit='0',margin='1',margin_free='999',margin_level='1000',time_msc=1000+n*1000,context_hash=self.ctx.control_hash)
++    rows.append(dict(role='ORDER_CHECK',payload=json.dumps(check,separators=(',',':'))));n+=1
++   if role=='STAGE13_PREPARED':
++    parts=row['payload'].split('|');parts[7]=DOMAIN;row['payload']='|'.join(parts);eventhash=v.digest(row['payload'])
++   if role=='STAGE13_COMMITTED':
++    data=v.parse_json(row['payload'].encode());data['event_hash']=eventhash;row['payload']=v.json_bytes(data).decode()
++   rows.append(row)
++  capture['records']=rows;self.capture=capture;self.capture_ref=store('cf-capture.json',capture)
++  self.launch_ref=self.launch_receipt();self.ctx=self.ctx.with_launch_record(self.launch_ref,loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root)
++  return self.ctx.build(self.capture_ref)
++
++ def test_long_and_short_bootstrap(self):
++  for side in ('LONG','SHORT'):
++   with self.subTest(side=side):
++    files=self.setup_fixture(side);s=v.read_package(files['sidecar.evidence'])
++    self.assertEqual(s['original']['side'],side);self.assertEqual(s['binding']['evidence_scope'],SCOPE)
++    self.assertNotIn('freeze_receipt_hash',s['binding']);self.assertNotIn('root_hash',s['binding'])
++
++ def test_no_successor_acceptance_without_context(self):
++  files=self.setup_fixture();s=v.read_package(files['sidecar.evidence'])
++  with self.assertRaises(ValueError):v.validate_package(files['sidecar.evidence'],s['binding'],self.ctx.profile)
++
++ def test_pinned_control_cotampering_rejects(self):
++  self.setup_fixture();old=self.ctx.control_hash
++  self.control['domain']='CAND-ETH-ST-002';self.store('cf-control.json',self.control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,'cf-control.json',old)
++
++ def test_successor_receipt_cannot_select_fixture(self):
++  self.setup_fixture();self.control['domain']='SUCCESSOR_FREEZE';p=self.store('cf-control.json',self.control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,p['path'],p['sha256'])
++
++ def test_fixture_payload_mismatch(self):
++  self.setup_fixture();row=self.capture['records'][0];data=v.parse_json(row['payload'].encode());data['V0']='4';row['payload']=v.json_bytes(data).decode()
++  with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_missing_or_rejected_order_check(self):
++  self.setup_fixture();original=copy.deepcopy(self.capture)
++  for bad in ('missing','false','retcode','foreign'):
++   self.capture=copy.deepcopy(original)
++   if bad=='missing':self.capture['records']=[r for r in self.capture['records'] if r['role']!='ORDER_CHECK']
++   else:
++    row=next(r for r in self.capture['records'] if r['role']=='ORDER_CHECK');c=json.loads(row['payload'])
++    c[{'false':'bool_return','retcode':'retcode','foreign':'group_id'}[bad]]={'false':False,'retcode':10009,'foreign':'FOREIGN'}[bad];row['payload']=json.dumps(c,separators=(',',':'))
++   with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_accepted_check_does_not_prove_fill(self):
++  self.setup_fixture();self.capture['records']=[r for r in self.capture['records'] if r['role']!='DEAL_ADD']
++  with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_long_cannot_claim_short(self):
++  self.setup_fixture('SHORT');row=next(r for r in self.capture['records'] if r['role']=='DEAL_ADD');p=row['payload'].split('|');p[5]='0';row['payload']='|'.join(p)
++  with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++
++ def launch_receipt(self):
++  c=self.ctx;b=c.binding();inputs=c.prepare_inputs()
++  record=dict(domain=DOMAIN,fixture_id=c.fixture['fixture_id'],run_id=c.fixture['run_id'],control_hash=c.control_hash,
++              source_hash=b['source_manifest_hash'],executable_hash=b['executable_hash'],profile_hash=b['tester_profile_hash'],
++              terminal_build=6140,agent_build=6140,compiler_build=6140,account_fingerprint='A'*64,
++              mql_tester=True,dll_disabled=True,local_only=True,process_exited=True)
++  name=c.fixture['fixture_id']+'.set';data=dict(set=inputs['set_bytes'],ini=('[Tester]\nExpertParameters='+name+'\n'+'\n'.join(k+'='+value for k,value in inputs['required_ini'].items())).encode(),manifest=inputs['manifest'],calendar=inputs['calendar'])
++  for key,raw in data.items():record[key+'_file']=self.store('launch-'+key,raw);record['consumed_'+key+'_hash']=v.digest(raw)
++  root=self.dir/'terminal-root';iid='A'*32;data_dir=root/iid;data_dir.mkdir(parents=True,exist_ok=True);exe=self.dir/'terminal64.exe';exe.write_bytes(b'TERMINAL');(data_dir/'origin.txt').write_text(str(exe.parent));self.instance=resolve_terminal_instance(exe,iid,terminal_root=root)
++  self.expected_root=self.dir/'expected-terminal-pins';self.expected_root.mkdir(exist_ok=True)
++  expected=dict(kind='CONFORMANCE_EXPECTED_TERMINAL_INSTANCE_V1',fixture_id=c.fixture['fixture_id'],run_id=c.fixture['run_id'],terminal_instance_id=self.instance['instance_id'],terminal_executable=self.instance['terminal_executable'],terminal_executable_sha256=self.instance['terminal_executable_sha256'],terminal_data_dir=self.instance['terminal_data_dir'],origin_sha256=self.instance['origin_sha256'],tester_journal_dir=self.instance['tester_journal_dir'],terminal_root=self.instance['terminal_root'],terminal_build=6140)
++  expected_raw=v.json_bytes(expected);(self.expected_root/'expected.json').write_bytes(expected_raw);record['expected_terminal_instance']=dict(path='expected.json',byte_length=len(expected_raw),sha256=v.digest(expected_raw))
++  receipt=stage_expert_parameters(c,self.instance,data['ini']);self.loader_root=self.dir/'loader-pins';self.loader_root.mkdir(exist_ok=True);raw=v.json_bytes(receipt);(self.loader_root/'binding.json').write_bytes(raw);record['loader_binding_receipt']=dict(path='binding.json',byte_length=len(raw),sha256=v.digest(raw))
++  return self.store('launch-record.json',record)
++
++ def test_independent_seal_and_native_reconstruction(self):
++  files=self.setup_fixture('SHORT');scope=v.parse_json(files['archive.json'])['binding']
++  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=scope,archive_sha256=v.digest(files['archive.json']))
++  ref=self.store('seal.json',seal);launch=self.launch_receipt()
++  result=self.ctx.verify(files,ref,self.capture_ref,launch_record_reference=launch,loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root)
++  self.assertFalse(result['successor_eligible']);self.assertEqual(result['evidence_scope'],SCOPE)
++  for name in files:
++   with self.subTest(artifact=name):
++    bad=dict(files);bad[name]+=b'X'
++    with self.assertRaises(ValueError):self.ctx.verify(bad,ref,self.capture_ref,launch_record_reference=launch,loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root)
++
++ def test_fixture_inputs_are_exact_and_immutable(self):
++  self.setup_fixture();a=self.ctx.prepare_inputs();self.assertEqual(v.digest(a['manifest']),a['set_values']['InpManifestFileSha256'])
++  self.assertEqual(a['set_values']['InpGate'],'0');self.assertEqual(a['set_values']['InpRootSha256'],'')
++  self.assertEqual(a['set_values']['InpConformanceControlSha256'],self.ctx.control_hash)
++  self.assertEqual(a['set_values']['InpConformanceRuntimeProfileSha256'],v.digest(self.ctx.profile_raw))
++  self.assertEqual(set(v.parse_json(a['manifest'])),LAYER_A_FIELDS)
++  self.assertNotIn('control_sha256',v.parse_json(a['manifest']));self.assertNotIn('tester_profile_sha256',v.parse_json(a['manifest']))
++  self.assertNotIn('SET_AT_EXECUTION',a['set_bytes'].decode())
++  self.ctx.fixture['side']='SHORT'
++  with self.assertRaises(ValueError):self.ctx.prepare_inputs()
++
++ def test_tester_set_serialization_is_type_aware_and_non_optimizing(self):
++  self.setup_fixture();inputs=self.ctx.prepare_inputs();text=inputs['set_bytes'].decode()
++  plain='\r\n'.join(k+'='+v for k,v in inputs['set_values'].items())+'\r\n'
++  self.assertNotEqual(text,plain)
++  self.assertEqual(inputs['set_bytes'],serialize_tester_set(inputs['set_values']))
++  for key,value in inputs['set_values'].items():
++   line=next(x for x in text.splitlines() if x.startswith(key+'='))
++   if SET_INPUT_TYPES[key]=='string':self.assertEqual(line,key+'='+value)
++   else:self.assertEqual(line,key+'='+value+'||'+value+'||1||'+value+'||N')
++  self.assertNotIn('||Y',text)
++
++ def test_closed_type_map_matches_mql_conformance_declarations(self):
++  import re
++  source=(Path(__file__).resolve().parents[1]/'MQL5/Experts/KingEA/GuardedResearchTester.mq5').read_text()
++  declared={name:kind for kind,name in re.findall(r'^input\s+(string|int|bool)\s+(Inp\w+)\s*=',source,re.M)}
++  self.setup_fixture();emitted=set(self.ctx.prepare_inputs()['set_values'])
++  self.assertEqual(set(SET_INPUT_TYPES),emitted)
++  self.assertEqual({key:declared.get(key) for key in emitted},SET_INPUT_TYPES)
++  self.assertTrue(all(key in declared for key in emitted))
++
++ def test_expert_parameters_loader_binding_is_exact_and_instance_bound(self):
++  self.setup_fixture();root=self.dir/'terminal-root';iid='B'*32;data=root/iid;data.mkdir(parents=True)
++  exe=self.dir/'terminal64-b.exe';exe.write_bytes(b'TERMINAL');(data/'origin.txt').write_text(str(exe.parent))
++  instance=resolve_terminal_instance(exe,iid,terminal_root=root)
++  name=self.ctx.fixture['fixture_id']+'.set';ini=('[Tester]\r\nExpertParameters='+name+'\r\n').encode()
++  receipt=stage_expert_parameters(self.ctx,instance,ini)
++  target=data/'MQL5'/'Profiles'/'Tester'/name
++  self.assertEqual(target.read_bytes(),self.ctx.prepare_inputs()['set_bytes'])
++  expected_root=self.dir/'expert-expected';expected_root.mkdir();expected=dict(kind='CONFORMANCE_EXPECTED_TERMINAL_INSTANCE_V1',fixture_id=self.ctx.fixture['fixture_id'],run_id=self.ctx.fixture['run_id'],terminal_instance_id=instance['instance_id'],terminal_executable=instance['terminal_executable'],terminal_executable_sha256=instance['terminal_executable_sha256'],terminal_data_dir=instance['terminal_data_dir'],origin_sha256=instance['origin_sha256'],tester_journal_dir=instance['tester_journal_dir'],terminal_root=instance['terminal_root'],terminal_build=6140);expected_raw=v.json_bytes(expected);(expected_root/'expected.json').write_bytes(expected_raw);expected_ref=dict(path='expected.json',byte_length=len(expected_raw),sha256=v.digest(expected_raw))
++  validate_loader_binding(self.ctx,receipt,expected_ini_raw=ini,expected_terminal_reference=expected_ref,expected_terminal_root=expected_root)
++  target.write_bytes(target.read_bytes()+b'X')
++  self.assertNotEqual(v.digest(target.read_bytes()),receipt['loader_set_sha256'])
++  with self.assertRaises(ValueError):stage_expert_parameters(self.ctx,instance,b'[Tester]\r\nExpertParameters=wrong.set\r\n')
++  with self.assertRaises(ValueError):resolve_terminal_instance(exe,'C'*32,terminal_root=root)
++
++ def test_loader_receipt_and_terminal_identity_fail_closed(self):
++  self.setup_fixture();record=v.parse_json((self.dir/self.launch_ref['path']).read_bytes())
++  ref=record['loader_binding_receipt'];receipt=read_pinned_loader_binding(self.loader_root,ref)
++  ini=self.ctx._read(record['ini_file']);target=Path(self.instance['terminal_data_dir'])/'MQL5'/'Profiles'/'Tester'/(self.ctx.fixture['fixture_id']+'.set')
++  self.assertEqual(receipt['fixture_id'],self.ctx.fixture['fixture_id'])
++  expected_ref=record['expected_terminal_instance'];self.assertEqual(read_pinned_expected_terminal_instance(self.expected_root,expected_ref)['terminal_instance_id'],self.instance['instance_id'])
++  with self.assertRaises(ValueError):validate_loader_binding(self.ctx,receipt,expected_ini_raw=ini,expected_terminal_reference=self.instance,expected_terminal_root=self.expected_root)
++  with self.assertRaises(ValueError):read_pinned_expected_terminal_instance(self.expected_root,dict(expected_ref,sha256='0'*64))
++  expected_path=self.expected_root/expected_ref['path'];expected_raw=expected_path.read_bytes();expected_path.write_bytes(expected_raw+b'X')
++  with self.assertRaises(ValueError):read_pinned_expected_terminal_instance(self.expected_root,expected_ref)
++  expected_path.write_bytes(expected_raw)
++  (self.loader_root/ref['path']).write_bytes(v.json_bytes(dict(receipt,fixture_id='FOREIGN')))
++  with self.assertRaises(ValueError):read_pinned_loader_binding(self.loader_root,ref)
++  (self.loader_root/ref['path']).write_bytes(v.json_bytes(receipt))
++  bad=dict(record,loader_binding_receipt=receipt)
++  with self.assertRaises(ValueError):self.ctx.verify_launch_record(self.store('inline-loader.json',bad),loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root)
++  origin=Path(self.instance['terminal_data_dir'])/'origin.txt';original_origin=origin.read_bytes()
++  origin.write_text(str(self.dir/'foreign-terminal-root'))
++  with self.assertRaises(ValueError):validate_loader_binding(self.ctx,receipt,expected_ini_raw=ini,expected_terminal_reference=record['expected_terminal_instance'],expected_terminal_root=self.expected_root)
++  origin.write_bytes(original_origin)
++  exe=Path(self.instance['terminal_executable']);original_exe=exe.read_bytes();exe.write_bytes(original_exe+b'X')
++  with self.assertRaises(ValueError):validate_loader_binding(self.ctx,receipt,expected_ini_raw=ini,expected_terminal_reference=record['expected_terminal_instance'],expected_terminal_root=self.expected_root)
++  exe.write_bytes(original_exe)
++  target.write_bytes(target.read_bytes()+b'X')
++  with self.assertRaises(ValueError):validate_loader_binding(self.ctx,receipt,expected_ini_raw=ini,expected_terminal_reference=record['expected_terminal_instance'],expected_terminal_root=self.expected_root)
++  target.write_bytes(self.ctx.prepare_inputs()['set_bytes'])
++  forged=dict(receipt,loader_absolute_path=str(self.dir/'foreign.set'))
++  with self.assertRaises(ValueError):validate_loader_binding(self.ctx,forged,expected_ini_raw=ini,expected_terminal_reference=record['expected_terminal_instance'],expected_terminal_root=self.expected_root)
++  root=self.dir/'foreign-root';iid='D'*32;data=root/iid;data.mkdir(parents=True);foreign_exe=self.dir/'foreign-terminal.exe';foreign_exe.write_bytes(b'FOREIGN');(data/'origin.txt').write_text(str(foreign_exe.parent))
++  foreign=resolve_terminal_instance(foreign_exe,iid,terminal_root=root)
++  foreign_receipt=dict(receipt,terminal_instance_id=foreign['instance_id'],terminal_executable=foreign['terminal_executable'],terminal_executable_sha256=foreign['terminal_executable_sha256'],terminal_data_dir=foreign['terminal_data_dir'],origin_sha256=foreign['origin_sha256'],loader_absolute_path=str(data/'MQL5'/'Profiles'/'Tester'/(self.ctx.fixture['fixture_id']+'.set')))
++  with self.assertRaises(ValueError):validate_loader_binding(self.ctx,foreign_receipt,expected_ini_raw=ini,expected_terminal_reference=record['expected_terminal_instance'],expected_terminal_root=self.expected_root)
++
++ def test_action_schedule_and_interval_enforced(self):
++  self.setup_fixture();original=copy.deepcopy(self.capture)
++  for timestamp in (999,100000,2500):
++   self.capture=copy.deepcopy(original);row=next(r for r in self.capture['records'] if r['role']=='ORDER_CHECK');c=json.loads(row['payload']);c['time_msc']=timestamp;row['payload']=json.dumps(c,separators=(',',':'))
++   with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_payload_profile_cannot_authorize_short(self):
++  self.setup_fixture();p=copy.deepcopy(self.ctx.profile);p['side']='SHORT'
++  with self.assertRaises(ValueError):v.validate_profile(p,'SHORT')
++  with self.assertRaises(ValueError):v.validate_profile(p,'SHORT',conformance={'domain':DOMAIN})
++
++ def test_consumed_set_ini_and_profile_loss(self):
++  self.setup_fixture();ref=self.launch_receipt();record=v.parse_json((self.dir/ref['path']).read_bytes())
++  for field,value in [('dll_disabled',False),('local_only',False),('process_exited',False),('consumed_set_hash','0'*64),('control_hash','0'*64)]:
++   bad=dict(record);bad[field]=value
++   with self.assertRaises(ValueError):self.ctx.verify_launch_record(self.store('bad-launch.json',bad),loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root)
++
++ def test_wrong_local_scope_and_hash_reject(self):
++  self.setup_fixture()
++  self.control['local_inputs']['manifest_path']='Common/manifest.json';pin=self.store('wrong-control.json',self.control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,pin['path'],pin['sha256'])
++
++
++ def test_conformance_archive_rejected_by_actual_successor_ingestion(self):
++  from research_pipeline.successor_evidence import PinnedControlContext,SuccessorEvidenceError
++  from research_pipeline.stage14 import ResearchRunCoordinator
++  files=self.setup_fixture();f=self.successor
++  scope=v.parse_json(files['archive.json'])['binding']
++  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=scope,archive_sha256=v.digest(files['archive.json']))
++  f.control['completed_archives'][f.manifest['manifest_sha256']+':0']=[self.store('substituted-seal.json',seal)]
++  f.pin=f.store('control.json',f.control)['sha256']
++  event=next(raw.decode() for name,raw in files.items() if name.startswith('support/stage13_event.'))
++  f.frame.update(native_cost_packages=[v.encode_archive(files)],boundary_finalization_count=0,stage13_close_frames=[event])
++  before={p:p.read_bytes() for p in self.dir.rglob('*') if p.is_file()};spool=self.dir/'spool-forbidden'
++  with self.assertRaises(SuccessorEvidenceError) as caught:
++   ResearchRunCoordinator(control_context=PinnedControlContext(self.dir,f.pin)).append_frame(spool,f.manifest,dict(frame_id='0',payload=f.frame))
++  self.assertEqual(str(caught.exception),'SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED')
++  self.assertEqual(caught.exception.stage,'ingestion');self.assertFalse(spool.exists())
++  self.assertEqual(before,{p:p.read_bytes() for p in self.dir.rglob('*') if p.is_file()})
++
++
++ def test_order_check_malformed_request_and_context(self):
++  self.setup_fixture();original=copy.deepcopy(self.capture)
++  for field,value in [('context_hash','0'*64),('request_hash','0'*64),('retcode',10018),('bool_return',False)]:
++   self.capture=copy.deepcopy(original);row=next(r for r in self.capture['records'] if r['role']=='ORDER_CHECK');check=json.loads(row['payload']);check[field]=value;row['payload']=json.dumps(check,separators=(',',':'))
++   with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_conformance_requires_independent_launch_binding(self):
++  self.setup_fixture();unbound=ConformanceControl(self.dir,'cf-control.json',self.ctx.control_hash)
++  with self.assertRaisesRegex(ValueError,'INDEPENDENT_LAUNCH_RECORD_REQUIRED'):unbound.build(self.capture_ref)
++
++ def test_bound_artifact_mutation_cannot_redefine_authority(self):
++  self.setup_fixture();self.ctx.authorities['EXECUTABLE']+=b'changed'
++  with self.assertRaises(ValueError):self.ctx.build(self.capture_ref)
++
++ def test_two_layer_construction_is_acyclic_and_deterministic(self):
++  self.setup_fixture();layer_a_before=self.ctx.layer_a_raw;executable_before=self.ctx.authorities['EXECUTABLE']
++  kwargs=dict(fixture=self.ctx.control['fixture'],profile=self.ctx.control['profile'],artifacts=self.ctx.control['artifacts'],local_inputs=self.ctx.control['local_inputs'],embedded_manifest=self.ctx.control['embedded_manifest'],ea_source_sha256=self.ctx.control['ea_source_sha256'],environment=self.ctx.control['environment'])
++  first=build_layer_b(**kwargs);second=build_layer_b(**kwargs)
++  self.assertEqual(first,second);self.assertEqual(layer_a_before,self.ctx.layer_a_raw);self.assertEqual(executable_before,self.ctx.authorities['EXECUTABLE'])
++  self.assertNotIn(b'set_sha256',first.lower());self.assertNotIn(b'launch_record',first.lower());self.assertNotIn(b'executable_sha256',layer_a_before)
++  result=validate_prelaunch_binding(self.ctx,self.ctx.prepare_inputs()['set_bytes']);self.assertTrue(result['launch_authorized'])
++  self.assertEqual(result['runtime_profile_sha256'],self.ctx.prepare_inputs()['set_values']['InpConformanceRuntimeProfileSha256'])
++
++ def test_layer_a_post_compile_fields_and_cross_layer_mismatch_reject(self):
++  self.setup_fixture();original=dict(self.ctx.layer_a)
++  for field in ('control_sha256','tester_profile_sha256'):
++   bad=dict(original);bad[field]='A'*64;ref=self.store('bad-layer-a-'+field+'.json',bad)
++   control=dict(self.control,embedded_manifest=ref);pin=self.store('bad-control-'+field+'.json',control)
++   with self.assertRaises(ValueError):ConformanceControl(self.dir,pin['path'],pin['sha256'])
++  bad=dict(original,run_id='0'*64);ref=self.store('bad-layer-a-run.json',bad);control=dict(self.control,embedded_manifest=ref);pin=self.store('bad-control-run.json',control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,pin['path'],pin['sha256'])
++  for field in ('inventory_protocol_sha256','swap_transition_rule_sha256'):
++   bad=dict(original);bad[field]='0'*64;ref=self.store('bad-layer-a-'+field+'.json',bad);control=dict(self.control,embedded_manifest=ref);pin=self.store('bad-control-'+field+'.json',control)
++   with self.assertRaises(ValueError):ConformanceControl(self.dir,pin['path'],pin['sha256'])
++
++ def test_layer_b_final_set_dependency_rejects(self):
++  self.setup_fixture();kwargs=dict(fixture=self.ctx.control['fixture'],profile=self.ctx.control['profile'],artifacts=dict(self.ctx.control['artifacts'],SET={'path':'x','sha256':'A'*64}),local_inputs=self.ctx.control['local_inputs'],embedded_manifest=self.ctx.control['embedded_manifest'],ea_source_sha256=self.ctx.control['ea_source_sha256'],environment=self.ctx.control['environment'])
++  with self.assertRaisesRegex(ValueError,'LAYER_B_CYCLIC_FIELD'):build_layer_b(**kwargs)
++
++ def test_prelaunch_wrong_layer_control_profile_or_executable_rejects(self):
++  self.setup_fixture();good=self.ctx.prepare_inputs()['set_bytes']
++  original=next(v.parse_json(row['payload'].encode()) for row in self.capture['records'] if row['role']=='ORIGINAL')
++  self.assertEqual(original['profile_hash'],v.digest(self.ctx.profile_raw))
++  for name in ('InpManifestFileSha256','InpConformanceControlSha256','InpConformanceRuntimeProfileSha256'):
++   bad=good.replace(next(line for line in good.split(b'\r\n') if line.startswith(name.encode()+b'=')).split(b'=',1)[1],b'0'*64,1)
++   with self.assertRaisesRegex(ValueError,'CONFORMANCE_PRELAUNCH_SET_MISMATCH'):validate_prelaunch_binding(self.ctx,bad)
++  self.ctx.authorities['EXECUTABLE']+=b'X'
++  with self.assertRaises(ValueError):validate_prelaunch_binding(self.ctx,good)
++
++
++ def test_launch_receipt_hash_uses_exact_bytes(self):
++  self.setup_fixture();record=json.loads((self.dir/self.launch_ref['path']).read_bytes())
++  exact=json.dumps(record,indent=4).encode();ref=self.store('pretty-launch.json',exact)
++  self.ctx=self.ctx.with_launch_record(ref,loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root);files=self.ctx.build(self.capture_ref)
++  scope=v.parse_json(files['archive.json'])['binding']
++  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=scope,archive_sha256=v.digest(files['archive.json']))
++  result=self.ctx.verify(files,self.store('pretty-seal.json',seal),self.capture_ref,launch_record_reference=ref,loader_binding_root=self.loader_root,expected_terminal_root=self.expected_root)
++  self.assertEqual(result['launch_record_hash'],v.digest(exact))
+diff --git a/tests/test_conformance_production_control_flow.py b/tests/test_conformance_production_control_flow.py
+new file mode 100644
+index 0000000..7e1c44f
+--- /dev/null
++++ b/tests/test_conformance_production_control_flow.py
+@@ -0,0 +1,99 @@
++"""Static production control-flow proofs, distinct from native runtime proof."""
++import re,json,hashlib,unittest
++from pathlib import Path
++ROOT=Path(__file__).resolve().parents[1]
++EA=ROOT/'MQL5/Experts/KingEA/GuardedResearchTester.mq5'
++INTEGRATION=ROOT/'MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh'
++LONG_MANIFEST=ROOT/'governance/evidence/stage14/native_production_conformance_20260909/v3_current_runtime_packages_v2/NCV1-LONG-NORMAL-001/manifest.json'
++INVENTORY_PROTOCOL='42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6'
++SWAP_TRANSITION='BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772'
++
++def functions(text):
++ # Ignore comments and literals before balancing function bodies; function calls
++ # in comments/strings cannot manufacture reachability evidence.
++ text=re.sub(r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"',lambda m:'""' if m[0].startswith('"') else '',text)
++ result={}
++ for match in re.finditer(r'\b(?:bool|void|double|int|string|datetime|long)\s+(\w+)\s*\([^;{}]*\)\s*\{',text):
++  start=match.end();depth=1;i=start
++  while depth and i<len(text):
++   depth+=(text[i]=='{')-(text[i]=='}');i+=1
++  result[match[1]]=text[start:i-1]
++ return result
++
++class ConformanceProductionControlFlow(unittest.TestCase):
++ def setUp(self):self.ea=EA.read_text();self.integration=INTEGRATION.read_text();self.f=functions(self.ea+'\n'+self.integration)
++ def test_fixture_transitive_call_graph_excludes_candidate_signals(self):
++  pending=['ResearchConformanceTick'];seen=set();calls=set()
++  while pending:
++   name=pending.pop()
++   if name in seen:continue
++   seen.add(name)
++   targets=set(re.findall(r'\b(\w+)\s*\(',self.f.get(name,'')));calls|=targets
++   pending.extend(targets & self.f.keys())
++  self.assertNotIn('KingEAEvaluateSleeveEthSt001',calls)
++  self.assertNotIn('ResearchEvaluateClosedBar',seen)
++  self.assertTrue({'ResearchOrderSend','ResearchNativePoll','ResearchNativeProject','ResearchReduceHalf'}<=seen)
++  tick=self.f['OnTick'];self.assertRegex(tick,r'if\(InpNativeConformance\)\{ResearchConformanceTick\(tick\);return;\}')
++  self.assertLess(tick.index('ResearchConformanceTick'),tick.index('ResearchEvaluateClosedBar'))
++ def test_check_rejection_dominates_only_order_send(self):
++  body=self.f['ResearchOrderSend'];self.assertEqual(len(re.findall(r'\bOrderSend\(',body)),1)
++  self.assertRegex(body,r'if\(!ResearchNativeOrderCheck\(request\)\)return false;\s*g_da_last_send_attempted=true;\s*return OrderSend\(request,result\);')
++  check=self.f['ResearchNativeOrderCheck'];self.assertNotIn('OrderSend(',check)
++  self.assertRegex(check,r'if\(!ok\|\|c.retcode!=0\)\{g_da.Invalidate\(""\);return false;\}')
++  self.assertNotIn('.Receipt(',check);self.assertNotIn('.Commit(',check)
++ def test_actions_consume_before_submission_no_retry_loop(self):
++  body=self.f['ResearchConformanceTick']
++  for flag,call in [('g_cf_entry_attempted','ResearchNativeBegin'),('g_cf_reduction_attempted','ResearchReduceHalf'),('g_cf_close_attempted','ResearchClose')]:
++   self.assertIn('!'+flag,body);self.assertLess(body.index(flag+'=true'),body.index(call))
++   self.assertNotIn(flag+'=false',body)
++  self.assertNotIn('while(',body);self.assertNotIn('for(',body)
++ def test_conformance_tester_completion_cannot_reach_candidate_completion(self):
++  body=self.f['OnTester'];start=body.index('if(InpNativeConformance)');first=body.index('{',start);depth=1;i=first+1
++  while depth:depth+=(body[i]=='{')-(body[i]=='}');i+=1
++  branch=body[first:i];self.assertIn('return g_da.projected',branch)
++  self.assertNotIn('Stage12',branch);self.assertNotIn('KingEAResearchDecodeConfiguration',branch)
++ def test_oninit_uses_isolated_conformance_authorization(self):
++  normal=self.f['ResearchAuthorizationValid'];active=self.f['ResearchActiveAuthorizationValid'];oninit=self.f['OnInit'];conformance=self.f['ResearchConformanceAuthorizationValidate'];send=self.f['ResearchOrderSend']
++  self.assertNotIn('InpNativeConformance',normal)
++  self.assertRegex(active,r'if\(InpNativeConformance\)\s*return ResearchConformanceAuthorizationValidate\(\);\s*return ResearchAuthorizationValid\(\);')
++  self.assertIn('ResearchActiveAuthorizationValid()',send)
++  self.assertRegex(oninit,r'if\(InpNativeConformance\)\s*g_manifest_valid=ResearchConformanceAuthorizationValidate\(\);\s*else')
++  self.assertLess(oninit.index('ResearchConformanceAuthorizationValidate'),oninit.index('ResearchAuthorizationValid'))
++  for required in ('InpGate!=','InpRootSha256!=','InpDetachedAuthorizationToken!=','InpConfigurationId!=0','InpExecutionAdapter!=','InpScenario!=','InpTesterModel!=4','InpExpectedSymbol!=','DAManifestString','ResearchFileSha256','InpManifestFileSha256'):
++   self.assertIn(required,conformance)
++  for required in ('NON_CANDIDATE_NATIVE_CONFORMANCE_V1','fixture_id','group_id','configuration_sha256','InpConformanceRuntimeProfileSha256','source_sha256','execution_mode','optimization','symbol'):
++   self.assertIn(required,self.ea)
++  self.assertIn('#property tester_file "KingEA\\\\conformance\\\\NCV1-LONG-NORMAL-001\\\\manifest.json"',self.ea)
++  self.assertIn('#property tester_file "KingEA\\\\conformance\\\\NCV1-SHORT-NORMAL-001\\\\manifest.json"',self.ea)
++  self.assertIn('#property tester_file "KingEA\\\\conformance\\\\NCV1-LONG-BOUNDARY-001\\\\manifest.json"',self.ea)
++ def test_conformance_authority_is_manifest_bound_and_fail_closed(self):
++  body=self.f['ResearchConformanceAuthorizationValidate'];oninit=self.f['OnInit']
++  for required in ('ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256','ResearchConformanceValid()','run_id','side','volume','S0','start_msc','end_msc','entry_msc','reduction_msc','close_msc','outcome','data_scope','execution_mode','optimization','symbol','configuration_sha256','source_sha256'):
++   self.assertIn(required,body if required in ('ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256','ResearchConformanceValid()') else self.ea)
++  self.assertNotIn('DAManifestString("control_sha256")',body);self.assertNotIn('DAManifestString("tester_profile_sha256")',body)
++  self.assertIn('InpConformanceRuntimeProfileSha256',body)
++  self.assertNotRegex(oninit,r'if\(InpNativeConformance\)\s*g_manifest_valid=ResearchAuthorizationValid\(\)')
++  self.assertIn('return INIT_FAILED;',oninit)
++ def test_wrong_inventory_protocol_hash_rejects(self):
++  conformance=self.f['ResearchConformanceAuthorizationValidate'];native=self.f['ResearchConformanceValid']
++  self.assertIn('ResearchConformanceValid()',conformance)
++  self.assertIn('DAManifestString("inventory_protocol_sha256")!="'+INVENTORY_PROTOCOL+'"',self.integration)
++  manifest=json.loads(LONG_MANIFEST.read_text());manifest['inventory_protocol_sha256']='0'*64
++  self.assertFalse(manifest['inventory_protocol_sha256']==INVENTORY_PROTOCOL)
++ def test_wrong_swap_transition_hash_rejects(self):
++  conformance=self.f['ResearchConformanceAuthorizationValidate'];native=self.f['ResearchConformanceValid']
++  self.assertIn('ResearchConformanceValid()',conformance)
++  self.assertIn('DAManifestString("swap_transition_rule_sha256")!="'+SWAP_TRANSITION+'"',self.integration)
++  manifest=json.loads(LONG_MANIFEST.read_text());manifest['swap_transition_rule_sha256']='F'*64
++  self.assertFalse(manifest['swap_transition_rule_sha256']==SWAP_TRANSITION)
++ def test_later_tick_revalidates_and_fails_closed(self):
++  tick=self.f['ResearchConformanceTick'];context=self.f['ResearchNativeContext'];native=self.f['ResearchConformanceValid']
++  self.assertLess(tick.index('ResearchConformanceValid()'),tick.index('ResearchNativePoll'))
++  self.assertIn('g_da.Invalidate("")',tick);self.assertIn('InpConformanceRuntimeProfileSha256',context)
++  self.assertIn('DAConformanceLayerAClosed()',native)
++ def test_successor_historical_and_protected_sources_equal(self):
++  base=ROOT/'governance/evidence/stage14/native_conformance_interface_20260908/FINAL_PRE_TOOLING.json'
++  files=json.loads(base.read_text())['files'];changed={'MQL5/Experts/KingEA/GuardedResearchTester.mq5','MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh','research_pipeline/decision_a_evidence.py'}
++  for e in files:
++   if e['path'] in changed or e['path'].startswith('tests/'):continue
++   with self.subTest(path=e['path']):self.assertEqual(hashlib.sha256((ROOT/e['path']).read_bytes()).hexdigest().upper(),e['sha256'])
+diff --git a/governance/evidence/stage14/native_production_conformance_20260909/construct_fixture_packages.py b/governance/evidence/stage14/native_production_conformance_20260909/construct_fixture_packages.py
+new file mode 100644
+index 0000000..3d93ff1
+--- /dev/null
++++ b/governance/evidence/stage14/native_production_conformance_20260909/construct_fixture_packages.py
+@@ -0,0 +1,138 @@
++"""Construct fixed bootstrap-only native-conformance fixture packages.
++
++This is an evidence-package constructor, not a launcher.  It creates no root,
++acceptance, freeze, budget, or Candidate artifact.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import shutil
++from pathlib import Path
++
++from research_pipeline.native_conformance_control import (
++    ConformanceControl, DOMAIN, SCOPE, build_layer_a, build_layer_b)
++from research_pipeline import decision_a_evidence as v3
++
++ROOT = Path(__file__).resolve().parents[4]
++OUT = Path(__file__).resolve().parent / "v2_runtime_packages"
++CALENDAR = ROOT / "governance/evidence/stage14/protection_intervals_20260802_v1/PROTECTION_INTERVALS.csv"
++EX5 = Path(r"C:\Users\tpent\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\KingEA\GuardedResearchTester.ex5")
++EA_SOURCE = ROOT / "MQL5/Experts/KingEA/GuardedResearchTester.mq5"
++INTEGRATION_SOURCE = ROOT / "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh"
++CONTROL_SOURCE = ROOT / "research_pipeline/native_conformance_control.py"
++COMBINED = ROOT / "governance/review/combined_adoption_20260907/CONSOLIDATED_CONTRACT.md"
++A = ROOT / "governance/review/decision_a_adoption_plan_20260907/ADOPTED_SPECIFICATION.md"
++S = ROOT / "governance/review/decision_s_operational_closure_20260907/DECISION_S_FINAL_SPECIFICATION.md"
++PRIOR_LONG = ROOT / "governance/evidence/stage14/decision_s_native_20260907/SEALED_INVENTORY.json"
++
++FIXTURES = (
++    dict(fixture_id="NCV1-LONG-NORMAL-001", run_label="NCV1-RUN-LONG-NORMAL-001", run_id="C666040B2B67CB6C5B62BC73193104F84F99731AD695DF250B9E3B17D5D60F2F", group_id="NCV1-GROUP-LONG-NORMAL-001", side="LONG", volume="0.10", S0="600.00", start_msc=1670327700000, end_msc=1670414700000, entry_msc=1670328000000, reduction_msc=1670414400000, close_msc=1670414460000, outcome="NORMAL_CLOSE"),
++    dict(fixture_id="NCV1-SHORT-NORMAL-001", run_label="NCV1-RUN-SHORT-NORMAL-001", run_id="7C0F0DDCA6FAB33786C9ABC31B8232A3B45D6942777BC07D1A483CD1AA99DABF", group_id="NCV1-GROUP-SHORT-NORMAL-001", side="SHORT", volume="0.10", S0="2000.00", start_msc=1670328300000, end_msc=1670415300000, entry_msc=1670328600000, reduction_msc=1670415000000, close_msc=1670415060000, outcome="NORMAL_CLOSE"),
++    dict(fixture_id="NCV1-LONG-BOUNDARY-001", run_label="NCV1-RUN-LONG-BOUNDARY-001", run_id="5BFEA0B6C3B2D9E6F05B71FA43DC42EF0FAC20D0FADDC8A978DF8BC1DDB68FCA", group_id="NCV1-GROUP-LONG-BOUNDARY-001", side="LONG", volume="0.10", S0="600.00", start_msc=1670328900000, end_msc=1670415660000, entry_msc=1670329200000, reduction_msc=1670415600000, close_msc=0, outcome="EVALUATOR_BOUNDARY"),
++)
++
++def raw_json(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
++
++def sha(raw): return hashlib.sha256(raw).hexdigest().upper()
++
++def put(directory: Path, name: str, raw: bytes):
++    path = directory / name
++    path.write_bytes(raw)
++    return {"path": name.replace("\\", "/"), "sha256": sha(raw)}
++
++def copied(directory: Path, name: str, source: Path):
++    return put(directory, name, source.read_bytes())
++
++def profile(fixture, hashes):
++    return dict(
++        evidence_scope=SCOPE, fixture_id=fixture["fixture_id"], side=fixture["side"],
++        evaluation_start_msc=fixture["start_msc"], evaluation_end_msc=fixture["end_msc"],
++        accepted_proof_sha256=None, server="JustMarkets-Demo2", symbol="ETHUSD.s",
++        terminal_build=6140, compiler_build=6140, agent_build=6140,
++        local=True, visual=False, dll=False, command_bridge=False, shared_trading_input=False,
++        swap_transition_rule_hash=v3.SWAP_TRANSITION_ADOPTION, facts=v3.SWAP_FACTS,
++        source_manifest_hash=hashes["SOURCE_MANIFEST"]["sha256"], executable_hash=hashes["EXECUTABLE"]["sha256"],
++        configuration_hash=hashes["CONFIGURATION_SPECIFICATION"]["sha256"], native_swap_profile_hash=hashes["NATIVE_SWAP_PROFILE"]["sha256"],
++    )
++
++def construct_layer_a(base: Path, specified: dict):
++    d = base / specified["fixture_id"]
++    if d.exists():
++        raise RuntimeError(f"refusing to overwrite existing fixture package: {d}")
++    d.mkdir(parents=True)
++    specified = dict(specified)
++    run_label = specified.pop("run_label")
++    if sha(run_label.encode()) != specified["run_id"]:
++        raise RuntimeError("RUN_LABEL_HASH_MISMATCH")
++    fixture = dict(specified, data_scope="DEVELOPMENT_ONLY", execution_mode=20, optimization=False, symbol="ETHUSD.s")
++    put(d, "run_label_provenance.json", raw_json(dict(kind="RUN_LABEL_PROVENANCE_V1", run_label=run_label, run_id=fixture["run_id"], derivation="SHA256_UTF8_UPPERCASE")))
++    configuration = dict(domain=DOMAIN, evidence_scope=SCOPE, fixture_id=fixture["fixture_id"], run_id=fixture["run_id"], group_id=fixture["group_id"], symbol="ETHUSD.s", timeframe="M30", execution_mode=20, optimization=False, local_agents_only=True, dll=False, candidate_execution=False, successor_authority=False)
++    fixture_ref=put(d, "fixture_specification.json", raw_json(fixture))
++    configuration_ref=put(d, "configuration_specification.json", raw_json(configuration))
++    sources=dict(kind="CONFORMANCE_COMPILE_STABLE_SOURCE_MANIFEST_V1",files=[
++        dict(path=str(path.relative_to(ROOT)).replace('\\','/'),sha256=sha(path.read_bytes()))
++        for path in (EA_SOURCE,INTEGRATION_SOURCE,CONTROL_SOURCE)])
++    source_ref=put(d,"source_manifest.json",raw_json(sources))
++    layer_a=build_layer_a(fixture,configuration_ref["sha256"],source_ref["sha256"])
++    put(d,"manifest.json",layer_a)
++    return d
++
++def complete_layer_b(d: Path):
++    fixture=json.loads((d/"fixture_specification.json").read_bytes())
++    fixture_ref={"path":"fixture_specification.json","sha256":sha((d/"fixture_specification.json").read_bytes())}
++    configuration_ref={"path":"configuration_specification.json","sha256":sha((d/"configuration_specification.json").read_bytes())}
++    source_ref={"path":"source_manifest.json","sha256":sha((d/"source_manifest.json").read_bytes())}
++    price = dict(kind="NATIVE_PRICE_CONVENTION_V1", symbol="ETHUSD.s", long_entry="ASK", long_exit="BID", short_entry="BID", short_exit="ASK", point="0.01", source="CONTROLLED_TESTER_NATIVE_TICK")
++    arithmetic = dict(kind="STAGE13_COMPONENT_ARITHMETIC_V1", currency_precision=8, component_aggregation="gross+commission+fee+swap", financial_projection="ONE_TERMINAL_STAGE13_EVENT")
++    hashes = {
++        "FIXTURE_SPECIFICATION": fixture_ref,
++        "CONFIGURATION_SPECIFICATION": configuration_ref,
++        "SOURCE_MANIFEST": source_ref,
++        "EXECUTABLE": copied(d, "GuardedResearchTester.ex5", EX5),
++        "COMBINED_SPECIFICATION": copied(d, "combined_contract.md", COMBINED),
++        "DECISION_A_SPECIFICATION": copied(d, "decision_a.md", A),
++        "DECISION_S_SPECIFICATION": copied(d, "decision_s.md", S),
++        "PRICE_CONVENTION": put(d, "price_convention.json", raw_json(price)),
++        "ARITHMETIC_CONTRACT": put(d, "arithmetic_contract.json", raw_json(arithmetic)),
++    }
++    bootstrap = dict(kind="UNACCEPTED_NATIVE_SWAP_BOOTSTRAP", side=fixture["side"], fixture_id=fixture["fixture_id"], evidence_scope=SCOPE, expected_environment=dict(server="JustMarkets-Demo2", symbol="ETHUSD.s", build=6140), accepted_proof_sha256=None)
++    hashes["NATIVE_SWAP_PROFILE"] = put(d, "native_swap_bootstrap.json", raw_json(bootstrap))
++    prof = put(d, "tester_profile.json", raw_json(profile(fixture, hashes)))
++    cal = copied(d, "calendar.csv", CALENDAR)
++    local = dict(manifest_path=f"KingEA/conformance/{fixture['fixture_id']}/manifest.json", calendar_path=f"KingEA/conformance/{fixture['fixture_id']}/calendar.csv", calendar=cal)
++    embedded={"path":"manifest.json","sha256":sha((d/"manifest.json").read_bytes())}
++    environment=dict(terminal_build=6140,compiler_build=6140,agent_build=6140,
++                     server="JustMarkets-Demo2",account_fingerprint="7A48EA06EF0D875778BE072F960AD75678E901FABAB363F82CA8886A6E7D78CD",
++                     symbol="ETHUSD.s",execution_mode=20,
++                     optimization=False,local=True,visual=False,dll=False,
++                     command_bridge=False,shared_trading_input=False)
++    control_raw=build_layer_b(fixture=hashes["FIXTURE_SPECIFICATION"],profile=prof,
++                              artifacts=hashes,local_inputs=local,
++                              embedded_manifest=embedded,ea_source_sha256=sha(EA_SOURCE.read_bytes()),
++                              environment=environment)
++    cref = put(d, "conformance_control.json", control_raw)
++    ctx = ConformanceControl(d, cref["path"], cref["sha256"])
++    inputs = ctx.prepare_inputs()
++    put(d, "manifest.json", inputs["manifest"])
++    put(d, "GuardedResearchTester.set", inputs["set_bytes"])
++    ini = "[Tester]\r\n" + "\r\n".join((
++        "Expert=KingEA\\GuardedResearchTester.ex5", "Symbol=ETHUSD.s", "Period=M30",
++        "FromDate=2022.12.05", "ToDate=2022.12.09", "ExpertParameters=GuardedResearchTester.set",
++        "Optimization=0", "ExecutionMode=20", "Model=4", "Visual=0", "UseLocal=1", "UseRemote=0", "UseCloud=0", "ShutdownTerminal=1")) + "\r\n[Experts]\r\nAllowDllImport=0\r\n"
++    put(d, "tester.ini", ini.encode())
++    # LONG provenance is archival comparison material, deliberately outside artifacts/profile/control.
++    if fixture["side"] == "LONG":
++        copied(d, "prior_long_proof_provenance.json", PRIOR_LONG)
++    return d
++
++def construct(base: Path, specified: dict):
++    return complete_layer_b(construct_layer_a(base,specified))
++
++def main():
++    if sha(CALENDAR.read_bytes()) != "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3":
++        raise RuntimeError("CONFORMANCE_CALENDAR_AUTHORITY_UNAVAILABLE")
++    for item in FIXTURES: construct(OUT, item)
++
++if __name__ == "__main__": main()

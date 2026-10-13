@@ -1,0 +1,12 @@
+{
+  "child_sha256": "47FAF15D9E0C02003268FD0E9D9DC7EF9B6246B200753E891DC1A2655AF03C66",
+  "derived_from_owner_statement": "I explicitly approve Gate 1 continuation root B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF for exhaustive development continuation from G1-0120 after MT5 build 6140 parity PASS.",
+  "gate": 1,
+  "holdout_authorized": false,
+  "kind": "GATE1_DETACHED_CHILD_AUTHORIZATION",
+  "oos_authorized": false,
+  "owner_approved": true,
+  "root_sha256": "B59D8052C11D732503147210703C2DA0402106B0012A6DE5E7FC5346E099E6EF",
+  "run_id": "G1-0181",
+  "schema": 1
+}

@@ -1,0 +1,27 @@
+{
+  "b2_status": "LOCKED",
+  "candidate_execution": false,
+  "compile": {
+    "errors": 0,
+    "log_path": "C:/KingEA_v1/governance/evidence/stage14/b2_readiness_20260904/GuardedResearchTester_B2EndBoundary_V3_compile.log",
+    "log_sha256": "D2D01845468556E579571C6261B3C2823AE4623F1C0F16657C61B418D8663237",
+    "warnings": 0
+  },
+  "kind": "B2_END_BOUNDARY_POST_TOOLING_VERIFICATION",
+  "pre_tooling_manifest": "C:/KingEA_v1/governance/evidence/stage14/PRE_TOOLING_B2_END_BOUNDARY_CLOSURE_V9_20260904.json",
+  "post_tooling_sources": [
+    {"path": "C:/KingEA_v1/MQL5/Experts/KingEA/GuardedResearchTester.mq5", "size": 72166, "sha256": "1AE8A6BB77FA04CCE9D25CBC3BC96264B3CB63087B777092DD92653463BFB95C"},
+    {"path": "C:/KingEA_v1/research_pipeline/stage12.py", "size": 37727, "sha256": "59C076881E270BCAD6E0D1A82BC077F698ED6B215D083F388986AA0049895A53"},
+    {"path": "C:/KingEA_v1/research_pipeline/stage14.py", "size": 75022, "sha256": "485DE76F92ED9DA72143720EA4EDA847471DF3E97ED226250178DE9D5866A28D"},
+    {"path": "C:/KingEA_v1/research_pipeline/b2_date_gate.py", "size": 4774, "sha256": "AF645FA25DE62E2FF297F4AA6D3532F15F44337690948D4C1826EAA438C42276"},
+    {"path": "C:/KingEA_v1/tests/test_b2_date_gate.py", "size": 8536, "sha256": "93F142339D629BA58A103EA8A4C98AB6E6ED2C976932E19742EFD8780AD3DB52"},
+    {"path": "C:/KingEA_v1/tests/Test-Stage14ResearchReadinessPolicy.ps1", "size": 28147, "sha256": "3CEC0D21CF498A6F3137A817E21538FDA48C7890AC1D42303BED2F94FE599398"}
+  ],
+  "source_equality": "PASS",
+  "terminal_or_metatester_processes_after_compile": 0,
+  "tests": {
+    "full_python_regression": "136 PASS",
+    "python": "29 PASS: test_b2_date_gate + test_stage12_pipeline + test_stage14_pipeline",
+    "stage14_policy": "PASS"
+  }
+}

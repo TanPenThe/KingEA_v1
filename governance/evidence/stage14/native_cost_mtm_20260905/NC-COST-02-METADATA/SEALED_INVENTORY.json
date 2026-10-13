@@ -1,0 +1,100 @@
+{
+  "b2": "LOCKED",
+  "files": [
+    {
+      "path": "AUTHORIZATION.json",
+      "sha256": "C0E2AA0AF54096A9D0DB681B244CBF3F79CC7540B39A8BF549A34FC3FC1544E4",
+      "size": 309
+    },
+    {
+      "path": "build\\MQL5\\Experts\\KingEA\\NativeCostConformance.ex5",
+      "sha256": "09DAD4287BB08A25160ACBB832307A544697BC6CD153D166021841BA24C6E14A",
+      "size": 63284
+    },
+    {
+      "path": "build\\MQL5\\Experts\\KingEA\\NativeCostConformance.mq5",
+      "sha256": "F8F56093527C344D275CBF7AAF101FB0FB0A8DA8C6C577C1426D1F1F25366502",
+      "size": 7094
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\AccountingEvents.mqh",
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "size": 8730
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostContractTests.mqh",
+      "sha256": "9A693C258AFE091E651FD4E79701AAEF3DEBCC9F70D8524287157F53385D22A5",
+      "size": 7555
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostEvidence.mqh",
+      "sha256": "91CF038FC45AD520030946B0E9FDA0C19B5C89A3232BB60F34FEBD855C0B9CF5",
+      "size": 10991
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostMetadataAdapter.mqh",
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "size": 3561
+    },
+    {
+      "path": "BUILD_BINDING.json",
+      "sha256": "8E77004A25AA8AD52990AE60C8C743D1073316EF9C090C784C21A833826B9424",
+      "size": 1119
+    },
+    {
+      "path": "compile.log",
+      "sha256": "95B09CD39BC0648180B9ECCB7BF1D010DBF8F367C2537DA7BA43FFD133DC4E4B",
+      "size": 5720
+    },
+    {
+      "path": "LAUNCH_RECEIPT.json",
+      "sha256": "29C6083357E9514A8C10FBAA5F7BEBE41DB5F07AA712D015DF93D7183A2EC99F",
+      "size": 473
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "C75C68A64D593D01F6DB478E8EE2F96277B930DEA278E704D062466ED0A98A5A",
+      "size": 970
+    },
+    {
+      "path": "NativeCostConformance_NC-COST-02-METADATA.set",
+      "sha256": "2F35C72C952019017BFF1F0AB0389F1DE9BE5966D249C0A676253382C99B1536",
+      "size": 112
+    },
+    {
+      "path": "PRE_TOOLING.json",
+      "sha256": "9F6DD872B28BFF30046CFE2DA3AD84FC724E0CD3CC83D4D26BC16A9E33CED8D4",
+      "size": 1139
+    },
+    {
+      "path": "runtime\\harness\\result.json",
+      "sha256": "F4FCEF00E59287C8BD555AD66A4AFD5BDE841926E70E80B6E0BA65D73A685011",
+      "size": 224
+    },
+    {
+      "path": "runtime\\journal-0.log",
+      "sha256": "253E22A672D29F35FE4AA35AC6B96F86CD50FCA4E6FFC0BABE801A5C8AD7B5F2",
+      "size": 6614
+    },
+    {
+      "path": "runtime\\journal-1.log",
+      "sha256": "AF87F458DE5FD12125B760AF311F48969992C452E68D3A6C6AFFE9BFA9107F27",
+      "size": 18008
+    },
+    {
+      "path": "runtime\\journal-2.log",
+      "sha256": "AD277ED01EE91511E58A98F4AA3708368A21A52C72AA691933DF7F01B18506C0",
+      "size": 16158
+    },
+    {
+      "path": "RUNTIME_RECEIPT.json",
+      "sha256": "C4F5BF2A25E59B37F8D9423C5F218DC3E74114C8F04A9C2B735BF59163BD9BC3",
+      "size": 1297
+    },
+    {
+      "path": "tester.ini",
+      "sha256": "2F10B1AFC9E3F5B695DE469D47CBDD2F0D8A5681F674228A5A71E11FBD4CBBC1",
+      "size": 316
+    }
+  ]
+}

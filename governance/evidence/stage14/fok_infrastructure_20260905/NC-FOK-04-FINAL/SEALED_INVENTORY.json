@@ -1,0 +1,220 @@
+{
+  "b2": "LOCKED",
+  "files": [
+    {
+      "path": "AUTHORIZATION.json",
+      "sha256": "688E80365B6F4CDC116E1F7F4630E959FCEC9B268F4E1DC7AC352C76A49FAA49",
+      "size": 393
+    },
+    {
+      "path": "build\\MQL5\\Experts\\KingEA\\FOKInfrastructureConformance.ex5",
+      "sha256": "6F72F2380D76071749C021C842A555B20764AF0F9255046C797C110829C1D1C8",
+      "size": 102032
+    },
+    {
+      "path": "build\\MQL5\\Experts\\KingEA\\FOKInfrastructureConformance.mq5",
+      "sha256": "AD2E9E357FD468E1C7D0E6EFE01C593C7B902FEF3493DDEDD603604B52708F1E",
+      "size": 12113
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\AccountingEvents.mqh",
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "size": 8730
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostContractTests.mqh",
+      "sha256": "9A693C258AFE091E651FD4E79701AAEF3DEBCC9F70D8524287157F53385D22A5",
+      "size": 7555
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostEvidence.mqh",
+      "sha256": "C637E5C1FEBCBBEE5DD4A4F2F4E4D2CA9E7D0F8746ECCC5E5F915CD829D6FB08",
+      "size": 12155
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostIntegration.mqh",
+      "sha256": "50FED059947798309ED56A73E7651AB82F990C984AB851EC1639D69A82A53921",
+      "size": 3741
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostIntegrationTests.mqh",
+      "sha256": "CEB6C823BE704F30C92DA7439DD8CA4A29402FCDEC82E9E7F9356AB0F9216307",
+      "size": 3310
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\NativeCostMetadataAdapter.mqh",
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "size": 3561
+    },
+    {
+      "path": "BUILD_BINDING.json",
+      "sha256": "F6FDF66B758B5622DC9B3743E2B06CA0FBE019F9AFCE9DB4DDBD5EDD089EC218",
+      "size": 1123
+    },
+    {
+      "path": "compile.log",
+      "sha256": "4FD396F52F770EE86BBA208B63A7E46E5C511D3589D17E7456EB499A2C146EEC",
+      "size": 6994
+    },
+    {
+      "path": "FOKInfrastructureConformance_NC-FOK-04-FINAL.set",
+      "sha256": "F88FA0E0D9A0410E794D47E1567871EAA3A77381F6A75C5D3DDCAE604C0619C9",
+      "size": 197
+    },
+    {
+      "path": "LAUNCH_RECEIPT.json",
+      "sha256": "0CD0131F761A8CDA4A05264755683483F26A89D45EA08D0BE9573850D7AA3F3F",
+      "size": 469
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "56A8D13A416AC6182F7D751A4590DB542D583B5F889B7C102FE4C85ADB5EF239",
+      "size": 1102
+    },
+    {
+      "path": "OWNER_SCOPE.json",
+      "sha256": "E0F04ECBFD487A00F4DE7883A56A7E1632B3CB95B68ACBA90067CFAB1E3368C0",
+      "size": 1453
+    },
+    {
+      "path": "PRE_TOOLING.json",
+      "sha256": "F868D4BFC9E202813CA90F8D7856C427C9B0254A8F9C038C6B729D6EE099AA91",
+      "size": 1500
+    },
+    {
+      "path": "runtime\\harness\\boundary-evidence.txt",
+      "sha256": "F048BC9D1D8575482AE68D4558BAAE1EBBE5D00A9462B71F57002596FED957FF",
+      "size": 833
+    },
+    {
+      "path": "runtime\\harness\\confirmed-stop.json",
+      "sha256": "BE9F71A59A0D37486CCA6E524A757ED02DFA783D7331D050825F32A3A53ED7D8",
+      "size": 100
+    },
+    {
+      "path": "runtime\\harness\\cost-record-0.txt",
+      "sha256": "A1C2124D733DF1782F3FC039AF42C2F95E83E33931F8A053B6A4539B4F0DBB74",
+      "size": 260
+    },
+    {
+      "path": "runtime\\harness\\cost-record-1.txt",
+      "sha256": "FEBDC7C3AB8F6B433CFBE63448E983AF0BDC7A8BBFBF082B62FF7FD28F001101",
+      "size": 308
+    },
+    {
+      "path": "runtime\\harness\\cost-record-10.txt",
+      "sha256": "F74EB5EC5348A122FEF4EA96F43A8C9582A3531AECD9C0BA2E7210FCB48E36F4",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-11.txt",
+      "sha256": "563F7DE6DE1A0A04F7DDBAF822895D1C6908E19B2FAC5C58378E22B89EF8D393",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-2.txt",
+      "sha256": "A2AB2544DA95B41D7AA2AEDDFE77C5F19C3A99F8485C09D06CAF9F0F738165EA",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-3.txt",
+      "sha256": "5D9BD2283A8EA3ADDD4C7871876A5A2ECC529A511B94C74B393DC671B3863141",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-4.txt",
+      "sha256": "D2C451BB7395426023C2334B46390A8B4CC3160D72A07BBDA470BEDDF728DD6D",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-5.txt",
+      "sha256": "4A3E05AF1CCA86C13B53DA2AE76EA29BD182D96C1E192E327019B8223B0EC69B",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-6.txt",
+      "sha256": "255CB3095950DE3960804972F9B8AAA71DD4E6849FE3F748F9AC8585E346C9D6",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-7.txt",
+      "sha256": "87ECB47C99C5E292D44A5DF0664326EDD5E74E0FECA566D2BCEC8F4957398766",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-8.txt",
+      "sha256": "4B4126AACA6DDB9142EB818A575E53D91EBFDD601BB5AA4276D5CF5827F42C13",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\cost-record-9.txt",
+      "sha256": "A7E401226A42E6167A9AF5C38DF60940D707270F390C286718FB44B233B50475",
+      "size": 424
+    },
+    {
+      "path": "runtime\\harness\\execution.json",
+      "sha256": "E802F4F9EC0755969026BBB13D888E13132F237867E4427F9B589F4FB4602079",
+      "size": 165
+    },
+    {
+      "path": "runtime\\harness\\native-cost-package.evidence",
+      "sha256": "02F2248C5837FE18240BD61A998EFEE6EA7226CF162E196ED155F0FD7CCD02B7",
+      "size": 7014
+    },
+    {
+      "path": "runtime\\harness\\order_check.json",
+      "sha256": "19DD22D83FEEABAFEDB948F7FFD304800250A8AC00E05BEF7BC68C03D7C24441",
+      "size": 248
+    },
+    {
+      "path": "runtime\\harness\\request.json",
+      "sha256": "BD30ED2BEE687C63F09DC95DCFE93707F0C5C79A2BBCC6FAD9DED0AB88546EE2",
+      "size": 423
+    },
+    {
+      "path": "runtime\\harness\\result.json",
+      "sha256": "AC0E6F0CB37BCEADC3C77CFE2EF0367699B0FE7ADF2CEB3491C14D3C2DED357A",
+      "size": 292
+    },
+    {
+      "path": "runtime\\harness\\specification.json",
+      "sha256": "2C5FD8AF112B5E76AEAD848A75655FB6919150E4854EF8B4236078E3B81D08B4",
+      "size": 964
+    },
+    {
+      "path": "runtime\\harness\\stage13-canonical.txt",
+      "sha256": "19F4D4166828326FEBDDFD98EAF649892E28945D59F6CAFF086480A55990CFB5",
+      "size": 547
+    },
+    {
+      "path": "runtime\\harness\\stage13-event.txt",
+      "sha256": "49D0C3D38014A5B0FBA57DA449EE4BBF864B4ECD6367B78882D381D9C9D2ACE9",
+      "size": 426
+    },
+    {
+      "path": "runtime\\journal-0.log",
+      "sha256": "279D15E02C0C6C521B6AF2D0C05163D0685115ECB12557BE4B4FAA0054F42682",
+      "size": 26034
+    },
+    {
+      "path": "runtime\\journal-1.log",
+      "sha256": "ED5619E402255F745897C16994D70E1D198BBE9C5C4EE6161B813AEB63E260BB",
+      "size": 80352
+    },
+    {
+      "path": "runtime\\journal-2.log",
+      "sha256": "1818E4D47D93B91D8DD7CB41FCD179E756F66ADE05637695FA3C9200ED860933",
+      "size": 72796
+    },
+    {
+      "path": "RUNTIME_RECEIPT.json",
+      "sha256": "4BD6DBDE9195F398E4D4613EDC25C903ECA6B36E1C35C25A654F874C9E1CC9BC",
+      "size": 1384
+    },
+    {
+      "path": "tester.ini",
+      "sha256": "0FE8381253C372EFDF3778D9D0525220EA5B3B87218C9421BFADE43E3F6DA2B5",
+      "size": 322
+    }
+  ]
+}

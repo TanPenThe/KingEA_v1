@@ -1,0 +1,252 @@
+# Owner Decision — Invalid Research Exposure Containment and Decision S Adoption
+
+Adopt:
+
+`INVALID_RESEARCH_EXPOSURE_CONTAINMENT_V1`
+
+for controlled Strategy Tester research only.
+
+This policy is infrastructure containment, not Candidate strategy logic.
+
+It activates only after:
+
+`RESEARCH_ACCEPTANCE_STATE = INVALID_LATCHED`
+
+and can never restore research eligibility.
+
+## 1. Supported Decision S execution
+
+For:
+
+`FOK_FULL_SINGLE_DEAL`
+
+with exact requested reduction volume and authenticated residual:
+
+* retain normal Decision S behavior;
+* accept the realized reduction component;
+* transition to `REDUCED_POSITION`;
+* continue governed strategy/safety operation.
+
+No containment action applies.
+
+## 2. Full-volume multi-deal execution
+
+For:
+
+`FOK_FULL_MULTI_DEAL`
+
+where:
+
+* terminal execution is authenticated;
+* sum of executed volume equals requested q;
+* actual residual position is authenticated;
+
+set permanently:
+
+`RESEARCH_ACCEPTANCE_STATE = INVALID_LATCHED`
+
+because:
+
+`UNSUPPORTED_LEDGER_CARDINALITY`.
+
+Then transition exposure to:
+
+`QUARANTINED_MONITORED_POSITION`.
+
+Authorize exactly one infrastructure containment close for the exact authenticated current residual volume.
+
+Classification:
+
+`INVALID_RUN_CONTAINMENT_FLATTEN`
+
+Requirements:
+
+* use the existing guarded native close execution seam;
+* explicit FOK;
+* exact bound position;
+* exact current residual volume;
+* no retry;
+* no new reduction;
+* no strategy entry;
+* no parameter adaptation.
+
+The containment close is not a strategy exit and cannot create valid research evidence.
+
+## 3. Partial execution
+
+For authenticated:
+
+`PARTIAL_ORDER_EXECUTION`
+
+with terminal order completion and nonzero executed volume below q:
+
+set permanently:
+
+`RESEARCH_ACCEPTANCE_STATE = INVALID_LATCHED`.
+
+Reconcile the actual current position using the approved narrow exact-position authority.
+
+Never calculate residual as `V0-q`.
+
+Once actual residual exposure and order terminality are both authenticated:
+
+transition to:
+
+`QUARANTINED_MONITORED_POSITION`
+
+and authorize the same single:
+
+`INVALID_RUN_CONTAINMENT_FLATTEN`.
+
+No completion order, no reduction retry and no normalization into a valid Decision S lifecycle.
+
+## 4. Ambiguous/incomplete execution
+
+If request terminality is unknown or actual exposure cannot be authenticated:
+
+`EXPOSURE_CONTROL_STATE = RECONCILIATION_REQUIRED`
+
+or:
+
+`AMBIGUOUS_EXPOSURE_FAIL_CLOSED`.
+
+Block:
+
+* new entries;
+* new reductions;
+* speculative close requests.
+
+Continue:
+
+* native callback capture;
+* exact-position monitoring;
+* valid safety/breaker observations.
+
+Do not send containment while the prior request may still be live.
+
+If terminality and exact exposure subsequently become authenticated, the invalid run may transition to the containment path above.
+
+If ambiguity remains at finalization:
+
+* no valid research result;
+* no valid V3 terminal package;
+* no Stage13 candidate financial completion manufactured;
+* tester end-of-test housekeeping remains separate infrastructure evidence.
+
+## 5. Containment evidence
+
+All containment transactions must be retained under a separate:
+
+`INVALID_RUN_CONTAINMENT_EVIDENCE`
+
+classification.
+
+Retain actual:
+
+* order/deal IDs;
+* volume;
+* price;
+* profit;
+* commission;
+* fee;
+* swap;
+* reason;
+* native timestamps;
+* position identity.
+
+These are financial truth for audit/operational reconciliation only.
+
+They must not:
+
+* enter accepted Decision S component aggregation;
+* create a valid `NATIVE_GROUP_LIFECYCLE_PACKAGE_V3`;
+* create Candidate performance;
+* restore research eligibility;
+* alter configuration selection/ranking;
+* become Gate 2 evidence.
+
+## 6. Containment failure
+
+If the single containment FOK close:
+
+* is rejected;
+* partially executes;
+* produces unsupported multi-deal behavior;
+* becomes ambiguous;
+
+do not retry.
+
+Remain:
+
+`INVALID_LATCHED`
+
+and:
+
+`QUARANTINED_MONITORED_POSITION`
+
+or
+
+`AMBIGUOUS_EXPOSURE_FAIL_CLOSED`
+
+as supported by authenticated facts.
+
+Continue monitoring until tester termination.
+
+Tester housekeeping remains non-Candidate infrastructure evidence.
+
+## 7. Decision S adoption
+
+With this containment policy, adopt:
+
+`DECISION_S_SPECIFICATION = ADOPTED_FOR_CONTROLLED_STRATEGY_TESTER`
+
+using:
+
+* `NATIVE_GROUP_LIFECYCLE_CONTRACT_V3`;
+* `NATIVE_GROUP_LIFECYCLE_PACKAGE_V3`;
+* `PARTIAL_POSITION_COMPONENTS_V1`;
+* fixed V0/P0/E0/R0;
+* static S0;
+* one governed 50% reduction;
+* accepted `REALIZED_PORTION_SWAP_V1` profile;
+* one valid terminal Stage13 projection only for supported research lifecycles.
+
+Accepted native swap authority remains limited to the independently pinned ETHUSD.s / JustMarkets-Demo2 / build 6140 profile.
+
+`SHORT = NATIVE_CONFORMANCE_REQUIRED_BEFORE_SUCCESSOR_READINESS`.
+
+## 8. FILE_COMMON
+
+`FILE_COMMON_PROFILE_BLOCKER` remains an implementation blocker, not a Decision S semantic blocker.
+
+Adopt the reviewed remediation:
+
+* no FILE_COMMON calendar/manifest fallback;
+* agent-local immutable input bytes;
+* independently pinned expected hashes;
+* hash and parse identical captured bytes;
+* no runtime reload;
+* no shared safety-state restoration;
+* FILE_COMMON evidence output only.
+
+No source modification occurs through this decision.
+
+## Next phase
+
+After recording this adoption:
+
+1. consolidate adopted A + S + containment + FILE_COMMON contracts;
+2. capture fresh final PRE_TOOLING immediately before source edits;
+3. separately authorize the combined scoped implementation;
+4. run deterministic/non-order regressions;
+5. independently review the implementation;
+6. perform required native conformance, including SHORT;
+7. only later assess successor freeze/readiness.
+
+No Candidate execution.
+
+No successor root/attempt.
+
+No Gate 1.
+
+`B2 = LOCKED`.

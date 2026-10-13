@@ -1,0 +1,33 @@
+{
+  "background_or_watchdog": false,
+  "batch_id": "BATCH-0058-0059",
+  "child_manifest_sha256": [
+    "856D249A9D408DB091AF516B95CDE9C499ED2FD20E18249F5469FE58359104B2",
+    "2C6E638BBD51B63E3CF1033AA8F9AFCFDC886D40B9357108CE794FE26E094AD7"
+  ],
+  "created_at": "2026-08-14T19:32:15.795870+00:00",
+  "execution_mode": "MANUAL_FOREGROUND",
+  "hard_batch_hours": 7.5,
+  "hard_child_hours": 3.75,
+  "holdout_authorized": false,
+  "identity": {
+    "account_suffix": "1768",
+    "checked_at": "2026-08-14T19:32:13.091005+00:00",
+    "raw_login_stored": false,
+    "server": "JustMarkets-Demo2",
+    "terminal_sha256": "20DFEFD944AE482781AC1E83A736A976ECF0315661E54B5771E327F1FFB2B35C"
+  },
+  "kind": "GATE1_MANUAL_FOREGROUND_BATCH_PLAN",
+  "maximum_children": 2,
+  "oos_authorized": false,
+  "projected_batch_hours": 6.354815625,
+  "projected_child_hours": 3.1774078125,
+  "requested_children": 2,
+  "root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+  "run_ids": [
+    "G1-0058",
+    "G1-0059"
+  ],
+  "schema": 1,
+  "standdown_sha256": "8414EB459A695F34C777EF33CF9F94BF1A269FE3F5FBA7B8360E28AAEB5B93D7"
+}

@@ -1,0 +1,47 @@
+{
+  "compiler": {
+    "path": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "version": "5.0.0.6140",
+    "sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7"
+  },
+  "builds": [
+    {
+      "source": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "source_sha256": "198EEA17963013E0F85508A4F5D47734FE04D551BFE4E39A310875B01E6292E7",
+      "compile_copy": "governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\GuardedResearchTester.mq5",
+      "copy_sha256": "198EEA17963013E0F85508A4F5D47734FE04D551BFE4E39A310875B01E6292E7",
+      "source_equal": true,
+      "ex5": "governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\GuardedResearchTester.ex5",
+      "ex5_sha256": "83A9E47A197D0365E44E00969FCF0ECF83886912C9B783357539ED4CFB9CB176",
+      "log": "governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\production.log",
+      "log_sha256": "323A6ED9C5F4CF0D07F75BBF536E729E295751A77A9C85FABB9B8A0DC1602873",
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\GuardedResearchTester.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\production.log"
+      ]
+    },
+    {
+      "source": "MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5",
+      "source_sha256": "ECC22E7083D20B5494DB28105B1306534C2493C9CBAD99A8F33B8BDB6684D638",
+      "compile_copy": "governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\TestCombinedLifecycle.mq5",
+      "copy_sha256": "ECC22E7083D20B5494DB28105B1306534C2493C9CBAD99A8F33B8BDB6684D638",
+      "source_equal": true,
+      "ex5": "governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\TestCombinedLifecycle.ex5",
+      "ex5_sha256": "0A78386CB3B49A675B5B3B63B895E0F4F0C478B934A1086FCFC052A284207ABB",
+      "log": "governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\harness.log",
+      "log_sha256": "C5E7A18B9DE56BB9CD2B78E7DD00B04F93883DB69BBCA9A4D3F8F592B7D182B0",
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\TestCombinedLifecycle.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\compile\\harness.log"
+      ]
+    }
+  ]
+}

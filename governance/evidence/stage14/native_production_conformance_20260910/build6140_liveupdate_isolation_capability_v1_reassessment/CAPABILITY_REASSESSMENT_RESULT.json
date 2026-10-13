@@ -1,0 +1,72 @@
+{
+  "kind": "CONFORMANCE_BUILD6140_LIVEUPDATE_ISOLATION_CAPABILITY_V1_REASSESSMENT",
+  "classification": "BLOCKED",
+  "reason": "ISOLATED_WINDOWS_RUNTIME_UNAVAILABLE",
+  "created_utc": "2026-09-10T12:50:39.9716571Z",
+  "detail": "Expanded search found no installed Windows Sandbox, Hyper-V tooling/service, QEMU, VirtualBox, VMware, Multipass, container runtime, or existing Windows VM media. DISM feature inspection requires elevation. No compliant isolated environment could be constructed without an unauthorized host feature installation/reboot or externally supplied VM.",
+  "operating_system": {
+    "caption": "Microsoft Windows 10 Pro",
+    "version": "10.0.19045",
+    "hypervisor_present": false,
+    "processor": "AMD Ryzen 5 2600 Six-Core Processor            ",
+    "virtualization_firmware_enabled": false,
+    "vm_monitor_extensions": true,
+    "second_level_address_translation": true
+  },
+  "capability_inventory": {
+    "windows_sandbox": false,
+    "hyperv": false,
+    "qemu": false,
+    "virtualbox": false,
+    "vmware": false,
+    "multipass": false,
+    "docker": false,
+    "podman": false,
+    "existing_vm_media_count": 0,
+    "isolated_runtime_created": false,
+    "outbound_network_isolation_applied": false,
+    "dism_query": "BLOCKED_ELEVATION_REQUIRED"
+  },
+  "accepted_binaries": {
+    "terminal": {
+      "path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+      "byte_length": 121846032,
+      "sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+      "version": "5.0.0.6140"
+    },
+    "metatester": {
+      "path": "C:\\Program Files\\MetaTrader 5\\metatester64.exe",
+      "byte_length": 21810944,
+      "sha256": "46DA12974EA4B393FA6855576DA57549A1E3255DBE5C667CCE60D7F32C1A889F",
+      "version": "5.0.0.6140"
+    },
+    "conformance_ex5": {
+      "path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\KingEA\\GuardedResearchTester.ex5",
+      "byte_length": 237744,
+      "sha256": "AC6359FFEE65E9107ECFF25C150365A6AFF24422024C11F32B9272A71C872FEF",
+      "version": null
+    }
+  },
+  "retained_probe": {
+    "harness": "B1SyntheticNoOrder",
+    "executed": false,
+    "reason": "NO_ISOLATED_RUNTIME"
+  },
+  "execution": {
+    "terminal_launched": false,
+    "metatester_launched": false,
+    "long_launched": false,
+    "orders": false,
+    "candidate_execution": false
+  },
+  "preserved": {
+    "native_long": "BLOCKED_START_CONFIG_CONSUMPTION_UNRESOLVED",
+    "active_root_cause": "PENDING_LIVEUPDATE_STARTUP_DIVERSION",
+    "ini_encoding_issue": "CLOSED_AS_CURRENT_BLOCKER",
+    "prior_capability_receipt_sha256": "8ED5004EA54760F3A01E18A47653E06F7830C9C53224E76538254718C2F03C0D"
+  },
+  "conclusion": "ISOLATED_RUNTIME_CAPABILITY_NOT_AVAILABLE_ON_CURRENT_HOST",
+  "native_long_conformance": "NOT_OBTAINED",
+  "successor_freeze": "NOT_AUTHORIZED",
+  "B2": "LOCKED"
+}

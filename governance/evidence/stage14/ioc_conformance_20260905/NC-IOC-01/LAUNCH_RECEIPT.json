@@ -1,0 +1,11 @@
+{
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\ioc_conformance_20260905\\NC-IOC-01\\tester.ini"
+  ],
+  "launcher_sha256": "7ED570B4EB54987AA6325D0DB227B32E41CE54EC735E50A3A162FF9696D8D081",
+  "manifest_sha256": "6084C1DB81C66681B0A8F839E65A3052197F6E5B0090C020E4256AAF9197D6B8",
+  "pid": 6108,
+  "run_id": "NC-IOC-01",
+  "started": "2026-09-05T06:53:48.817231+00:00"
+}

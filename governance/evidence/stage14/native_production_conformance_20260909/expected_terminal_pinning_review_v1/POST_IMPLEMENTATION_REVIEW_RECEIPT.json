@@ -1,0 +1,35 @@
+{
+  "kind": "CONFORMANCE_EXPECTED_TERMINAL_INSTANCE_PINNING_V1_POST_IMPLEMENTATION_REVIEW",
+  "authentic_predecessor": {
+    "sha256": "E12B13873AB7C8E52EBE308923CE7A4C3A9A3B3F8E378872D09007B42F05D2D8",
+    "classification": "AUTHENTIC_PRE_EDIT_SOURCE_RECOVERED_FROM_PRIOR_CONVERSATION_ATTACHMENT"
+  },
+  "implementation": {
+    "source": {
+      "path": "native_conformance_control.py",
+      "sha256": "20581EDAE141E2E043E437B01E84B4C78AA8ACE79429D6D1450DC71625B65705"
+    },
+    "tests": {
+      "path": "test_native_conformance_control.py",
+      "sha256": "A03B68790B0B835251BE75AA8F8BE2C18B4EA33D3F9771943DB1FCBEB1B6B98A"
+    }
+  },
+  "verification": {
+    "command": "python -m unittest discover -s tests",
+    "test_count": 343,
+    "status": "PASS",
+    "full_log": {
+      "path": "PYTHON_343_PASS.log",
+      "sha256": "91ADEAE8E0479D4FC0FE680034DAE596D4B784D888C6A40A3402414D576C6ACB"
+    },
+    "test_count_note": "The conformance tests expanded assertions within the existing test methods; the suite count therefore remains 343."
+  },
+  "protected_source_equality": {
+    "MQL5/Experts/KingEA/GuardedResearchTester.mq5": "1CA356757CDC0CEC4985B7CA077A589F4C6DBBCCD0C6239725B436F08CA5707C",
+    "MQL5/Include/KingEA/AccountingEvents.mqh": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+  },
+  "runtime": "NOT_LAUNCHED",
+  "B2": "LOCKED",
+  "successor_freeze": "NOT_AUTHORIZED",
+  "implementation_status": "IMPLEMENTATION_PENDING_INDEPENDENT_SOURCE_REVIEW"
+}

@@ -19,6 +19,8 @@ $testPath = Join-Path $Workspace 'tests\test_stage14_pipeline.py'
 $contractPath = Join-Path $Workspace 'governance\STAGE14_RESEARCH_READINESS_CONTRACT.md'
 $contractJsonPath = Join-Path $Workspace 'governance\stage14_research_readiness_contract.json'
 $preToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_REPLACEMENT_PREP_V1_20260809.json'
+$zeroEntryPreToolingPath = (Get-ChildItem -LiteralPath (Join-Path $Workspace 'governance\evidence\stage14') -Filter 'PRE_TOOLING_ZERO_ENTRY_DIAGNOSTIC_20260903_EXECUTION_V*.json' |
+    Sort-Object Name -Descending | Select-Object -First 1).FullName
 $manualPreToolingPath = Join-Path $Workspace 'governance\evidence\stage14\PRE_TOOLING_GATE1_CONTINUATION_MANUAL_V3_20260824.json'
 $gate1AuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_continuation_20260824_v2\GATE1_AUTHORIZATION.json'
 $historicalAuthorizationPath = Join-Path $Workspace 'governance\evidence\stage14\gate1_replacement_20260809\GATE1_AUTHORIZATION.json'
@@ -38,6 +40,12 @@ $eaCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\Guard
 $testCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\TestResearchPipeline_v101_zero_spread_r.log'
 $benchmarkCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ResearchThroughputBenchmark_v102_final.log'
 $calendarCompilePath = Join-Path $Workspace 'governance\evidence\stage14\compile\ExportResearchCalendar.log'
+$dateGatePreToolingPath = (Get-ChildItem -LiteralPath (Join-Path $Workspace 'governance\evidence\stage14') -Filter 'PRE_TOOLING_B2_*_20260904.json' |
+    Sort-Object LastWriteTimeUtc, Name | Select-Object -Last 1).FullName
+$dateGateCompilePath = (Get-ChildItem -LiteralPath (Join-Path $Workspace 'governance\evidence\stage14\b2_readiness_20260904') -Filter 'GuardedResearchTester_B2*_compile.log' |
+    Sort-Object LastWriteTimeUtc, Name | Select-Object -Last 1).FullName
+$dateGateReportPath = Join-Path $Workspace 'governance\review\B2_DATE_GATE_REPAIR_REPORT_20260904.md'
+$conformanceRoutingReceiptPath = Join-Path $Workspace 'governance\evidence\stage14\native_production_conformance_20260909\oninit_authority_routing_repair_v1\POST_IMPLEMENTATION_REVIEW_RECEIPT.json'
 
 $ea = Get-Content -LiteralPath $eaPath -Raw
 $pure = Get-Content -LiteralPath $purePath -Raw
@@ -61,10 +69,10 @@ Assert-True ($ea.Contains('InpWorkloadDryRun') -and
              $ea.Contains('if(InpWorkloadDryRun)') -and
              $ea.Contains('DRY_EXECUTION_PROHIBITED')) 'full-workload dry mode must exercise the frozen pipeline, swallow intent, prohibit execution, and persist opaque evidence'
 Assert-True ($ea.Contains('#property tester_file "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv"') -and
-             $ea.Contains('ResearchOpenInputFile') -and
-             $ea.Contains('FILE_COMMON') -and
-             $ea.Contains('flags|FILE_SHARE_READ') -and
-             $ea.Contains('flags|FILE_COMMON|FILE_SHARE_READ')) 'immutable manifest and calendar inputs must allow concurrent local-agent readers in both sandboxes'
+             $ea.Contains('ResearchCaptureLocalInput') -and
+             $ea.Contains('FileOpen(filename,FILE_READ|FILE_BIN|FILE_SHARE_READ)') -and
+             $ea.Contains('// No shared fallback. A missing staged local artifact fails closed.') -and
+             -not $ea.Contains('flags|FILE_COMMON|FILE_SHARE_READ')) 'immutable manifest and calendar inputs must be captured once from the local-agent sandbox without shared fallback'
 Assert-True ($ea.Contains('InpExecutionAdapter') -and $ea.Contains('ResearchUsesVirtual') -and
              $ea.Contains('ResearchProcessVirtualPending') -and
              $ea.Contains('KINGEA_STAGE14_FRAME') -and
@@ -147,18 +155,62 @@ Assert-True ($researchSpecification.hmr.stressed_position_size_assumption_lots -
              [bool]$researchSpecification.hmr.kingea_entry_blackout_is_separate) 'minimum-lot margin basis and extended-HMR fail-closed rules must be explicit'
 
 $preTooling = Get-Content -LiteralPath $preToolingPath -Raw | ConvertFrom-Json
+$zeroEntryPreTooling = Get-Content -LiteralPath $zeroEntryPreToolingPath -Raw | ConvertFrom-Json
+$dateGatePreTooling = Get-Content -LiteralPath $dateGatePreToolingPath -Raw | ConvertFrom-Json
+$conformanceRoutingReceipt = Get-Content -LiteralPath $conformanceRoutingReceiptPath -Raw | ConvertFrom-Json
+Assert-True ($conformanceRoutingReceipt.scope -eq 'CONFORMANCE_ONINIT_AUTHORITY_ROUTING_REPAIR_V1' -and
+             $conformanceRoutingReceipt.status -eq 'IMPLEMENTATION_PENDING_INDEPENDENT_REVIEW' -and
+             $conformanceRoutingReceipt.b2 -eq 'LOCKED') 'later conformance routing provenance must remain review-pending with B2 locked'
+$conformanceRoutingEA = $conformanceRoutingReceipt.files | Where-Object { $_.path -eq $eaPath } | Select-Object -First 1
+Assert-True ($null -ne $conformanceRoutingEA -and
+             (Get-FileHash -Algorithm SHA256 -LiteralPath $eaPath).Hash -eq $conformanceRoutingEA.sha256 -and
+             (Get-Item -LiteralPath $eaPath).Length -eq [long]$conformanceRoutingEA.byte_length) 'current tester EA must equal its scoped conformance-routing receipt'
+Assert-True ($dateGatePreTooling.kind -eq 'PRE_TOOLING_SOURCE_MANIFEST' -and
+             $dateGatePreTooling.build_id -match '^KINGEA-B2-(DATE-GATE-REPAIR|END-BOUNDARY-CLOSURE|NATIVE-ROUTING-AUDIT|BOUNDARY-VALUATION-AUDIT|NATIVE-PER-GROUP-COST-EVIDENCE-AUDIT)-20260904-V[0-9]+$' -and
+             $dateGatePreTooling.b2_status -eq 'LOCKED') 'date-gate source provenance must be sealed while B2 remains locked'
+$dateGateHashes = @{}
+foreach ($source in $dateGatePreTooling.sources) {
+    $currentHash = if(Test-Path -LiteralPath $source.path) { (Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash } else { '' }
+    $sourceResolved = if(Test-Path -LiteralPath $source.path) { (Resolve-Path -LiteralPath $source.path).Path } else { '' }
+    $scopedRoutingReplacement = $sourceResolved -eq (Resolve-Path -LiteralPath $eaPath).Path -and $currentHash -eq $conformanceRoutingEA.sha256
+    Assert-True ($scopedRoutingReplacement -or
+                 ((Test-Path -LiteralPath $source.path) -and
+                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
+                  ($currentHash -eq $source.sha256))) "date-gate source changed after PRE_TOOLING: $($source.path)"
+    $dateGateHashes[$source.path] = $source.sha256
+}
+$dateGateHashes[$eaPath] = $conformanceRoutingEA.sha256
+Assert-True ($zeroEntryPreTooling.kind -eq 'PRE_TOOLING_SOURCE_MANIFEST' -and
+             $zeroEntryPreTooling.build_id -match '^STAGE14_GATE1_ZERO_ENTRY_DIAGNOSTIC_EXECUTION_20260903_V[0-9]+$' -and
+             $zeroEntryPreTooling.status -eq 'PRE_TOOLING') 'zero-entry diagnostic source provenance must be sealed before verification'
+$zeroEntryHashes = @{}
+foreach ($source in $zeroEntryPreTooling.sources) {
+    $currentHash = if(Test-Path -LiteralPath $source.path) { (Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash } else { '' }
+    Assert-True ((Test-Path -LiteralPath $source.path) -and
+                 (((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size -and $currentHash -eq $source.sha256) -or
+                  ($dateGateHashes.Values -contains $currentHash))) "zero-entry source changed without later governed date-gate provenance: $($source.path)"
+    $zeroEntryHashes[$source.path] = $source.sha256
+}
 Assert-True ($preTooling.kind -eq 'PRE_TOOLING' -and $preTooling.build_id -eq 'KINGEA-STAGE14-20260809-GATE1-REPLACEMENT-PREP-V1') 'root-bound replacement PRE_TOOLING manifest must exist'
 foreach ($source in $preTooling.sources) {
-    Assert-True ((Test-Path -LiteralPath $source.path) -and
-                 ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
-                 ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "source changed after PRE_TOOLING: $($source.path)"
+    $currentHash = if(Test-Path -LiteralPath $source.path) { (Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash } else { '' }
+    $stage14Replacement = (($zeroEntryHashes.Values -contains $currentHash) -or
+                            ($dateGateHashes.Values -contains $currentHash))
+    Assert-True ($stage14Replacement -or
+                 ((Test-Path -LiteralPath $source.path) -and
+                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
+                  ($currentHash -eq $source.sha256))) "source changed after PRE_TOOLING without a governed replacement: $($source.path)"
 }
 $manualPreTooling = Get-Content -LiteralPath $manualPreToolingPath -Raw | ConvertFrom-Json
 Assert-True ($manualPreTooling.kind -eq 'PRE_TOOLING' -and $manualPreTooling.build_id -eq 'KINGEA-STAGE14-20260824-GATE1-CONTINUATION-MANUAL-V3') 'continuation manual-batch PRE_TOOLING manifest must exist'
 foreach ($source in $manualPreTooling.sources) {
-    Assert-True ((Test-Path -LiteralPath $source.path) -and
-                 ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
-                 ((Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash -eq $source.sha256)) "replacement manual-batch source changed after PRE_TOOLING: $($source.path)"
+    $currentHash = if(Test-Path -LiteralPath $source.path) { (Get-FileHash -Algorithm SHA256 -LiteralPath $source.path).Hash } else { '' }
+    $diagnosticPolicyReplacement = $source.path -eq (Join-Path $Workspace 'tests\Test-Stage14ResearchReadinessPolicy.ps1') -and
+                                   (($zeroEntryHashes.Values -contains $currentHash) -or ($dateGateHashes.Values -contains $currentHash))
+    Assert-True ($diagnosticPolicyReplacement -or
+                 ((Test-Path -LiteralPath $source.path) -and
+                  ((Get-Item -LiteralPath $source.path).Length -eq [long]$source.size) -and
+                  ($currentHash -eq $source.sha256))) "replacement manual-batch source changed after PRE_TOOLING without a governed replacement: $($source.path)"
 }
 $gate1Authorization = Get-Content -LiteralPath $gate1AuthorizationPath -Raw | ConvertFrom-Json
 $manualPlanner = Get-Content -LiteralPath $manualPlannerPath -Raw
@@ -227,6 +279,13 @@ Assert-True ((Get-Content -LiteralPath $eaCompilePath -Raw).Contains('Result: 0 
 Assert-True ((Get-Content -LiteralPath $testCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'contract harness compile must be clean'
 Assert-True ((Get-Content -LiteralPath $benchmarkCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'benchmark compile must be clean'
 Assert-True ((Get-Content -LiteralPath $calendarCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'calendar exporter compile must be clean'
+Assert-True ((Get-Content -LiteralPath $dateGateCompilePath -Raw).Contains('Result: 0 errors, 0 warnings')) 'date-gate tester compile must be clean'
+Assert-True ($ea.Contains('InpEvaluationStart') -and $ea.Contains('InpEvaluationEndExclusive') -and
+             $ea.Contains('if(!ResearchEvaluationEligible(evaluation_time))') -and
+             $ea.Contains('g_evaluation_end_unresolved')) 'B2 tester must enforce explicit half-open evaluation gates and fail closed for unresolved end exposure'
+Assert-True ($python.Contains('realize_partition_dates') -and
+             $python.Contains('InpEvaluationStart') -and $python.Contains('InpEvaluationEndExclusive')) 'Stage 14 bundle must derive explicit date inputs from the immutable realization table'
+Assert-True ((Get-Content -LiteralPath $dateGateReportPath -Raw).Contains('B2 = LOCKED')) 'date-gate report must retain the B2 lock'
 
 $expectedFrozen = @{
     (Join-Path $Workspace 'MQL5\Include\KingEA\CandidateEthSt001.mqh') = '4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83'

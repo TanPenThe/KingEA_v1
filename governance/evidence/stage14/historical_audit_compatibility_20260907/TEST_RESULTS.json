@@ -1,0 +1,27 @@
+{
+  "kind": "HISTORICAL_AUDIT_COMPATIBILITY_TEST_RESULTS",
+  "status": "PASS",
+  "complete_python_suite": {
+    "tests": 199,
+    "passed": 199,
+    "failed": 0,
+    "errors": 0,
+    "seconds": 12.599,
+    "log": "FULL_PYTHON_SUITE_FINAL.log",
+    "sha256": "94D490189E7E4CCD544B92D9C418C78FB93BAED3DC2CF4B7DBFBEBEE7ADBA232"
+  },
+  "successor_contract": {
+    "tests": 29,
+    "passed": 29,
+    "E01_through_E18": "PASS",
+    "log": "SUCCESSOR_CONTRACT_REGRESSION.log",
+    "sha256": "09517A3CDCC43FB4BB2209BA8BB5B28880D10971750278D12C04A64B3C30DE16"
+  },
+  "focused_historical": {
+    "tests": 23,
+    "passed": 23,
+    "log": "HISTORICAL_AUDIT_TESTS.log",
+    "sha256": "6A1E47E4FB2C63AE909A7D5E68FD3B2FED25A228366DB0E8B543C40A010C31C3"
+  },
+  "legacy_regression_hidden_by_blanket_denial": false
+}

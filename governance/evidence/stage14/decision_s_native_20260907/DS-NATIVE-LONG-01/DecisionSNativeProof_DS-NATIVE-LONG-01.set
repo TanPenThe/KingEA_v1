@@ -1,0 +1,8 @@
+RunId=DS-NATIVE-LONG-01
+Output=KingEA\decision_s_native_20260907\DS-NATIVE-LONG-01.txt
+ExpectedBuild=6140
+ShortSide=false
+FixedVolume=0.10
+EntryAfter=2022.12.05 12:00
+ReductionAfter=2022.12.07 12:00
+Deadline=2022.12.09 00:00

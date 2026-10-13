@@ -1,0 +1,273 @@
+# Owner Decision — SWAP_TRANSITION_CONSERVATION_V1
+
+Adopt:
+
+`SWAP_TRANSITION_CONSERVATION_V1`
+
+as a narrow amendment to the Decision S residual-swap reconciliation/source-authority rule.
+
+This amendment replaces the requirement for a generic authenticated `no_accrual_authenticated` oracle for arbitrary intervals.
+
+It does not change:
+
+* Decision A economics;
+* Decision S reduction rule;
+* V0/P0/E0/R0/S0;
+* safety thresholds;
+* containment policy;
+* Stage13 schema;
+* Candidate logic;
+* execution authorization;
+* successor freeze/root/budget authority.
+
+## 1. No generic interval assertion
+
+Prospective V3 evidence must no longer accept:
+
+`no_accrual_authenticated = true`
+
+as authority by itself.
+
+Do not derive authority from:
+
+* calendar/day-of-week;
+* equal timestamps;
+* request/callback ordering;
+* missing transactions;
+* absence of observed rollover;
+* volume allocation;
+* arithmetic selected to force equality;
+* archive/inventory/final-seal integrity;
+* payload assertions.
+
+The completed-package seal remains integrity authority only.
+
+## 2. Reduction transition authority
+
+For the single supported governed reduction, obtain three independently authenticated native facts.
+
+### Before state B
+
+Immediately preceding the governed reduction request, bind:
+
+* run/group;
+* stable position ID and ticket;
+* symbol/magic/side;
+* V before reduction;
+* P0/S0;
+* successful `POSITION_SWAP` read `Ub`;
+* native/controlled observation identity and time;
+* snapshot hash.
+
+### Reduction deal D
+
+From the exact authenticated reduction DEAL_ADD/receipt, bind:
+
+* request/order/deal IDs;
+* stable position ID;
+* requested q;
+* actual executed q;
+* actual deal time;
+* successful `DEAL_SWAP` read `Ds`;
+* complete native scalar-read flags;
+* deal/receipt hash.
+
+### Residual state A
+
+After terminal reduction completion and exact residual reconciliation, bind:
+
+* same stable position;
+* actual Vr;
+* P0/S0;
+* successful residual `POSITION_SWAP` read `Ua`;
+* observation identity/time;
+* snapshot hash.
+
+All three facts must bind to the exact accepted native swap profile.
+
+## 3. Conservation invariant
+
+For the supported `REALIZED_PORTION_SWAP_V1` profile require, at the adopted signed-currency serialization precision:
+
+`Ub == Ds + Ua`
+
+No tolerance, estimate, volume-proportional allocation or balancing value is permitted.
+
+This equality is an authenticated **native transition-conservation invariant**.
+
+It does not claim that a particular hidden accrual/correction event did or did not occur.
+
+If the equality fails:
+
+`SWAP_TRANSITION_CONSERVATION_FAIL`
+
+The research result cannot be accepted.
+
+Do not invent a correction amount to repair it.
+
+Exposure/safety handling remains governed independently; this failure creates no new flatten trigger.
+
+## 4. Post-reduction accounting
+
+After an accepted reduction:
+
+`Sp_next = Sp + Ds`
+
+and:
+
+`U = current authenticated POSITION_SWAP of the residual position`
+
+Later residual snapshots **replace U**.
+
+Never accumulate successive POSITION_SWAP snapshots.
+
+Therefore safety valuation while residual exposure remains open uses:
+
+`Sp + current U`
+
+along with the already adopted realized profit/commission/fee and residual mark components.
+
+## 5. Normal final close
+
+For a supported authenticated residual full close:
+
+* use the exact final close `DEAL_SWAP` as the realized swap of that residual close under the accepted native profile;
+* add it once to `Sp`;
+* set residual `U = 0`;
+* do not also add the previous residual POSITION_SWAP snapshot;
+* do not require an arbitrary-time reconciliation between an old residual snapshot and the final close.
+
+Thus:
+
+`Sp_final = prior Sp + final DEAL_SWAP`
+
+The old residual snapshot remains audit/safety evidence only after the final deal has become authoritative.
+
+This relies on exact profile authority and must fail closed if the applicable native profile is absent or mismatched.
+
+## 6. Boundary
+
+For evaluator boundary finalization there is no fictitious closing deal.
+
+Use:
+
+`swap = Sp + sealed_pre_end_POSITION_SWAP`
+
+where the residual POSITION_SWAP comes from the authenticated eligible pre-end snapshot.
+
+No hypothetical post-boundary swap or exit cost is added.
+
+## 7. Unsupported native financial events
+
+If the controlled path observes a rollover/correction/variation-margin/standalone financial transaction that cannot be unambiguously represented by the adopted profile:
+
+`SWAP_PROFILE_OUTSIDE_SUPPORTED_SEMANTICS`
+
+Fail research acceptance.
+
+Do not estimate, redistribute, ignore or convert it into a balancing amount.
+
+This does not authorize broad history enumeration.
+
+## 8. V3 evidence semantics
+
+Retain the existing V3 `interval_authority_hash` field structurally, but explicitly redefine its prospective authority as the hash of:
+
+`SWAP_TRANSITION_CONSERVATION_V1_RECEIPT`
+
+for reduction transitions.
+
+The receipt must bind:
+
+* adopted rule hash;
+* exact native profile hash;
+* run/group;
+* stable position;
+* reduction request/order/deal;
+* B snapshot hash;
+* A snapshot hash;
+* Ub/Ds/Ua;
+* successful read flags;
+* q/Vr;
+* precision rule;
+* conservation result.
+
+The receipt must explicitly record:
+
+`causal_interval_accrual_claim = NOT_MADE`
+
+and:
+
+`transition_conservation = RECONCILED`
+
+The V3 numeric `interval_accrual` field, where structurally retained, represents zero **unexplained transition residual under this adopted reconciliation**, not proof that no underlying accrual event occurred.
+
+A bare legacy:
+
+`no_accrual_authenticated=true`
+
+must reject prospectively.
+
+## 9. Profile scope
+
+This amendment does not widen `REALIZED_PORTION_SWAP_V1`.
+
+The retained LONG native proof remains accepted only for its exact bound profile and its observed realized/residual split.
+
+It is not universal broker semantics.
+
+SHORT remains:
+
+`NATIVE_CONFORMANCE_REQUIRED_BEFORE_SUCCESSOR_READINESS`.
+
+Any different broker/build/symbol/profile requires separately accepted conformance/equivalence.
+
+## 10. Required deterministic tests
+
+Add at minimum:
+
+1. assertion-only `no_accrual_authenticated=true` rejects;
+2. native B/D/A conservation passes;
+3. arithmetic with fabricated/unbound B/D/A rejects;
+4. wrong position identity rejects;
+5. wrong request/deal rejects;
+6. wrong q/Vr transition rejects;
+7. failed POSITION_SWAP or DEAL_SWAP read rejects;
+8. successful numeric zero remains distinguishable from failed read;
+9. profile mismatch rejects;
+10. `Ub != Ds + Ua` rejects without balancing repair;
+11. old residual U is not added together with final DEAL_SWAP;
+12. normal final close uses actual final DEAL_SWAP once;
+13. boundary uses `Sp + sealed U`;
+14. stale/replayed transition receipt rejects;
+15. locally co-tampered receipt plus archive seal rejects against independent rule/profile binding;
+16. unsupported observed rollover/correction financial event rejects;
+17. legacy `no_accrual_authenticated` cannot satisfy V3;
+18. containment evidence cannot satisfy swap-transition authority.
+
+Positive fixtures remain explicitly synthetic until native conformance is separately authorized.
+
+## 11. Implementation
+
+Resume the already authorized implementation in:
+
+* `DecisionADealAdapter.mqh`;
+* `DecisionALifecycle.mqh`;
+* `decision_a_evidence.py`;
+* `successor_evidence.py`;
+
+and already authorized callers.
+
+No additional production-file scope follows automatically.
+
+No MT5/MetaTester execution is authorized by this amendment.
+
+`SWAP_INTERVAL_SOURCE_AUTHORITY_UNSPECIFIED = CLOSED_BY_SEMANTIC_AMENDMENT`
+
+`SWAP_TRANSITION_CONSERVATION_V1 = ADOPTED`
+
+`IMPLEMENTATION_PENDING_INDEPENDENT_REVIEW`
+
+`SUCCESSOR_FREEZE = NOT_AUTHORIZED`
+
+`B2 = LOCKED`.

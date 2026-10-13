@@ -1,0 +1,13 @@
+{
+    "schema":  1,
+    "status":  "RUNNING",
+    "branch":  "RECORDED",
+    "configuration_id":  7168,
+    "execution_adapter":  "VIRTUAL",
+    "orders_authorized":  false,
+    "returns_authorized":  false,
+    "manifest_sha256":  "B3BCC48EB3AFE48FE135912FE9C05A6D28A46432B1759BA90EDFBF3234802F16",
+    "manifest_file_sha256":  "E902935BCDF2E01327D39DA4E09EA3FB51328A3C1B46B4BA0BE6E9426953F147",
+    "started_at":  "2026-09-03T03:24:30.9768674Z",
+    "terminal_build":  6140
+}

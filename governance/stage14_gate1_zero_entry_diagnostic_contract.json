@@ -1,0 +1,25 @@
+{
+  "candidate_budget_increment": 0,
+  "candidate_id": "CAND-ETH-ST-001",
+  "configuration_id": 7168,
+  "diagnostic_root_sha256": "B17EA4E5AA3A6D823B522252D5997F63BC8C0A6CD620C0DDDBA26851E194185D",
+  "historical_execution": "REQUIRES_SEPARATE_EXPLICIT_OWNER_APPROVAL",
+  "kind": "GATE1_ZERO_ENTRY_DIAGNOSTIC_CONTRACT",
+  "native_order_submission": "PROHIBITED",
+  "oos_authorized": false,
+  "outputs": [
+    "COUNTS_AND_IDENTITIES_ONLY",
+    "NO_RETURNS",
+    "NO_RANKING"
+  ],
+  "purpose": "EXPLAIN_QUARANTINED_ALL_ZERO_GATE1_OUTCOME",
+  "result_classification": {
+    "inconclusive": "QUARANTINED_PENDING_DIAGNOSTIC",
+    "proven_infrastructure_or_data_defect": "INVALIDATED_PENDING_OWNER_REVIEW",
+    "proven_healthy_pipeline_with_zero_entries": "REJECTED_PENDING_OWNER_REVIEW"
+  },
+  "standdown_required": true,
+  "status": "IMPLEMENTED_PENDING_OWNER_AUTHORIZATION",
+  "synthetic_contract_execution": "PERMITTED_NON_TRADING",
+  "watchdog": "DISABLED_UNINSTALLED"
+}

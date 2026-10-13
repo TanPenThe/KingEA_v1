@@ -8,6 +8,10 @@ from pathlib import Path
 
 from research_pipeline.stage14 import ResearchRunCoordinator, Stage14Error
 from research_pipeline.stage14_cli import main as stage14_main
+from research_pipeline.historical_audit import (
+    HistoricalAuditScope,
+    RetiredHistoricalFrameAudit,
+)
 
 
 class Stage14CoordinatorTests(unittest.TestCase):
@@ -59,61 +63,59 @@ class Stage14CoordinatorTests(unittest.TestCase):
             "operational_facts": self.operational,
         }
 
-    def test_manifest_v2_drives_exact_native_bundle_and_requires_gate_authorization(self):
+    def test_manifest_v2_prepares_but_legacy_authorization_cannot_render(self):
         manifest = self.coordinator.prepare_child(self.child_facts())
         self.assertEqual(manifest["schema"], 2)
         self.assertEqual(len(manifest["expected_frame_ids"]), 1000)
         self.assertEqual(manifest["status"], "PLANNED")
 
         denied = self.coordinator.authorize(manifest, None)
-        self.assertEqual(denied["reason"], "OWNER_GATE_AUTHORIZATION_REQUIRED")
+        self.assertIn("SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED", denied["reason"])
         authorization = {
             "owner_approved": True,
             "gate": 1,
             "root_sha256": manifest["root_sha256"],
             "child_sha256": manifest["manifest_sha256"],
         }
-        self.assertTrue(self.coordinator.authorize(manifest, authorization)["allowed"])
-
-        bundle = self.coordinator.render_bundle(manifest, authorization)
-        self.assertIn("ExecutionMode=20", bundle["ini"])
-        self.assertIn("Model=4", bundle["ini"])
-        self.assertIn("UseRemote=0", bundle["ini"])
-        self.assertIn("InpExecutionAdapter=NATIVE", bundle["set"])
-        self.assertIn("InpScenario=BASELINE_20MS", bundle["set"])
-        self.assertIn("InpCommissionPerLotRoundTurn=1.25", bundle["set"])
-        self.assertIn("InpCalendarIntervalsFile=KingEA\\research_inputs\\calendar.csv", bundle["set"])
-        self.coordinator.verify_bundle(manifest, authorization, bundle)
-        with self.assertRaises(Stage14Error):
-            self.coordinator.verify_bundle(
-                manifest,
-                authorization,
-                {"ini": bundle["ini"].replace("ExecutionMode=20", "ExecutionMode=100"), "set": bundle["set"]},
-            )
+        denied = self.coordinator.authorize(manifest, authorization)
+        self.assertFalse(denied["allowed"])
+        self.assertIn("SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED", denied["reason"])
+        with self.assertRaisesRegex(
+            ValueError, "SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED"
+        ):
+            self.coordinator.render_bundle(manifest, authorization)
 
     def test_complete_frames_are_append_only_and_finalize_deterministically(self):
         facts = self.child_facts()
         facts["configuration_end"] = 1
         manifest = self.coordinator.prepare_child(facts)
+        audit = RetiredHistoricalFrameAudit(
+            HistoricalAuditScope(
+                scope_id="RETIRED_STAGE14_FRAME_V2_TEST_FIXTURE",
+                schema_version=2,
+                record_identity=manifest["manifest_sha256"],
+            )
+        )
         with tempfile.TemporaryDirectory() as directory:
             spool = Path(directory)
             second = {"frame_id": manifest["expected_frame_ids"][1], "payload": {"configuration_id": 1, "complete": 1}}
             first = {"frame_id": manifest["expected_frame_ids"][0], "payload": {"configuration_id": 0, "complete": 1}}
-            self.coordinator.append_frame(spool, manifest, second)
-            self.coordinator.append_frame(spool, manifest, first)
+            audit.append_frame(spool, manifest, second)
+            audit.append_frame(spool, manifest, first)
             # Identical replay is idempotent; conflicting replay is forbidden.
-            self.coordinator.append_frame(spool, manifest, first)
+            audit.append_frame(spool, manifest, first)
             with self.assertRaises(Stage14Error):
-                self.coordinator.append_frame(
+                audit.append_frame(
                     spool,
                     manifest,
                     {"frame_id": first["frame_id"], "payload": {"configuration_id": 0, "complete": 0}},
                 )
-            finalized = self.coordinator.finalize_frames(spool, manifest)
-            self.assertEqual(finalized["status"], "COMPLETE")
+            finalized = audit.finalize_frames(spool, manifest)
+            self.assertEqual(finalized["status"], "RETIRED_HISTORICAL_AUDIT_PASS")
+            self.assertFalse(finalized["successor_evidence_satisfied"])
             self.assertEqual([row["configuration_id"] for row in finalized["frames"]], [0, 1])
             with self.assertRaises(Stage14Error):
-                self.coordinator.append_frame(
+                audit.append_frame(
                     spool,
                     manifest,
                     {"frame_id": "LATE", "payload": {"configuration_id": 9, "complete": 1}},
@@ -546,10 +548,11 @@ class Stage14CoordinatorTests(unittest.TestCase):
         source = (
             workspace / "MQL5" / "Experts" / "KingEA" / "GuardedResearchTester.mq5"
         ).read_text(encoding="utf-8")
-        start = source.index("int ResearchOpenInputFile")
+        start = source.index("bool ResearchCaptureLocalInput")
         end = source.index("string ResearchFileSha256", start)
         open_helper = source[start:end]
-        self.assertIn("flags|FILE_SHARE_READ", open_helper)
+        self.assertIn("FILE_READ|FILE_BIN|FILE_SHARE_READ", open_helper)
+        self.assertNotIn("FILE_COMMON", open_helper)
 
     def test_replacement_gate1_root_preserves_consumed_candidate_budget(self):
         common = {

@@ -1,0 +1,241 @@
+# Senior Reviewer Directive — Decision S Bounded Native Semantics Proof
+
+Current classification:
+
+`FILE_COMMON_PROFILE_BLOCKER = CONFIRMED`
+
+`FILE_COMMON_REMEDIATION_DIRECTION = REVIEW_ACCEPTED`
+
+`DECISION_A_SPECIFICATION = ADOPTED_FOR_CONTROLLED_STRATEGY_TESTER`
+
+`DECISION_S_DESIGN = REVIEW_PASS_PENDING_NATIVE_SEMANTICS`
+
+`RESIDUAL_SWAP_RECONCILIATION_BLOCKER = OPEN`
+
+`DECISION_S = NOT_ADOPTED`
+
+`SUCCESSOR_FREEZE = NOT_AUTHORIZED`
+
+`B2 = LOCKED`
+
+Authorize only:
+
+`NON_CANDIDATE_DECISION_S_NATIVE_SEMANTICS_PROOF`
+
+This permits a bounded standalone Strategy Tester conformance harness and its compilation/runtime evidence.
+
+It does not authorize Candidate execution, research ranking, Gate 1, B2 root creation or production-source implementation.
+
+## 1. Correct the FOK terminology
+
+Do not assume FOK implies one deal.
+
+Classify separately:
+
+`FOK_FULL_SINGLE_DEAL`
+
+`FOK_FULL_MULTI_DEAL`
+
+`FOK_REJECTED_NO_FILL`
+
+`PARTIAL_ORDER_EXECUTION`
+
+A full requested FOK volume completed through multiple deals is not a partial fill.
+
+The current Decision S ledger may still classify:
+
+`FOK_FULL_MULTI_DEAL = UNSUPPORTED_LEDGER_CARDINALITY`
+
+if single-deal support remains the intentionally narrow research contract.
+
+Do not automatically add multi-deal accounting.
+
+## 2. Build a standalone non-Candidate harness
+
+Use a new isolated infrastructure harness only.
+
+No Candidate001/successor signal logic.
+
+Use:
+
+* ETHUSD.s;
+* explicit FOK;
+* fixed volume large enough for a valid 50% reduction under broker step/minimum;
+* fixed protective stop S0;
+* development-period dates only;
+* local Strategy Tester;
+* no OOS/holdout;
+* no optimization;
+* no performance statistics or ranking.
+
+The harness must not depend on the production FILE_COMMON calendar/manifest readers.
+
+Shared files may be used only as append-only/output evidence.
+
+## 3. Prove nonzero swap semantics
+
+A zero-swap run does not close the blocker.
+
+Choose a bounded development-period interval that crosses sufficient rollover(s) to produce authenticated nonzero swap under the actual tester symbol specification.
+
+Perform both LONG and SHORT if necessary to obtain useful nonzero observations.
+
+Before reduction capture:
+
+* stable position ID;
+* position ticket;
+* V0;
+* P0;
+* S0;
+* `POSITION_SWAP = Ub`;
+* exact successful-read flags;
+* tester/native time facts.
+
+Immediately after the pre-reduction snapshot, request the governed 50% FOK reduction.
+
+Do not intentionally cross another rollover between the before snapshot and reduction if avoidable.
+
+## 4. Capture reduction execution exactly
+
+For the reduction order retain every associated native deal:
+
+* deal ticket;
+* order ticket;
+* DEAL_POSITION_ID;
+* volume;
+* price;
+* DEAL_PROFIT;
+* DEAL_COMMISSION;
+* DEAL_FEE;
+* DEAL_SWAP;
+* DEAL_REASON;
+* DEAL_TIME_MSC;
+* read-success flags.
+
+Retain:
+
+`requested_q`
+
+and
+
+`sum(executed_deal_volume)`.
+
+Classify deal cardinality independently of volume-fill success.
+
+## 5. Capture the residual position
+
+After native execution reconciliation capture:
+
+* residual volume Vr;
+* stable position ID;
+* position ticket;
+* position basis;
+* POSITION_SL;
+* POSITION_SWAP = Ua.
+
+Require:
+
+`Vr = V0 - q`
+
+and:
+
+`residual S0 = original canonical S0`
+
+for static-stop compatibility.
+
+Do not silently restore S0 if the tester changes/removes it.
+
+## 6. Observe, do not force, swap semantics
+
+Do not assume the proposed conservation equation is true.
+
+Record raw:
+
+`Ub`
+
+`each reduction DEAL_SWAP`
+
+`Ua`
+
+and classify the observed native profile.
+
+Possible outcomes should include at least:
+
+`REALIZED_RESIDUAL_SWAP_DISJOINT_CONFIRMED`
+
+`DEAL_SWAP_POSITION_SWAP_OVERLAP_OBSERVED`
+
+`POSITION_SWAP_RESET_OR_REBASED`
+
+`SWAP_PROFILE_OTHER`
+
+`NONZERO_SWAP_NOT_OBTAINED`
+
+`SWAP_EVIDENCE_INCOMPLETE`
+
+Only the first may close the currently proposed `REALIZED_PORTION_SWAP_V1` contract without redesign.
+
+Do not derive a balancing value or subtraction rule from the desired equation.
+
+## 7. Final close reconciliation
+
+After the reduction, retain the residual position long enough only as required by the bounded test.
+
+Then fully close it using explicit FOK and record the same component/deal facts.
+
+Reconcile the complete lifecycle:
+
+entry → reduction → residual → final close.
+
+Determine whether summing the actual deal swap components produces the economically correct complete-group swap without duplication against residual snapshots.
+
+Do not use account-equity delta as the accounting truth.
+
+## 8. Required outputs
+
+Return separate findings for:
+
+* FOK volume-fill status;
+* deal cardinality;
+* residual volume/basis;
+* residual S0 retention;
+* pre-reduction POSITION_SWAP;
+* reduction DEAL_SWAP;
+* post-reduction POSITION_SWAP;
+* final-close DEAL_SWAP;
+* observed swap semantic classification.
+
+Retain exact terminal/compiler/build/symbol specification, SET/INI, executable hash, command, journals and native evidence.
+
+No profitability metrics.
+
+## 9. Stop conditions
+
+Stop and return the evidence without adapting the strategy if:
+
+* FOK unsupported;
+* multi-deal full fill occurs;
+* partial execution occurs;
+* residual position identity is ambiguous;
+* S0 is not retained;
+* nonzero swap cannot be produced;
+* swap semantics do not satisfy the proposed disjoint profile;
+* accounting evidence is incomplete.
+
+Do not automatically modify Decision S.
+
+## 10. FILE_COMMON remains separate
+
+Do not implement production FILE_COMMON remediation in this task.
+
+Its remediation direction is accepted and should be included later in the final production implementation phase.
+
+If Decision S native semantics is accepted, the intended next sequence is:
+
+Decision S adoption review → fresh final PRE_TOOLING → combined scoped production implementation of tester-trust remediation + Decision A + adopted Decision S → deterministic regressions → independent review.
+
+No B2-scale capacity sample is authorized by this proof.
+
+No successor freeze/root/attempt.
+
+`B2 = LOCKED`.

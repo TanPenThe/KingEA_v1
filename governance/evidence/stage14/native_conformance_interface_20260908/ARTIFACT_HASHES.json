@@ -1,0 +1,162 @@
+[
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile1\\GuardedResearchTester.ex5",
+    "size": 231338,
+    "sha256": "0AEDABD5471AFDFDB2961C8A676C5C5219B72A1B5D2A0445279748FD7F834504"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile1\\GuardedResearchTester.log",
+    "size": 7992,
+    "sha256": "C954022AAFBE33E34DB66418D9D5D4594BE4D5D2C1FAE98B92571417EDB20070"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile1\\GuardedResearchTester.mq5",
+    "size": 81799,
+    "sha256": "E57B1DD3108D415248345444F41D8690FDD2B099603577FBCCC81ED3D25CC4AD"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\GuardedResearchTester.ex5",
+    "size": 231652,
+    "sha256": "844A97245DC80AA93F4F96F4E2F1BD9CBD7EF2A688DD44D6DD4E45DC2001F886"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\GuardedResearchTester.log",
+    "size": 8112,
+    "sha256": "AFD188ACDBB39D5CF9CDEE3FE27D5BA1360D1B99F332740B69236AC31F2F43B3"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\GuardedResearchTester.mq5",
+    "size": 81960,
+    "sha256": "38D339B94D1DA06666C23397E5C8AE11789C054FF7932C818D132C6A58AD3DF1"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\TestCombinedLifecycle.ex5",
+    "size": 32508,
+    "sha256": "09839A9AC4956B11B886081B1F7BBB0844C5D3F29046AEA56E4883536F47F948"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\TestCombinedLifecycle.log",
+    "size": 4598,
+    "sha256": "CAE5AF56D2F1493A4B19D06C2A53B7CB62F6C6676C359EA11BAD6FE73CC4A943"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\TestCombinedLifecycle.mq5",
+    "size": 4431,
+    "sha256": "891A312A355F412C8ED08602FB2C5F0BA689EC8ADB4CDE2E0DAC9E203DFB12D8"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\TestSwapTransition.ex5",
+    "size": 34360,
+    "sha256": "49A0C7FCD42CD55754934A3DBA150776DDCEFDF09B4D0D32DCC91D4A76D2ED00"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\TestSwapTransition.log",
+    "size": 4576,
+    "sha256": "C1173990A5347150E1715F494390822D4C7493DFD0EB5B73AB9B3D02FEF5B91E"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_final\\TestSwapTransition.mq5",
+    "size": 5012,
+    "sha256": "705E3A21C30083EDDD389A737B68ADEA95E68D926CB25F72C2B74259E9BCA023"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\COMPILE_PROVENANCE.json",
+    "size": 22419,
+    "sha256": "66E3B5F52396BEED1933EA11ED24E22651F02A4E548CBF8FBACC2AAC7793DA52"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\GuardedResearchTester.ex5",
+    "size": 231924,
+    "sha256": "87E1D982D37B3B391E744BFF12AEA5E459847C90BAB259C67EA2C7CDE2838622"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\GuardedResearchTester.log",
+    "size": 8160,
+    "sha256": "8709F84899C51C4A470E074A296B77BF7EBCB51B09FABF653A611E7435178DC1"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\GuardedResearchTester.mq5",
+    "size": 82123,
+    "sha256": "1CA356757CDC0CEC4985B7CA077A589F4C6DBBCCD0C6239725B436F08CA5707C"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\TestCombinedLifecycle.ex5",
+    "size": 32276,
+    "sha256": "6E61F5B312BCFB2DFF25C392594264B81A52596E9C5E1D023ADA3D4C8909F75E"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\TestCombinedLifecycle.log",
+    "size": 4614,
+    "sha256": "DCF70000FA0DE486A633B5360BAE6407E3BD5AEA6F8CA2C1E1038C2B7E32A4FF"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\TestCombinedLifecycle.mq5",
+    "size": 4431,
+    "sha256": "891A312A355F412C8ED08602FB2C5F0BA689EC8ADB4CDE2E0DAC9E203DFB12D8"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\TestSwapTransition.ex5",
+    "size": 35378,
+    "sha256": "65C9FE3843EDBFFB20B051D29A383A9528D1900065D8AD73EC49F1119E054BE8"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\TestSwapTransition.log",
+    "size": 4590,
+    "sha256": "11F8A61003D29890BCF2237BBEE5A189F34C38D10CBB6E7326E78C0934F7AE88"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\compile_release\\TestSwapTransition.mq5",
+    "size": 5012,
+    "sha256": "705E3A21C30083EDDD389A737B68ADEA95E68D926CB25F72C2B74259E9BCA023"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\FINAL_PRE_TOOLING.json",
+    "size": 78340,
+    "sha256": "C6B15ED2A3CE4A5DB4EF02277A799C0F5984A80B72485579899A3CF010A68383"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\IMPLEMENTATION.diff",
+    "size": 69663,
+    "sha256": "BF5A375E11EE658EB7416D7A8E40130DF54815AA9A3349BADEDCA6C217756DEA"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\OWNER_DIRECTIVE.txt",
+    "size": 8560,
+    "sha256": "E627F069CDEF822D585224DB70C5A6445773DC6651EA27561BCA8A48707BF175"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\POST_TOOLING.json",
+    "size": 156482,
+    "sha256": "4E0C26391F883AA966E221CCB8AC00F4248556D4E316775B12B6893EFE042A6C"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\PYTHON_FINAL.log",
+    "size": 94361,
+    "sha256": "24DE0637BDC9C25E4F4C1AD46527FE3F1C946341B497988D49956077252E8FD3"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\PYTHON_INTERMEDIATE.log",
+    "size": 92316,
+    "sha256": "7BCE0BD3D60C6275D4D5B823981EF5EC0E2589CCBA12E68F0E49A1ED44D7120B"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\PYTHON_RELEASE.log",
+    "size": 94848,
+    "sha256": "11541C3CC84F6AEFA5B6C02CC8CB7D55C41C146398520074718B621EE9CEAFD8"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\PYTHON_SEALED.log",
+    "size": 94991,
+    "sha256": "A435F42C9B4CFE744A45616E118F5BABB30F2195BAEE2E50B42B12B20616C43B"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\REVIEW.md",
+    "size": 13183,
+    "sha256": "CC451085F9071904561D24C0D4D59EDF477A3B593EE3213CE2F69841EC55FCBF"
+  },
+  {
+    "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_conformance_interface_20260908\\TEST_RESULTS.json",
+    "size": 52665,
+    "sha256": "B05985147A270B11569C06B6EF2438CD6D0CBE4F83EDC10AEB2E4A5EFBDB9310"
+  }
+]

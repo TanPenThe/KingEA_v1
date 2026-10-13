@@ -1,0 +1,31 @@
+{
+  "kind": "NON_CANDIDATE_FORMAT_CAPACITY_MEASUREMENT",
+  "configuration_count": 1000,
+  "quote_snapshots_per_fixture": 10,
+  "source_proof_seal": "7405E945387E92920A21D815762736BFA774B7EE0D5E72FFE42EDDCC37E42EC5",
+  "measured_unarchived_dynamic_bytes": 15958890,
+  "measured_fixed_build_journal_overhead_bytes": 354589,
+  "W": 16313479,
+  "A": 715879,
+  "largest_sample_child_archive_bytes": 715879,
+  "telemetry_bytes": 138890,
+  "sample_archive_bytes": 361290,
+  "sample_archive_sha256": "BA8E33905BABA5DC5E13ECE2BC8FB6E64D50B7541966AB58F83B119BD475CC7C",
+  "formula": "200 * max(W,A) + 2 * largest_archive + 16 GiB",
+  "required_free_bytes": 20443996742,
+  "free_bytes": 26836361216,
+  "volume": "C:\\",
+  "formula_pass": true,
+  "hard_floor_bytes": 32212254720,
+  "hard_floor_pass": false,
+  "production_growth_bound_proven": false,
+  "result": "NOT_READY",
+  "limitations": [
+    "FORMAT_SAMPLE_NOT_A_BOUND_ON_FULL_PASS_QUOTE_OR_TRADE_COUNTS",
+    "PER_ELIGIBLE_TICK_SNAPSHOT_RETENTION_GROWS_WITH_EXPOSURE_DURATION",
+    "ACTIVE_C_VOLUME_BELOW_30_GIB"
+  ],
+  "candidate_execution": false,
+  "budget": 0,
+  "b2": "LOCKED"
+}

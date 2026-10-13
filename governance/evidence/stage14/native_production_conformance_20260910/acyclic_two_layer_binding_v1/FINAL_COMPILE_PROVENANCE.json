@@ -1,0 +1,16 @@
+{
+  "kind": "METAEDITOR_COMPILE_PROVENANCE",
+  "build": "FINAL_ACYCLIC_TWO_LAYER_BINDING_V1",
+  "command": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe /compile:C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\KingEA\\GuardedResearchTester.mq5 /log:C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260910\\acyclic_two_layer_binding_v1\\GuardedResearchTester_acyclic_final_compile.log",
+  "compiler_sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7",
+  "compiler_file_version": "5.0.0.6140",
+  "compile_start_utc": "2026-09-10T03:18:27.6912454Z",
+  "compile_end_utc": "2026-09-10T03:18:34.3429437Z",
+  "source_sha256": "89AC0D170665A0DE4C16D5D20A50C2B0BFD01ABF0660FB44FB13EF8A89911EDF",
+  "integration_sha256": "679984A59366245AF949BCE724ED0F18B86E73308B7BA4247C3D0BF38A757AC9",
+  "log_sha256": "3859C26D5045B61E673E005810AF45B463D0573487F70B95CAD2D0CC25D83D64",
+  "ex5_sha256": "AC6359FFEE65E9107ECFF25C150365A6AFF24422024C11F32B9272A71C872FEF",
+  "ex5_byte_length": 237744,
+  "result": "0 errors, 0 warnings",
+  "runtime": "NOT_LAUNCHED"
+}

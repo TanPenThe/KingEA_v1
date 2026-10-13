@@ -1,0 +1,19 @@
+{
+  "b2_root_created": false,
+  "b2_status": "LOCKED",
+  "compile": {
+    "command": ["C:/Program Files/MetaTrader 5/MetaEditor64.exe", "/compile:C:/KingEA_v1/MQL5/Experts/KingEA/GuardedResearchTester.mq5", "/log:C:/KingEA_v1/governance/evidence/stage14/b2_readiness_20260904/GuardedResearchTester_B2DateGate_V2_compile.log"],
+    "compiler_build": 6140,
+    "compiler_version": "5.0.0.6140",
+    "ex5_sha256": "C93CD13B423B5AE034B8636FFC064D3060F66E248B0717901489D4E6C201D579",
+    "log_sha256": "00D46C3737C3E6F5A517398700F4C566CF3CFC2DAFD5584B56A1E4452C39676C",
+    "result": "0 errors, 0 warnings",
+    "terminal_build": 6140,
+    "terminal_version": "5.0.0.6140"
+  },
+  "kind": "B2_DATE_GATE_COMPILE_AND_POST_TOOLING",
+  "post_tooling_source_hashes_match_pre_tooling": true,
+  "pre_tooling_manifest": "PRE_TOOLING_B2_DATE_GATE_REPAIR_V7_20260904.json",
+  "scope": "DATE_GATE_IMPLEMENTATION_NON_RESULT_CONFORMANCE_ONLY",
+  "supersedes": "B2_DATE_GATE_COMPILE_AND_POST_TOOLING.json"
+}

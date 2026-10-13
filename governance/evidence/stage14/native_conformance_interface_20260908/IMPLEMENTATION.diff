@@ -1,0 +1,878 @@
+--- before/MQL5/Experts/KingEA/GuardedResearchTester.mq5
++++ after/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+@@ -61,6 +61,8 @@
+ input int    InpDryBenchmarkPassId=0;
+ input string InpExpectedServerFragment="";
+ input int    InpExpectedTerminalBuild=0;
++input bool   InpNativeConformance=false;
++input string InpConformanceControlSha256="";
+ input bool   InpZeroEntryDiagnostic=false;
+ input string InpDiagnosticRootSha256="";
+ input string InpDiagnosticAuthorizationToken="";
+@@ -174,7 +176,13 @@
+                           KingEASafetyFacts &facts);
+ bool ResearchUsesVirtual();
+ bool ResearchNativeContext();
++string DAManifestString(string key);
+ bool ResearchNativeCompletion();
++bool ResearchConformanceValid();
++void ResearchConformanceTick(const MqlTick &tick);
++bool ResearchNativeOrderCheck(MqlTradeRequest &request);
++bool g_da_last_send_attempted=false;
++bool g_cf_entry_attempted=false,g_cf_reduction_attempted=false,g_cf_close_attempted=false;
+ void ResearchNativePoll(const MqlTick &tick);
+ void ResearchNativeSafetyObserve(const MqlTick &tick);
+ bool ResearchNativeRequest(MqlTradeRequest &request,DAIntent intent);
+@@ -448,6 +456,7 @@
+ 
+ bool ResearchAuthorizationValid()
+   {
++   if(InpNativeConformance)return ResearchConformanceValid();
+    if(!MQLInfoInteger(MQL_TESTER) || InpTesterModel!=4 ||
+       !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
+       !InpCloudAgentsDisabled || !ResearchPartitionAuthorized())
+@@ -839,6 +848,7 @@
+ 
+ bool ResearchOrderSend(MqlTradeRequest &request,MqlTradeResult &result)
+   {
++   g_da_last_send_attempted=false;
+    if(InpWorkloadDryRun || InpZeroEntryDiagnostic)
+     {
+       if(InpZeroEntryDiagnostic)
+@@ -856,6 +866,8 @@
+       return false;
+      }
+    if(!ResearchUsesVirtual() && g_da.intent!=DA_CONTAINMENT && !ResearchEvaluationEligible(TimeCurrent()))return false;
++   if(!ResearchNativeOrderCheck(request))return false;
++   g_da_last_send_attempted=true;
+    return OrderSend(request,result);
+   }
+ 
+@@ -1317,7 +1329,7 @@
+    request.price=(direction==KINGEA_DIRECTION_LONG ? tick.bid : tick.ask);
+    request.deviation=0;
+    request.magic=12001;
+-   request.comment="KINGEA|CAND-ETH-ST-001|EXIT";
++   request.comment=InpNativeConformance?"NON_CANDIDATE_CONFORMANCE|EXIT":"KINGEA|CAND-ETH-ST-001|EXIT";
+    request.type_filling=ORDER_FILLING_FOK;
+    if(!ResearchNativeRequest(request,DA_CLOSE))return false;
+    bool sent=ResearchOrderSend(request,result);ResearchNativeReceipt(result);
+@@ -1640,7 +1652,7 @@
+       (InpBranch=="RSB3" && _Symbol!="KINGEA_ETHUSD_S_RSB3") ||
+       (InpBranch!="RECORDED" && InpBranch!="RSB3"))
+       return INIT_FAILED;
+-   if(!KingEAResearchDecodeConfiguration(InpConfigurationId,g_parameters))
++   if(!InpNativeConformance && !KingEAResearchDecodeConfiguration(InpConfigurationId,g_parameters))
+       return INIT_PARAMETERS_INCORRECT;
+    if(!InpZeroEntryDiagnostic && !InpWorkloadDryRun &&
+       !ResearchEvaluationWindowValid())
+@@ -1686,6 +1698,7 @@
+    MqlTick tick={};
+    if(!SymbolInfoTick(_Symbol,tick) || tick.bid<=0.0)
+       return;
++   if(InpNativeConformance){ResearchConformanceTick(tick);return;}
+    if(!ResearchUsesVirtual() && !InpZeroEntryDiagnostic){
+       ResearchNativePoll(tick);
+       if(g_da.invalid){ResearchUpdateSpreadState(tick);ResearchUpdatePeriodsFast(tick.time);ResearchNativeSafetyObserve(tick);return;}
+@@ -1773,6 +1786,13 @@
+ 
+ double OnTester()
+   {
++   if(InpNativeConformance){
++      MqlTick tick={};if(SymbolInfoTick(_Symbol,tick))ResearchNativePoll(tick);
++      if(g_da.invalid||g_hard_failures||g_da.pending)return -1.0;
++      if(!g_da.projected && DAManifestString("outcome")=="NORMAL_CLOSE" && !ResearchNativeNormalCloseReady())return -1.0;
++      if(!g_da.projected && !ResearchNativeBoundaryFinalize())return -1.0;
++      return g_da.projected && ResearchNativeCompletion()?0.0:-1.0;
++   }
+    if(InpZeroEntryDiagnostic)
+      {
+       string payload=KingEAZeroEntryPayload(g_zero_entry_funnel,InpBranch,
+--- before/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh
++++ after/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh
+@@ -45,6 +45,12 @@
+  return found;
+ }
+ bool ResearchNativeContext(){
++ if(InpNativeConformance){
++  if(!ResearchConformanceValid())return false;
++  g_da_candidate="NON_CANDIDATE_NATIVE_CONFORMANCE_V1";
++  g_da_configuration=DAManifestString("configuration_sha256");g_da_profile=DAManifestString("tester_profile_sha256");
++  return ResearchHash(g_da_configuration)&&ResearchHash(g_da_profile);
++ }
+  if(!DABoundNativeProfile()||!ResearchHash(g_manifest_input_hash)||g_manifest_input_hash!=InpManifestFileSha256)return false;
+  if(DAManifestString("candidate_id")!="CAND-ETH-ST-002"||
+     DAManifestString("native_cost_contract")!="NATIVE_GROUP_LIFECYCLE_CONTRACT_V3"||
+@@ -73,13 +79,13 @@
+  ",\"bid\":"+DANumber(p.bid)+",\"ask\":"+DANumber(p.ask)+",\"mark\":"+DANumber(p.mark)+",\"time_msc\":"+(string)p.time_msc+",\"reads\":"+(string)p.reads+",\"valid\":"+DAFlag(p.valid)+"}";
+ }
+ bool ResearchNativeBegin(const string group,const int side,const double volume,const long now,const double stop,const double equity,const double risk){
+- if(!ResearchNativeContext()||side!=1){g_da.Invalidate("SWAP_PROFILE_NOT_AUTHORIZED");return false;}
++ if(!ResearchNativeContext()||(!InpNativeConformance&&side!=1)||(InpNativeConformance&&side!=(DAManifestString("side")=="LONG"?1:-1))){g_da.Invalidate("SWAP_PROFILE_NOT_AUTHORIZED");return false;}
+  if(!g_da.Begin(group,_Symbol,side,volume,stop,g_da_base,risk,_Digits,(long)g_evaluation_end_exclusive*1000))return false;
+  ArrayResize(g_da_records,0);ArrayResize(g_da_record_roles,0);g_da_terminal_count=0;g_da_loss_reported=false;g_da_close_attempted=false;g_da_reduction_attempted=false;
+  g_native_start_msc=now;g_native_exit_pending=false;g_native_boundary_projected=false;ZeroMemory(g_da_sealed);
+  if(!ResearchNativeRecord("ORIGINAL","{\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(group)+
+   ",\"configuration_id\":"+(string)InpConfigurationId+",\"V0\":"+DANumber(volume)+",\"S0\":"+DANumber(stop)+",\"E0\":"+DANumber(g_da_base)+",\"R0\":"+DANumber(risk)+
+-  ",\"profile_hash\":"+DAQuote(g_da_profile)+"}"))return false;
++  ",\"profile_hash\":"+DAQuote(g_da_profile)+(InpNativeConformance?",\"evidence_scope\":\"NON_CANDIDATE_NATIVE_CONFORMANCE\",\"fixture_id\":"+DAQuote(DAManifestString("fixture_id")):"")+"}"))return false;
+  return g_da.Prepare(DA_ENTRY,volume);
+ }
+ bool ResearchNativeRequest(MqlTradeRequest &request,DAIntent intent){
+@@ -101,6 +107,7 @@
+   ",\"reason\":"+DAQuote(intent==DA_REDUCTION?"SPREAD_ABOVE_2_5X_REDUCE_50_PERCENT":g_da_close_reason)+",\"position\":"+(string)request.position+",\"FOK\":true,\"attempt_consumed\":"+DAFlag(g_da.contained)+"}");
+ }
+ void ResearchNativeReceipt(const MqlTradeResult &receipt){
++ if(!g_da_last_send_attempted){g_native_receipt_known=false;ResearchNativeRecord("ORDER_SEND_NOT_ATTEMPTED",DAQuote(g_da.failure));return;}
+  g_native_receipt=receipt;g_native_receipt_known=true;g_da.order=receipt.order;
+  // A broker result.deal volume is not an aggregate-order terminality oracle.
+  ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"REQUEST_RESULT",
+@@ -263,7 +270,7 @@
+ 
+ bool ResearchNativeCompletion(){
+  if(g_da.invalid||g_da.pending||g_hard_failures!=0||!ResearchNativeContext())return false;
+- string value="{\"kind\":\"NATIVE_V3_COMPLETION\",\"run_id\":"+DAQuote(InpManifestSha256)+
++ string value="{\"kind\":"+DAQuote(InpNativeConformance?"NON_CANDIDATE_CONFORMANCE_COMPLETION":"NATIVE_V3_COMPLETION")+",\"run_id\":"+DAQuote(InpManifestSha256)+
+   ",\"configuration_id\":"+(string)InpConfigurationId+",\"profile_hash\":"+DAQuote(g_da_profile)+
+   ",\"group_count\":"+(string)g_accounting_close_count+",\"boundary_count\":"+(string)g_boundary_finalization_count+
+   ",\"research_invalid\":false,\"containment_attempted\":false,\"unsupported_financial_events\":[],\"complete\":1}";
+@@ -271,3 +278,62 @@
+  uchar frame[];int n=StringToCharArray(value,frame,0,WHOLE_ARRAY,CP_UTF8);if(n>0)ArrayResize(frame,n-1);
+  return n>0&&FrameAdd("KINGEA_V3_NATIVE_COMPLETE",InpConfigurationId,0.0,frame);
+ }
++
++// Fixed infrastructure dispatcher. No Candidate signal evaluation or adaptive schedule.
++bool ResearchConformanceValid(){
++ if(!InpNativeConformance||!MQLInfoInteger(MQL_TESTER)||MQLInfoInteger(MQL_OPTIMIZATION)||!DABoundNativeProfile())return false;
++ if(InpPurpose!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1"||InpGate!="0"||InpRootSha256!=""||InpDetachedAuthorizationToken!=""||InpConfigurationId!=0||InpZeroEntryDiagnostic||InpWorkloadDryRun)return false;
++ if(InpBranch!="RECORDED"||InpScenario!="BASELINE_20MS"||InpSpreadMultiplier!=1.0||InpCostMultiplier!=1.0||InpSlippageSpreadFraction!=0||InpVolatilityDependentSlippage||InpMissedEntryFraction!=0)return false;
++ if(InpExecutionAdapter!="NATIVE"||InpDelayMs!=20||InpTesterModel!=4||!InpLocalAgentsOnly||!InpRemoteAgentsDisabled||!InpCloudAgentsDisabled||!ResearchEvaluationWindowValid())return false;
++ if(!ResearchHash(InpConformanceControlSha256)||ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256||!ResearchHash(InpManifestFileSha256))return false;
++ if(ResearchFileSha256(InpCalendarIntervalsFile)!=InpCalendarFileSha256||!ResearchHash(InpCalendarFileSha256))return false;
++ if(DAManifestString("domain")!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1"||DAManifestString("control_sha256")!=InpConformanceControlSha256||DAManifestString("run_id")!=InpManifestSha256||DAManifestString("data_scope")!="DEVELOPMENT_ONLY")return false;
++ if(DAManifestString("swap_transition_rule_sha256")!="BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772"||DAManifestString("inventory_protocol_sha256")!="42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6")return false;
++ string side=DAManifestString("side");
++ long start=(long)StringToInteger(DAManifestString("start_msc")),end=(long)StringToInteger(DAManifestString("end_msc"));
++ long entry=(long)StringToInteger(DAManifestString("entry_msc")),reduce=(long)StringToInteger(DAManifestString("reduction_msc")),close=(long)StringToInteger(DAManifestString("close_msc"));
++ if(start!=(long)g_evaluation_start*1000||end!=(long)g_evaluation_end_exclusive*1000||start>entry||entry>=reduce||reduce>=end)return false;
++ bool boundary=DAManifestString("outcome")=="EVALUATOR_BOUNDARY";
++ if((boundary&&close!=0)||(!boundary&&(DAManifestString("outcome")!="NORMAL_CLOSE"||close<=reduce||close>=end)))return false;
++ return (side=="LONG"||side=="SHORT")&&StringToDouble(DAManifestString("volume"))>0&&StringToDouble(DAManifestString("S0"))>0;
++}
++void ResearchConformanceTick(const MqlTick &tick){
++ if(!ResearchConformanceValid()){g_da.Invalidate("CONFORMANCE_CONTEXT_LOST");g_hard_failures++;}
++ ResearchNativePoll(tick);
++ if(g_da.invalid){ResearchNativeSafetyObserve(tick);return;}
++ ResearchFinalizeClosedTrade();
++ if(g_da_fallback_due&&!g_da.pending){g_da_fallback_due=false;g_cf_close_attempted=true;g_da_close_reason="BROKER_VOLUME_FALLBACK";ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";}
++ ResearchUpdateSpreadState(tick);ResearchUpdatePeriodsFast(tick.time);ResearchNativeSafetyObserve(tick);
++ if(tick.time_msc>=(long)g_evaluation_end_exclusive*1000){ResearchNativeBoundaryFinalize();return;}
++ if(!ResearchEvaluationEligible(tick.time)||g_da.projected)return;
++ long entry=(long)StringToInteger(DAManifestString("entry_msc")),reduce=(long)StringToInteger(DAManifestString("reduction_msc")),close=(long)StringToInteger(DAManifestString("close_msc"));
++ int side=DAManifestString("side")=="LONG"?1:-1;
++ if(!g_cf_entry_attempted&&tick.time_msc>=entry){
++  g_cf_entry_attempted=true;
++  if(tick.time_msc>=reduce){g_da.Invalidate("FIXTURE_ENTRY_WINDOW_MISSED");return;}
++  double volume=StringToDouble(DAManifestString("volume")),stop=StringToDouble(DAManifestString("S0")),price=side==1?tick.ask:tick.bid,risk=0;
++  if((side==1&&stop>=price)||(side==-1&&stop<=price)||!OrderCalcProfit(side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL,_Symbol,volume,price,stop,risk)||risk>=0){g_da.Invalidate("FIXTURE_STOP_OR_RISK_INVALID");return;}
++  string group=DAManifestString("group_id");
++  if(!ResearchNativeBegin(group,side,volume,tick.time_msc,stop,g_da_base,-risk))return;
++  g_trade_group_id=group;g_position.direction=side;g_position.has_position=true;g_position.entry_price=price;
++  g_position.original_confirmed_stop=stop;g_position.original_stop_confirmed=true;g_trade_volume=volume;g_spread_reduced=false;
++  MqlTradeRequest r={};MqlTradeResult result={};r.action=TRADE_ACTION_DEAL;r.symbol=_Symbol;r.magic=12001;
++  r.type=side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL;r.volume=volume;r.price=price;r.sl=stop;r.type_filling=ORDER_FILLING_FOK;r.comment="NON_CANDIDATE_CONFORMANCE";
++  ResearchOrderSend(r,result);ResearchNativeReceipt(result);
++ }
++ if(!g_da.pending&&g_da.position>0&&!g_cf_reduction_attempted&&tick.time_msc>=reduce){
++  g_cf_reduction_attempted=true;
++  if(close>0&&tick.time_msc>=close){g_da.Invalidate("FIXTURE_REDUCTION_WINDOW_MISSED");return;}
++  ResearchReduceHalf(tick);
++ }
++ if(close>0&&!g_da.pending&&!g_cf_close_attempted&&tick.time_msc>=close){g_cf_close_attempted=true;ResearchClose(side,tick);}
++ ResearchNativeSeal(tick);
++}
++bool ResearchNativeOrderCheck(MqlTradeRequest &r){
++ MqlTradeCheckResult c={};ResetLastError();bool ok=OrderCheck(r,c);int error=GetLastError();
++ string request="{\"action\":"+(string)r.action+",\"magic\":"+(string)r.magic+",\"order\":"+(string)r.order+",\"symbol\":"+DAQuote(r.symbol)+",\"volume\":"+DANumber(r.volume)+",\"price\":"+DANumber(r.price)+",\"stoplimit\":"+DANumber(r.stoplimit)+",\"sl\":"+DANumber(r.sl)+",\"tp\":"+DANumber(r.tp)+",\"deviation\":"+(string)r.deviation+",\"type\":"+(string)r.type+",\"type_filling\":"+(string)r.type_filling+",\"type_time\":"+(string)r.type_time+",\"expiration\":"+(string)r.expiration+",\"comment\":"+DAQuote(r.comment)+",\"position\":"+(string)r.position+",\"position_by\":"+(string)r.position_by+"}";
++ string payload="{\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(g_da.group)+",\"request\":"+request+",\"request_hash\":"+DAQuote(ResearchSha256String(request))+",\"bool_return\":"+DAFlag(ok)+",\"retcode\":"+(string)c.retcode+",\"error\":"+(string)error+",\"comment\":"+DAQuote(c.comment)+",\"balance\":"+DANumber(c.balance)+",\"equity\":"+DANumber(c.equity)+",\"profit\":"+DANumber(c.profit)+",\"margin\":"+DANumber(c.margin)+",\"margin_free\":"+DANumber(c.margin_free)+",\"margin_level\":"+DANumber(c.margin_level)+",\"time_msc\":"+(string)((long)TimeCurrent()*1000)+",\"context_hash\":"+DAQuote(InpNativeConformance?InpConformanceControlSha256:InpManifestFileSha256)+"}";
++ if(!ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"ORDER_CHECK",payload))return false;
++ if(!ok||c.retcode!=0){g_da.Invalidate("ORDER_CHECK_REJECTED_NO_SEND");return false;}
++ return true;
++}
+--- before/research_pipeline/decision_a_evidence.py
++++ after/research_pipeline/decision_a_evidence.py
+@@ -135,9 +135,9 @@
+     SYMBOL_SWAP_MONDAY='1', SYMBOL_SWAP_TUESDAY='1', SYMBOL_SWAP_WEDNESDAY='3',
+     SYMBOL_SWAP_THURSDAY='1', SYMBOL_SWAP_FRIDAY='1', SYMBOL_SWAP_SATURDAY='0', SYMBOL_SWAP_SUNDAY='0')
+ 
+-def validate_profile(profile, side='LONG'):
++def validate_profile(profile, side='LONG', *, conformance=None):
+     require(isinstance(profile, dict), 'SWAP_PROFILE_NOT_AUTHORIZED')
+-    require(profile.get('accepted_proof_sha256') == NATIVE_PROOF and
++    require((conformance is not None or profile.get('accepted_proof_sha256') == NATIVE_PROOF) and
+             profile.get('server') == 'JustMarkets-Demo2' and profile.get('symbol') == 'ETHUSD.s' and
+             all(profile.get(k) == 6140 for k in ('terminal_build', 'compiler_build', 'agent_build')),
+             'SWAP_PROFILE_NOT_AUTHORIZED')
+@@ -149,7 +149,12 @@
+     for key, expected in SWAP_FACTS.items():
+         require(key in facts and number(facts[key]) == number(expected), 'SWAP_PROFILE_NOT_AUTHORIZED')
+     # No separately accepted SHORT proof is currently in the governing contract.
+-    require(side == 'LONG', 'NATIVE_CONFORMANCE_REQUIRED_BEFORE_SUCCESSOR_READINESS')
++    if conformance is None:
++        require(side == 'LONG', 'NATIVE_CONFORMANCE_REQUIRED_BEFORE_SUCCESSOR_READINESS')
++    else:
++        from .native_conformance_control import ConformanceControl
++        require(type(conformance) is ConformanceControl,'INDEPENDENT_CONFORMANCE_CONTEXT_REQUIRED')
++        conformance.validate_profile(profile, side)
+ 
+ def classify_execution(requested, volumes, *, terminal, confirmed_executed=None, no_fill_receipt=False):
+     if not terminal or confirmed_executed is None:
+@@ -266,7 +271,7 @@
+             (number(deal['swap'])+number(after['position_swap'])).quantize(q), 'SWAP_TRANSITION_CONSERVATION_FAIL')
+ 
+ 
+-def assemble_native_archive(raw, binding, profile, authority_artifacts, *, expected_capture_hash, expected_configuration):
++def assemble_native_archive(raw, binding, profile, authority_artifacts, *, expected_capture_hash, expected_configuration, conformance=None):
+     """Build unsealed R/S/A from an independently pinned native capture.
+ 
+     Pure bytes in/out. No seal, approval, root, result acceptance or file write.
+@@ -278,7 +283,9 @@
+     require(set(capture)=={'kind','run_id','group_id','outcome','records'} and
+             capture['kind']=='NATIVE_LIFECYCLE_CAPTURE_V3' and
+             capture['run_id']==binding['run_id'] and capture['group_id']==binding['group_id'], 'NATIVE_CAPTURE_BINDING')
+-    validate_profile(profile)
++    side = 'LONG' if conformance is None else conformance.side
++    if conformance is not None: conformance.validate_binding(binding)
++    validate_profile(profile, side, conformance=conformance)
+     rows=capture['records'];require(type(rows) is list and 1<=len(rows)<=256,'NATIVE_CAPTURE_CARDINALITY')
+     support={}
+     def add(role,value,serialized=False):
+@@ -288,7 +295,7 @@
+         support[path]=(role,data);return digest(data)
+     def scoped(**kw):return dict(run_id=binding['run_id'],group_id=binding['group_id'],**kw)
+     originals=[];native_deals={};native_positions=[];requests=[];terminals={};prepared=[];committed=[]
+-    pending_before=None;pending_intent=None;passive_stop=False
++    pending_before=None;pending_intent=None;passive_stop=False;pending_check=None
+     for seq,row in enumerate(rows,1):
+         require(type(row) is dict and set(row)=={'role','payload'} and type(row['payload']) is str,'NATIVE_ROW_FIELDS')
+         role=row['role'];payload=row['payload']
+@@ -307,8 +314,15 @@
+             native_positions.append((role,position,seq))
+             if role=='BEFORE_REQUEST':pending_before=position
+         elif role=='BEFORE_REQUEST_INTENT':pending_intent=parse_json(payload.encode())
++        elif role=='ORDER_CHECK':
++            pending_check=parse_json(payload.encode())
++            validate_order_check(pending_check,binding,conformance=conformance)
+         elif role=='REQUEST_RESULT':
+-            result=parse_json(payload.encode());requests.append((result,pending_intent,pending_before,seq));pending_intent=None;pending_before=None
++            result=parse_json(payload.encode())
++            if conformance is not None:require(pending_check is not None,'NATIVE_ORDER_CHECK_REQUIRED')
++            if pending_check is not None:
++                require(number(pending_check['request']['volume'])==number(result['volume']), 'ORDER_CHECK_RESULT_VOLUME_MISMATCH')
++            requests.append((result,pending_intent,pending_before,seq,pending_check));pending_check=None;pending_intent=None;pending_before=None
+         elif role=='STATIC_PROTECTIVE_STOP_INTENT':passive_stop=True
+         elif role=='ORDER_TERMINAL_OBSERVATION':
+             t=parse_json(payload.encode())
+@@ -328,13 +342,21 @@
+     original=originals[0];require(type(expected_configuration) is int and original.get('configuration_id')==expected_configuration,'NATIVE_CONFIGURATION_MISMATCH')
+     require(original['run_id']==binding['run_id'] and original['group_id']==binding['group_id'] and original['profile_hash']==binding['tester_profile_hash'],'NATIVE_ORIGINAL_BINDING')
+     native=list(native_deals.values());native.sort(key=lambda pair:(pair[0]['time'],pair[1]))
+-    entry=native[0][0];require(entry['entry']==0 and entry['type']==0,'NATIVE_ENTRY_OR_SIDE_UNSUPPORTED')
++    entry=native[0][0];require(entry['entry']==0 and entry['type']==(0 if side=='LONG' else 1),'NATIVE_ENTRY_OR_SIDE_UNSUPPORTED')
+     live=[(role,p,seq) for role,p,seq in native_positions if number(p['volume'])>0]
+     require(live,'EFFECTIVE_ENTRY_STOP_MISSING');entry_pos=next((p for role,p,seq in live if role=='RECONCILED_POSITION'),None)
+     require(entry_pos is not None and entry_pos['position_id']==entry['position'] and number(entry_pos['volume'])==number(original['V0']),'EFFECTIVE_ENTRY_STOP_MISSING')
+-    o={k:original[k] for k in ('V0','S0','E0','R0')};o.update(P0=entry_pos['basis'],side='LONG',position_id=entry['position'],entry_intent_hash='',entry_effective_stop_hash='')
++    require((number(original['S0'])<number(entry_pos['basis'])) if side=='LONG' else (number(original['S0'])>number(entry_pos['basis'])), 'ENTRY_STOP_DIRECTION_INVALID')
++    o={k:original[k] for k in ('V0','S0','E0','R0')};o.update(P0=entry_pos['basis'],side=side,position_id=entry['position'],entry_intent_hash='',entry_effective_stop_hash='')
+     roles={'configuration_hash':'CONFIGURATION_SPECIFICATION','source_manifest_hash':'SOURCE_MANIFEST','executable_hash':'EXECUTABLE','specification_hash':'COMBINED_SPECIFICATION','decision_a_hash':'DECISION_A_SPECIFICATION','decision_s_hash':'DECISION_S_SPECIFICATION','freeze_receipt_hash':'FREEZE_RECEIPT','execution_receipt_hash':'EXECUTION_RECEIPT','tester_profile_hash':'TESTER_PROFILE'}
++    if conformance is not None:
++        roles.pop('freeze_receipt_hash');roles.pop('execution_receipt_hash')
++        roles['conformance_control_hash']='CONFORMANCE_CONTROL'
++        roles['fixture_specification_hash']='FIXTURE_SPECIFICATION'
++        roles['launch_record_hash']='CONFORMANCE_LAUNCH_RECORD'
+     for key,role in roles.items():require(add(role,authority_artifacts[role],True)==binding[key],'INDEPENDENT_AUTHORITY_ARTIFACT_MISMATCH:'+role)
++    if conformance is not None:
++        for key in ('SET','INI','MANIFEST','CALENDAR'):add('CONFORMANCE_LAUNCH_'+key,authority_artifacts['CONFORMANCE_LAUNCH_'+key],True)
+     pr=dict(volume_step=profile['facts']['SYMBOL_VOLUME_STEP'],volume_digits=8,currency='USD',currency_precision=8,
+             price_convention_hash=add('PRICE_CONVENTION',authority_artifacts['PRICE_CONVENTION'],True),arithmetic_contract_hash=add('ARITHMETIC_CONTRACT',authority_artifacts['ARITHMETIC_CONTRACT'],True))
+     native_hash=add('NATIVE_CAPTURE',raw,True)
+@@ -342,7 +364,7 @@
+     require(swap_profile==profile['native_swap_profile_hash'],'SWAP_PROFILE_NOT_AUTHORIZED')
+     snapshots=[];deals=[];swaps=[];previous='0'*64
+     def snapshot(pos,predecessor,sid):
+-        require(pos['position_id']==o['position_id'] and pos['symbol']==binding['symbol'] and pos['magic']==12001 and pos['side']==0,'NATIVE_POSITION_IDENTITY')
++        require(pos['position_id']==o['position_id'] and pos['symbol']==binding['symbol'] and pos['magic']==12001 and pos['side']==(0 if side=='LONG' else 1),'NATIVE_POSITION_IDENTITY')
+         snap=dict(snapshot_id=sid,predecessor_deal_id=predecessor,position_id=pos['position_id'],position_ticket=pos['position_ticket'],native_or_observation_time=pos['time_msc'],time_source='CALLBACK_OR_TICK_OBSERVATION_MSC',Vr=pos['volume'],P0=pos['basis'],S0=pos['sl'],bid=pos['bid'],ask=pos['ask'],mark=pos['mark'],position_swap=pos['swap'],read_flags={k:True for k in ('position_id','ticket','volume','basis','sl','swap','quote','mark','symbol','magic','side')})
+         snap['snapshot_hash']=add('POSITION_SNAPSHOT:'+sid,snap);snapshots.append(snap);return snap
+     entry_snapshot=snapshot(entry_pos,entry['ticket'],'entry')
+@@ -350,6 +372,7 @@
+     remaining=number(o['V0'])
+     for i,(nd,seq) in enumerate(native):
+         require(nd['position']==o['position_id'],'FOREIGN_NATIVE_POSITION')
++        require(nd['type']==((0 if side=='LONG' else 1) if i==0 else (1 if side=='LONG' else 0)), 'NATIVE_DEAL_DIRECTION_MISMATCH')
+         matching=[r for r in requests if r[0]['order']==nd['order']]
+         passive=i>0 and nd['reason']==4 and passive_stop and not matching
+         require(len(matching)==1 or passive,'NATIVE_REQUEST_BINDING_MISSING')
+@@ -357,6 +380,9 @@
+         role='ENTRY' if i==0 else 'SAFETY_REDUCTION' if req and req[1] and req[1]['intent']==1 else 'FINAL_CLOSE'
+         q=o['V0'] if i==0 else req[1]['volume'] if req and req[1] else str(remaining)
+         t=terminals.get(nd['order']);require(t is not None and t['symbol']==binding['symbol'] and t['state']==4 and t['type']==nd['type'] and number(t['unfilled'])==0 and number(nd['volume'])==number(q),'NATIVE_TERMINALITY_OR_CARDINALITY')
++        if req and req[4] is not None:
++            cr=req[4]['request']
++            require(cr['type']==nd['type'] and number(cr['volume'])==number(q) and cr['position']==(0 if i==0 else entry_pos['position_ticket']), 'ORDER_CHECK_DEAL_LINK')
+         reason='STATIC_PROTECTIVE_STOP' if passive else 'ENTRY' if i==0 else req[1]['reason']
+         intent=scoped(order_id=nd['order'],role=role,requested_volume=q,filling='ORDER_FILLING_FOK',context_integrity=True,governed_reason=reason)
+         receipt=scoped(order_id=nd['order'],terminal=True,read_ok=True,deal_ids=[nd['ticket']],executed_volume=nd['volume'],position_id=o['position_id'],classification='FOK_FULL_SINGLE_DEAL')
+@@ -407,7 +433,7 @@
+     # Construction-time conformance only: no seal and no acceptance transition.
+     r=parse_json(files['references.json'])
+     view=VerifiedReferences(scope,tuple(r['entries']),files,digest(files['references.json']))
+-    validate_package(files['sidecar.evidence'],binding,profile,view)
++    validate_package(files['sidecar.evidence'],binding,profile,view,conformance=conformance)
+     return files
+ 
+ TOP = {'contract_id','package_id','semantic_id','binding','precision','original','entry',
+@@ -426,7 +452,7 @@
+     require(isinstance(value, dict) and set(value) == TOP, 'V3_FIELDS_REQUIRED')
+     return value
+ 
+-def validate_package(raw, expected, profile, references=None):
++def validate_package(raw, expected, profile, references=None, *, conformance=None):
+     require(type(references) is VerifiedReferences, 'VERIFIED_REFERENCE_INVENTORY_REQUIRED')
+     p = read_package(raw)
+     require(p['integrity'].get('archive_inventory_hash') == references.reference_hash, 'REFERENCE_INVENTORY_BINDING_REQUIRED')
+@@ -434,7 +460,7 @@
+     b = p['binding']
+     require(isinstance(b, dict) and all(b.get(k) == v for k, v in expected.items()), 'V3_BINDING_MISMATCH')
+     require(b.get('decision_a_hash') and b.get('decision_s_hash') and b.get('specification_hash') == ADOPTION, 'ADOPTION_BINDING_INVALID')
+-    original = p['original']; validate_profile(profile, original.get('side'))
++    original = p['original']; validate_profile(profile, original.get('side'), conformance=conformance)
+     for k in ('V0', 'P0', 'E0', 'R0', 'S0'):
+         require(number(original[k]) > 0, 'ORIGINAL_BASIS_INVALID')
+     require(isinstance(p['exit_portions'], list) and 0 <= len(p['exit_portions']) <= 2, 'EXIT_CARDINALITY')
+@@ -494,7 +520,7 @@
+         require(number(term[k]).quantize(Decimal('0.000000000001'))==v.quantize(Decimal('0.000000000001')), 'COMPONENT_ORACLE_MISMATCH:'+k)
+     h=p['safety_handoff'];require(number(h['base_after'])==number(h['base_before'])+net and number(h['contribution_before'])==net and number(h['contribution_after'])==0, 'DOUBLE_SAFETY_PROJECTION')
+     require(p['integrity']['lifecycle_root']==previous and p['integrity']['sidecar_hash_algorithm']=='SHA256', 'LIFECYCLE_ROOT_INVALID')
+-    validate_lifecycle_references(p, expected, profile, references)
++    validate_lifecycle_references(p, expected, profile, references, conformance=conformance)
+     return p
+ 
+ # Adopted evidence-integrity convention; not execution or successor authority.
+@@ -532,12 +558,14 @@
+     require(isinstance(binding, dict), 'ARCHIVE_BINDING_REQUIRED')
+     required = {'run_id','group_id','contract_id','package_id','semantic_id','decision_a_hash',
+                 'decision_s_hash','inventory_protocol_hash','execution_receipt_hash','tester_profile_hash'}
++    if binding.get('evidence_scope')=='NON_CANDIDATE_NATIVE_CONFORMANCE':
++        required.remove('execution_receipt_hash');required.update({'conformance_control_hash','fixture_specification_hash','fixture_id','evidence_scope'})
+     require(required <= set(binding), 'ARCHIVE_BINDING_FIELDS')
+     require(binding['contract_id'] == CONTRACT and binding['package_id'] == PACKAGE and
+             binding['semantic_id'] == SEMANTICS and binding['inventory_protocol_hash'] == INVENTORY_ADOPTION and
+             binding['decision_a_hash'] == DECISION_A_ADOPTION and binding['decision_s_hash'] == DECISION_S_ADOPTION,
+             'ARCHIVE_ADOPTION_OR_DOWNGRADE')
+-    for key in ('run_id','execution_receipt_hash','tester_profile_hash'):
++    for key in ('run_id','conformance_control_hash' if binding.get('evidence_scope')=='NON_CANDIDATE_NATIVE_CONFORMANCE' else 'execution_receipt_hash','tester_profile_hash'):
+         require(hash_value(binding[key]), 'ARCHIVE_BINDING_HASH_INVALID')
+     require(type(binding['group_id']) is str and 0 < len(binding['group_id']) <= 256, 'GROUP_ID_INVALID')
+ 
+@@ -700,7 +728,7 @@
+                    'financial_projection_count','boundary_snapshot_hash'}
+ 
+ 
+-def validate_lifecycle_references(p, expected, profile, references):
++def validate_lifecycle_references(p, expected, profile, references, *, conformance=None):
+     """Mandatory second half of V3 verification after independently sealed bytes."""
+     used = set()
+     def ref(sha, role, *, json_record=True):
+@@ -714,13 +742,15 @@
+     def bound(value):
+         require(type(value) is dict and value.get('run_id') == b['run_id'] and value.get('group_id') == b['group_id'], 'SUPPORTING_SCOPE_MISMATCH')
+     b=p['binding'];o=p['original'];t=p['terminal'];pr=p['precision'];handoff=p['safety_handoff']
+-    fields(b,BINDING_FIELDS,'V3_BINDING_FIELDS');fields(o,ORIGINAL_FIELDS,'ORIGINAL_FIELDS')
++    binding_fields=BINDING_FIELDS if conformance is None else conformance.binding_fields
++    fields(b,binding_fields,'V3_BINDING_FIELDS');fields(o,ORIGINAL_FIELDS,'ORIGINAL_FIELDS')
+     fields(pr,PRECISION_FIELDS,'PRECISION_FIELDS');fields(t,TERMINAL_FIELDS,'TERMINAL_FIELDS')
+     fields(handoff,HANDOFF_FIELDS,'HANDOFF_FIELDS')
+     fields(p['integrity'],{'lifecycle_root','archive_inventory_hash','sidecar_hash_algorithm'},'INTEGRITY_FIELDS')
+-    require(b['candidate_id']=='CAND-ETH-ST-002' and b['specification_hash']==ADOPTION and
++    if conformance is not None: conformance.validate_binding(b)
++    require((b['candidate_id']=='CAND-ETH-ST-002' if conformance is None else b['candidate_id']==conformance.domain) and b['specification_hash']==ADOPTION and
+             b['decision_a_hash']==DECISION_A_ADOPTION and b['decision_s_hash']==DECISION_S_ADOPTION, 'ADOPTION_BINDING_INVALID')
+-    require(all(type(b[k]) is str and b[k] for k in BINDING_FIELDS), 'EMPTY_BINDING')
++    require(all(type(b[k]) is str and b[k] for k in binding_fields), 'EMPTY_BINDING')
+     integer(o['position_id']);integer(t['time_msc']);integer(t['stage13_sequence'])
+     require(type(t['financial_projection_count']) is int and t['financial_projection_count']==1, 'SECOND_FINANCIAL_PROJECTION')
+     require(type(pr['volume_digits']) is int and 0<=pr['volume_digits']<=8 and pr['currency']=='USD' and
+@@ -735,8 +765,13 @@
+                      ('decision_a_hash','DECISION_A_SPECIFICATION'),('decision_s_hash','DECISION_S_SPECIFICATION'),
+                      ('freeze_receipt_hash','FREEZE_RECEIPT'),('execution_receipt_hash','EXECUTION_RECEIPT'),
+                      ('tester_profile_hash','TESTER_PROFILE')]:
++        if conformance is not None and key=='freeze_receipt_hash':key,role='conformance_control_hash','CONFORMANCE_CONTROL'
++        if conformance is not None and key=='execution_receipt_hash':key,role='fixture_specification_hash','FIXTURE_SPECIFICATION'
+         raw=ref(b[key],role,json_record=False)
+         if role=='TESTER_PROFILE':require(parse_json(raw)==profile,'PROFILE_REFERENCE_MISMATCH')
++    if conformance is not None:
++        launch=ref(b['launch_record_hash'],'CONFORMANCE_LAUNCH_RECORD')
++        for key in ('set','ini','manifest','calendar'):ref(launch[key+'_file']['sha256'],'CONFORMANCE_LAUNCH_'+key.upper(),json_record=False)
+     for key,role in [('price_convention_hash','PRICE_CONVENTION'),('arithmetic_contract_hash','ARITHMETIC_CONTRACT')]:
+         ref(pr[key],role,json_record=False)
+         require(profile[key]==pr[key],'UNPINNED_PRECISION_CONVENTION')
+@@ -844,3 +879,26 @@
+             commit.get('financial_projection_count')==1 and commit.get('atomic_handoff') is True and
+             commit.get('research_valid') is True,'TERMINAL_COMMIT_UNAUTHENTICATED')
+     require(used=={(e['sha256'],e['role']) for e in references.entries},'UNREFERENCED_SUPPORTING_EVIDENCE')
++
++
++ORDER_REQUEST_FIELDS={'action','magic','order','symbol','volume','price','stoplimit','sl','tp','deviation','type','type_filling','type_time','expiration','comment','position','position_by'}
++ORDER_CHECK_FIELDS={'run_id','group_id','request','request_hash','bool_return','retcode','error','comment','balance','equity','profit','margin','margin_free','margin_level','time_msc','context_hash'}
++def validate_order_check(check,binding,*,conformance=None):
++    require(type(check) is dict and set(check)==ORDER_CHECK_FIELDS,'ORDER_CHECK_FIELDS')
++    require(check['run_id']==binding['run_id'] and check['group_id']==binding['group_id'],'FOREIGN_ORDER_CHECK')
++    r=check['request'];require(type(r) is dict and set(r)==ORDER_REQUEST_FIELDS,'ORDER_CHECK_REQUEST_FIELDS')
++    # Preserve the producer's field order: this is the hash of exact serialized request bytes.
++    require(digest(json.dumps(r,separators=(',',':'),ensure_ascii=False).encode())==check['request_hash'],'ORDER_CHECK_REQUEST_HASH')
++    require(check['bool_return'] is True and type(check['retcode']) is int and check['retcode']==0,'ORDER_CHECK_REJECTED_NO_SEND')
++    require(r['action']==1 and r['magic']==12001 and r['symbol']==binding['symbol'] and r['type_filling']==0 and r['type'] in (0,1),'ORDER_CHECK_REQUEST_INVALID')
++    for k in ('balance','equity','profit','margin','margin_free','margin_level'):number(check[k])
++    for k in ('volume','price','sl','tp','stoplimit'):number(r[k])
++    require(number(r['volume'])>0 and number(r['price'])>0 and number(r['tp'])==0,'ORDER_CHECK_REQUEST_INVALID')
++    require(type(check['time_msc']) is int and check['time_msc']>0 and hash_value(check['context_hash']),'ORDER_CHECK_CONTEXT')
++    if conformance is not None:
++        require(check['context_hash']==conformance.control_hash,'ORDER_CHECK_CONTEXT')
++        f=conformance.fixture;require(f['start_msc']<=check['time_msc']<f['end_msc'],'ORDER_CHECK_OUTSIDE_FIXTURE')
++        expected=0 if conformance.side=='LONG' else 1
++        require(r['type']==(expected if r['position']==0 else 1-expected),'ORDER_CHECK_SIDE')
++        require(number(r['sl'])==(number(f['S0']) if r['position']==0 else 0),'ORDER_CHECK_SL')
++    return check
+--- /dev/null
++++ after/research_pipeline/native_conformance_control.py
+@@ -0,0 +1,183 @@
++"""Pinned, non-Candidate infrastructure authority. Never a successor fallback.
++
++All operations are read-only. Runtime launching and seal creation are deliberately
++absent. A separately authorized custodian pins completed captures and final seals.
++"""
++from pathlib import Path
++from . import decision_a_evidence as v3
++
++DOMAIN = 'NON_CANDIDATE_NATIVE_CONFORMANCE_V1'
++SCOPE = 'NON_CANDIDATE_NATIVE_CONFORMANCE'
++FIXTURE_FIELDS = {'fixture_id','run_id','group_id','side','volume','S0','start_msc','end_msc',
++                  'entry_msc','reduction_msc','close_msc','outcome','data_scope','execution_mode',
++                  'optimization','symbol'}
++
++class ConformanceControl:
++    domain = DOMAIN
++    binding_fields = (v3.BINDING_FIELDS - {'root_hash','freeze_receipt_hash','execution_receipt_hash'}) | {
++        'evidence_scope','fixture_id','conformance_control_hash','fixture_specification_hash','launch_record_hash'}
++
++    def __init__(self, directory, control_path, pinned_hash):
++        self.directory=Path(directory).resolve();self._launch_hash=None
++        self.control_raw=self._read({'path':control_path,'sha256':pinned_hash})
++        self.control=v3.parse_json(self.control_raw);self.control_hash=v3.digest(self.control_raw)
++        v3.require(set(self.control)=={'domain','fixture','profile','artifacts','local_inputs'},'CONFORMANCE_CONTROL_FIELDS')
++        v3.require(self.control['domain']==DOMAIN,'CONFORMANCE_AUTHORITY_REQUIRED')
++        self.fixture_raw=self._read(self.control['fixture']);self.fixture=v3.parse_json(self.fixture_raw)
++        self.profile_raw=self._read(self.control['profile']);self.profile=v3.parse_json(self.profile_raw)
++        f=self.fixture
++        v3.require(set(f)==FIXTURE_FIELDS and f['data_scope']=='DEVELOPMENT_ONLY' and
++                   f['execution_mode']==20 and f['optimization'] is False,'FIXED_DEVELOPMENT_FIXTURE_REQUIRED')
++        v3.require(f['side'] in ('LONG','SHORT') and f['symbol']=='ETHUSD.s','FIXTURE_SIDE_SYMBOL')
++        v3.require(v3.hash_value(f['run_id']) and all(type(f[k]) is str and f[k] and '|' not in f[k] for k in ('fixture_id','group_id')),'FIXTURE_IDENTITY')
++        for k in ('start_msc','end_msc','entry_msc','reduction_msc','close_msc'):
++            v3.require(type(f[k]) is int and f[k]>=0 and f[k]%1000==0,'FIXTURE_TIME')
++        v3.require(f['start_msc']<=f['entry_msc']<f['reduction_msc']<f['end_msc'],'FIXTURE_SCHEDULE')
++        v3.require((f['outcome']=='NORMAL_CLOSE' and f['reduction_msc']<f['close_msc']<f['end_msc']) or
++                   (f['outcome']=='EVALUATOR_BOUNDARY' and f['close_msc']==0),'FIXTURE_OUTCOME')
++        v3.require(v3.number(f['volume'])>0 and v3.number(f['S0'])>0,'FIXTURE_ORIGINAL')
++        self.side=f['side']
++        self.authorities={role:self._read(ref) for role,ref in self.control['artifacts'].items()}
++        v3.require(not ({'FREEZE_RECEIPT','EXECUTION_RECEIPT'} & set(self.authorities)),'SUCCESSOR_RECEIPT_NOT_CONFORMANCE')
++        self.authorities.update(CONFORMANCE_CONTROL=self.control_raw,FIXTURE_SPECIFICATION=self.fixture_raw,TESTER_PROFILE=self.profile_raw)
++        v3.validate_profile(self.profile,self.side,conformance=self)
++        for key,role in [('source_manifest_hash','SOURCE_MANIFEST'),('executable_hash','EXECUTABLE'),('configuration_hash','CONFIGURATION_SPECIFICATION'),('native_swap_profile_hash','NATIVE_SWAP_PROFILE')]:
++            v3.require(self.profile[key]==v3.digest(self.authorities[role]),'CONFORMANCE_PROFILE_ARTIFACT_MISMATCH')
++        bootstrap=v3.parse_json(self.authorities['NATIVE_SWAP_PROFILE'])
++        v3.require(bootstrap.get('kind')=='UNACCEPTED_NATIVE_SWAP_BOOTSTRAP' and bootstrap.get('side')==self.side and bootstrap.get('fixture_id')==f['fixture_id'] and bootstrap.get('evidence_scope')==SCOPE,'LONG_PROOF_NOT_SHORT_BOOTSTRAP')
++        inputs=self.control['local_inputs']
++        v3.require(type(inputs) is dict and set(inputs)=={'manifest_path','calendar_path','calendar'},'LOCAL_INPUT_AUTHORITY_REQUIRED')
++        for key in ('manifest_path','calendar_path'):
++            path=v3.archive_path(inputs[key]);v3.require(path.startswith('KingEA/conformance/'+f['fixture_id']+'/'),'FIXTURE_LOCAL_INPUT_SCOPE')
++        self.calendar_raw=self._read(inputs['calendar'])
++        v3.ImmutableInput('calendar',v3.digest(self.calendar_raw),self.calendar_raw).calendar()
++
++    def _read(self, ref):
++        v3.require(type(ref) is dict and set(ref)=={'path','sha256'} and v3.hash_value(ref['sha256']),'INDEPENDENT_REFERENCE_REQUIRED')
++        path=v3.archive_path(ref['path']);p=self.directory/path
++        v3.require(not p.is_symlink() and p.resolve().is_relative_to(self.directory),'UNTRUSTED_CONFORMANCE_PATH')
++        with p.open('rb') as stream:raw=stream.read(10_000_001)
++        v3.require(0<len(raw)<=10_000_000,'CONFORMANCE_ARTIFACT_SIZE')
++        v3.require(v3.digest(raw)==ref['sha256'],'CONFORMANCE_PIN_MISMATCH')
++        return raw
++
++    def validate_profile(self, profile, side):
++        v3.require(profile==self.profile and side==self.side and profile.get('evidence_scope')==SCOPE and
++                   profile.get('fixture_id')==self.fixture['fixture_id'] and profile.get('side')==side and
++                   profile.get('evaluation_start_msc')==self.fixture['start_msc'] and
++                   profile.get('evaluation_end_msc')==self.fixture['end_msc'] and
++                   profile.get('accepted_proof_sha256') is None,'CONFORMANCE_PROFILE_MISMATCH')
++        # This is expressly an unaccepted bootstrap profile, never LONG proof reuse.
++
++    def binding(self):
++        f=self.fixture;a=self.authorities
++        keys={'configuration_hash':'CONFIGURATION_SPECIFICATION','source_manifest_hash':'SOURCE_MANIFEST',
++              'executable_hash':'EXECUTABLE','specification_hash':'COMBINED_SPECIFICATION',
++              'decision_a_hash':'DECISION_A_SPECIFICATION','decision_s_hash':'DECISION_S_SPECIFICATION'}
++        b={key:v3.digest(a[role]) for key,role in keys.items()}
++        b.update(run_id=f['run_id'],group_id=f['group_id'],candidate_id=DOMAIN,branch='CONFORMANCE',
++                 partition='DEVELOPMENT_ONLY',symbol=f['symbol'],tester_profile_hash=v3.digest(self.profile_raw),
++                 evidence_scope=SCOPE,fixture_id=f['fixture_id'],conformance_control_hash=self.control_hash,
++                 fixture_specification_hash=v3.digest(self.fixture_raw),launch_record_hash=self._launch_hash or '')
++        return b
++
++    def _stable(self):
++        v3.require(self.fixture==v3.parse_json(self.fixture_raw) and self.profile==v3.parse_json(self.profile_raw) and self.control==v3.parse_json(self.control_raw),'IMMUTABLE_CONFORMANCE_CONTEXT_CHANGED')
++        v3.require(v3.digest(self.control_raw)==self.control_hash,'CONFORMANCE_PIN_MISMATCH')
++        v3.require(all(v3.digest(self.authorities[role])==ref['sha256'] for role,ref in self.control['artifacts'].items()),'CONFORMANCE_AUTHORITY_BYTES_CHANGED')
++
++    def validate_binding(self, binding):
++        self._stable()
++        v3.require(v3.hash_value(self._launch_hash) and binding==self.binding(),'CONFORMANCE_BINDING_MISMATCH')
++
++    def with_launch_record(self, reference):
++        import copy
++        launch=self.verify_launch_record(reference)
++        bound=copy.copy(self);bound._launch_hash=reference['sha256']
++        bound.authorities=dict(self.authorities,CONFORMANCE_LAUNCH_RECORD=self._read(reference))
++        for key in ('set','ini','manifest','calendar'):bound.authorities['CONFORMANCE_LAUNCH_'+key.upper()]=self._read(launch[key+'_file'])
++        return bound
++
++    def build(self, capture_reference):
++        self._stable()
++        v3.require(v3.hash_value(self._launch_hash),'INDEPENDENT_LAUNCH_RECORD_REQUIRED')
++        raw=self._read(capture_reference)
++        f=self.fixture;c=v3.parse_json(raw)
++        original=[v3.parse_json(r['payload'].encode()) for r in c['records'] if r['role']=='ORIGINAL']
++        v3.require(len(original)==1 and all(v3.number(original[0][k])==v3.number(f[v]) for k,v in [('V0','volume'),('S0','S0')]),'FIXTURE_ORIGINAL_MISMATCH')
++        v3.require(c['outcome']==f['outcome'],'FIXTURE_OUTCOME_MISMATCH')
++        checks=[v3.parse_json(r['payload'].encode()) for r in c['records'] if r['role']=='ORDER_CHECK']
++        windows=[(f['entry_msc'],f['reduction_msc']),(f['reduction_msc'],f['close_msc'] or f['end_msc'])]
++        if f['outcome']=='NORMAL_CLOSE':windows.append((f['close_msc'],f['end_msc']))
++        v3.require(len(checks)==len(windows) and all(start<=check['time_msc']<end for check,(start,end) in zip(checks,windows)), 'FIXTURE_REQUEST_SCHEDULE_MISMATCH')
++        files=v3.assemble_native_archive(raw,self.binding(),self.profile,self.authorities,
++              expected_capture_hash=capture_reference['sha256'],expected_configuration=0,conformance=self)
++        return files
++
++    def verify(self, files, independent_seal_reference, capture_reference, *, launch_record_reference):
++        launch=self.verify_launch_record(launch_record_reference)
++        v3.require(self._launch_hash==launch_record_reference['sha256'],'LAUNCH_RECORD_PIN_MISMATCH')
++        seal=v3.parse_json(self._read(independent_seal_reference))
++        scope=dict(self.binding(),contract_id=v3.CONTRACT,package_id=v3.PACKAGE,semantic_id=v3.SEMANTICS,inventory_protocol_hash=v3.INVENTORY_ADOPTION)
++        sidecar,refs=v3.verify_archive(files,seal,scope)
++        v3.validate_package(files['sidecar.evidence'],self.binding(),self.profile,refs,conformance=self)
++        v3.require(files==self.build(capture_reference),'CONFORMANCE_NATIVE_RECONSTRUCTION_MISMATCH')
++        return {'evidence_scope':SCOPE,'fixture_id':self.fixture['fixture_id'],'side':self.side,
++                'classification':'CONFORMANCE_EVIDENCE_FOR_INDEPENDENT_REVIEW','successor_eligible':False,'launch_record_hash':self._launch_hash}
++
++
++    def prepare_inputs(self):
++        """Return immutable manifest/calendar bytes and SET values, without writing.
++
++        Local target paths come only from the independently pinned control.
++        The caller must stage these exact bytes and bind the final SET/INI in a
++        separately retained launch record. This method never launches anything.
++        """
++        from datetime import datetime,timezone
++        self._stable();f=self.fixture;b=self.binding();i=self.control['local_inputs']
++        manifest={k:str(value) for k,value in f.items()}
++        manifest.update(domain=DOMAIN,control_sha256=self.control_hash,configuration_sha256=b['configuration_hash'],
++                        source_sha256=b['source_manifest_hash'],tester_profile_sha256=b['tester_profile_hash'],
++                        inventory_protocol_sha256=v3.INVENTORY_ADOPTION,swap_transition_rule_sha256=v3.SWAP_TRANSITION_ADOPTION)
++        raw=v3.json_bytes(manifest)
++        def iso(ms):
++            v3.require(ms%1000==0,'FIXTURE_BOUNDARY_SECOND_PRECISION')
++            return datetime.fromtimestamp(ms/1000,timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
++        values=dict(InpNativeConformance='true',InpConformanceControlSha256=self.control_hash,
++                    InpRunManifest=i['manifest_path'].replace('/','\\'),InpManifestFileSha256=v3.digest(raw),
++                    InpManifestSha256=f['run_id'],InpPurpose=DOMAIN,InpGate='0',InpRootSha256='',InpDetachedAuthorizationToken='',
++                    InpConfigurationId='0',InpEvaluationStart=iso(f['start_msc']),InpEvaluationEndExclusive=iso(f['end_msc']),
++                    InpBranch='RECORDED',InpExpectedSymbol=f['symbol'],InpExecutionAdapter='NATIVE',InpScenario='BASELINE_20MS',
++                    InpDelayMs='20',InpTesterModel='4',InpLocalAgentsOnly='true',InpRemoteAgentsDisabled='true',InpCloudAgentsDisabled='true',
++                    InpZeroEntryDiagnostic='false',InpWorkloadDryRun='false',
++                    InpCalendarIntervalsFile=i['calendar_path'].replace('/','\\'),InpCalendarFileSha256=v3.digest(self.calendar_raw),
++                    InpCalendarSha256=v3.digest(self.calendar_raw))
++        return dict(manifest=raw,calendar=self.calendar_raw,set_values=values,set_bytes=('\r\n'.join(k+'='+value for k,value in values.items())+'\r\n').encode(),
++                    required_ini=dict(Optimization='0',ExecutionMode='20',Model='4',Visual='0',UseLocal='1',UseRemote='0',UseCloud='0'))
++
++
++    def verify_launch_record(self, reference):
++        """Independent post-launch custodianship; no record is selected by an archive."""
++        self._stable();record=v3.parse_json(self._read(reference))
++        required={'domain','fixture_id','run_id','control_hash','source_hash','executable_hash','profile_hash',
++                  'set_file','ini_file','manifest_file','calendar_file','consumed_set_hash','consumed_ini_hash',
++                  'consumed_manifest_hash','consumed_calendar_hash','terminal_build','agent_build','compiler_build',
++                  'account_fingerprint','mql_tester','dll_disabled','local_only','process_exited'}
++        v3.require(set(record)==required and record['domain']==DOMAIN and record['fixture_id']==self.fixture['fixture_id'] and
++                   record['run_id']==self.fixture['run_id'] and record['control_hash']==self.control_hash,'CONFORMANCE_LAUNCH_BINDING')
++        binding=self.binding()
++        for key,bkey in [('source_hash','source_manifest_hash'),('executable_hash','executable_hash'),('profile_hash','tester_profile_hash')]:
++            v3.require(record[key]==binding[bkey],'CONFORMANCE_LAUNCH_ARTIFACT_MISMATCH')
++        for key in ('set','ini','manifest','calendar'):
++            raw=self._read(record[key+'_file'])
++            v3.require(v3.digest(raw)==record['consumed_'+key+'_hash'],'CONSUMED_INPUT_HASH_MISMATCH')
++            if key=='set':v3.require(raw==self.prepare_inputs()['set_bytes'],'CONSUMED_SET_VALUES_MISMATCH')
++            if key=='ini':
++                import configparser
++                ini=configparser.ConfigParser(interpolation=None,strict=True);ini.optionxform=str;ini.read_string(raw.decode('utf-8-sig'))
++                v3.require('Tester' in ini and all(ini['Tester'].get(k)==value for k,value in self.prepare_inputs()['required_ini'].items()),'CONSUMED_INI_PROFILE_MISMATCH')
++            if key in ('manifest','calendar'):v3.require(raw==self.prepare_inputs()[key],'CONSUMED_INPUT_BYTES_MISMATCH')
++        v3.require(all(record[k]==6140 for k in ('terminal_build','agent_build','compiler_build')) and
++                   all(record[k] is True for k in ('mql_tester','dll_disabled','local_only','process_exited')) and
++                   v3.hash_value(record['account_fingerprint']),'CONFORMANCE_LAUNCH_PROFILE')
++        return record
+--- /dev/null
++++ after/tests/test_conformance_production_control_flow.py
+@@ -0,0 +1,57 @@
++"""Static production control-flow proofs, distinct from native runtime proof."""
++import re,json,hashlib,unittest
++from pathlib import Path
++ROOT=Path(__file__).resolve().parents[1]
++EA=ROOT/'MQL5/Experts/KingEA/GuardedResearchTester.mq5'
++INTEGRATION=ROOT/'MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh'
++
++def functions(text):
++ # Ignore comments and literals before balancing function bodies; function calls
++ # in comments/strings cannot manufacture reachability evidence.
++ text=re.sub(r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"',lambda m:'""' if m[0].startswith('"') else '',text)
++ result={}
++ for match in re.finditer(r'\b(?:bool|void|double|int|string|datetime|long)\s+(\w+)\s*\([^;{}]*\)\s*\{',text):
++  start=match.end();depth=1;i=start
++  while depth and i<len(text):
++   depth+=(text[i]=='{')-(text[i]=='}');i+=1
++  result[match[1]]=text[start:i-1]
++ return result
++
++class ConformanceProductionControlFlow(unittest.TestCase):
++ def setUp(self):self.ea=EA.read_text();self.integration=INTEGRATION.read_text();self.f=functions(self.ea+'\n'+self.integration)
++ def test_fixture_transitive_call_graph_excludes_candidate_signals(self):
++  pending=['ResearchConformanceTick'];seen=set();calls=set()
++  while pending:
++   name=pending.pop()
++   if name in seen:continue
++   seen.add(name)
++   targets=set(re.findall(r'\b(\w+)\s*\(',self.f.get(name,'')));calls|=targets
++   pending.extend(targets & self.f.keys())
++  self.assertNotIn('KingEAEvaluateSleeveEthSt001',calls)
++  self.assertNotIn('ResearchEvaluateClosedBar',seen)
++  self.assertTrue({'ResearchOrderSend','ResearchNativePoll','ResearchNativeProject','ResearchReduceHalf'}<=seen)
++  tick=self.f['OnTick'];self.assertRegex(tick,r'if\(InpNativeConformance\)\{ResearchConformanceTick\(tick\);return;\}')
++  self.assertLess(tick.index('ResearchConformanceTick'),tick.index('ResearchEvaluateClosedBar'))
++ def test_check_rejection_dominates_only_order_send(self):
++  body=self.f['ResearchOrderSend'];self.assertEqual(len(re.findall(r'\bOrderSend\(',body)),1)
++  self.assertRegex(body,r'if\(!ResearchNativeOrderCheck\(request\)\)return false;\s*g_da_last_send_attempted=true;\s*return OrderSend\(request,result\);')
++  check=self.f['ResearchNativeOrderCheck'];self.assertNotIn('OrderSend(',check)
++  self.assertRegex(check,r'if\(!ok\|\|c.retcode!=0\)\{g_da.Invalidate\(""\);return false;\}')
++  self.assertNotIn('.Receipt(',check);self.assertNotIn('.Commit(',check)
++ def test_actions_consume_before_submission_no_retry_loop(self):
++  body=self.f['ResearchConformanceTick']
++  for flag,call in [('g_cf_entry_attempted','ResearchNativeBegin'),('g_cf_reduction_attempted','ResearchReduceHalf'),('g_cf_close_attempted','ResearchClose')]:
++   self.assertIn('!'+flag,body);self.assertLess(body.index(flag+'=true'),body.index(call))
++   self.assertNotIn(flag+'=false',body)
++  self.assertNotIn('while(',body);self.assertNotIn('for(',body)
++ def test_conformance_tester_completion_cannot_reach_candidate_completion(self):
++  body=self.f['OnTester'];start=body.index('if(InpNativeConformance)');first=body.index('{',start);depth=1;i=first+1
++  while depth:depth+=(body[i]=='{')-(body[i]=='}');i+=1
++  branch=body[first:i];self.assertIn('return g_da.projected',branch)
++  self.assertNotIn('Stage12',branch);self.assertNotIn('KingEAResearchDecodeConfiguration',branch)
++ def test_successor_historical_and_protected_sources_equal(self):
++  base=ROOT/'governance/evidence/stage14/native_conformance_interface_20260908/FINAL_PRE_TOOLING.json'
++  files=json.loads(base.read_text())['files'];changed={'MQL5/Experts/KingEA/GuardedResearchTester.mq5','MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh','research_pipeline/decision_a_evidence.py'}
++  for e in files:
++   if e['path'] in changed or e['path'].startswith('tests/'):continue
++   with self.subTest(path=e['path']):self.assertEqual(hashlib.sha256((ROOT/e['path']).read_bytes()).hexdigest().upper(),e['sha256'])
+--- /dev/null
++++ after/tests/test_native_conformance_control.py
+@@ -0,0 +1,182 @@
++"""Synthetic independent conformance fixtures; never native execution receipts."""
++import copy,json,tempfile,unittest
++from pathlib import Path
++from test_successor_evidence import ControlFixture
++from v3_fixture import package
++from research_pipeline import decision_a_evidence as v
++from research_pipeline.native_conformance_control import ConformanceControl,DOMAIN,SCOPE
++
++class ConformanceTests(unittest.TestCase):
++ def setup_fixture(self,side='LONG'):
++  t=tempfile.TemporaryDirectory();self.addCleanup(t.cleanup);self.dir=Path(t.name)
++  old=ControlFixture(self.dir);self.successor=old;files,seal,b,profile=package(old,False,True,True)
++  capture=v.parse_json((self.dir/'native-capture.json').read_bytes())
++  def store(name,value):
++   raw=value if isinstance(value,bytes) else v.json_bytes(value);(self.dir/name).write_bytes(raw);return dict(path=name,sha256=v.digest(raw))
++  self.store=store
++  fixture=dict(fixture_id='FIXED-'+side,run_id=b['run_id'],group_id=b['group_id'],side=side,volume='2',S0='90' if side=='LONG' else '110',start_msc=1000,end_msc=100000,entry_msc=1000,reduction_msc=2000,close_msc=3000,outcome='NORMAL_CLOSE',data_scope='DEVELOPMENT_ONLY',execution_mode=20,optimization=False,symbol='ETHUSD.s')
++  profile.update(evaluation_start_msc=1000,evidence_scope=SCOPE,fixture_id=fixture['fixture_id'],side=side,accepted_proof_sha256=None)
++  refs=v.parse_json(files['references.json'])['entries'];art={e['role']:store('cf_'+e['role'].replace(':','_')+'.bin',files[e['path']]) for e in refs if e['role'] in {'CONFIGURATION_SPECIFICATION','SOURCE_MANIFEST','EXECUTABLE','COMBINED_SPECIFICATION','DECISION_A_SPECIFICATION','DECISION_S_SPECIFICATION','PRICE_CONVENTION','ARITHMETIC_CONTRACT'}}
++  bootstrap=dict(kind='UNACCEPTED_NATIVE_SWAP_BOOTSTRAP',side=side,fixture_id=fixture['fixture_id'],evidence_scope=SCOPE)
++  art['NATIVE_SWAP_PROFILE']=store('bootstrap.json',bootstrap);profile['native_swap_profile_hash']=art['NATIVE_SWAP_PROFILE']['sha256']
++  self.control=dict(domain=DOMAIN,fixture=store('fixture.json',fixture),profile=store('cf-profile.json',profile),artifacts=art,local_inputs=dict(manifest_path='KingEA/conformance/'+fixture['fixture_id']+'/manifest.json',calendar_path='KingEA/conformance/'+fixture['fixture_id']+'/calendar.csv',calendar=store('calendar-fixture.csv',b'type,start_msc,end_msc,identity\nNEWS_BLOCK,110000,120000,SYNTHETIC\n')))
++  pin=store('cf-control.json',self.control);self.ctx=ConformanceControl(self.dir,pin['path'],pin['sha256'])
++  rows=[];n=0
++  for row in capture['records']:
++   row=copy.deepcopy(row);role=row['role']
++   if role=='ORIGINAL':
++    data=v.parse_json(row['payload'].encode());data.update(S0=fixture['S0'],profile_hash=v.digest(self.ctx.profile_raw));row['payload']=v.json_bytes(data).decode()
++   if role in ('RECONCILED_POSITION','BEFORE_REQUEST'):
++    data=v.parse_json(row['payload'].encode());data.update(sl=fixture['S0'],side=0 if side=='LONG' else 1);row['payload']=v.json_bytes(data).decode()
++   if role=='DEAL_ADD':
++    parts=row['payload'].split('|');parts[5]=str((0 if side=='LONG' else 1) if parts[4]=='0' else (1 if side=='LONG' else 0));parts[15]=fixture['S0'];row['payload']='|'.join(parts)
++   if role=='ORDER_TERMINAL_OBSERVATION':
++    data=v.parse_json(row['payload'].encode());data['type']=data['type'] if side=='LONG' else 1-data['type'];row['payload']=v.json_bytes(data).decode()
++   if role=='REQUEST_RESULT':
++    data=v.parse_json(row['payload'].encode());r=dict(action=1,magic=12001,order=0,symbol='ETHUSD.s',volume=data['volume'],price=data['price'],stoplimit='0',sl=fixture['S0'] if n==0 else '0',tp='0',deviation=0,type=(0 if side=='LONG' else 1) if n==0 else (1 if side=='LONG' else 0),type_filling=0,type_time=0,expiration=0,comment='CONFORMANCE',position=0 if n==0 else 701,position_by=0)
++    check=dict(run_id=b['run_id'],group_id=b['group_id'],request=r,request_hash=v.digest(json.dumps(r,separators=(',',':')).encode()),bool_return=True,retcode=0,error=0,comment='Done',balance='1000',equity='1000',profit='0',margin='1',margin_free='999',margin_level='1000',time_msc=1000+n*1000,context_hash=self.ctx.control_hash)
++    rows.append(dict(role='ORDER_CHECK',payload=json.dumps(check,separators=(',',':'))));n+=1
++   if role=='STAGE13_PREPARED':
++    parts=row['payload'].split('|');parts[7]=DOMAIN;row['payload']='|'.join(parts);eventhash=v.digest(row['payload'])
++   if role=='STAGE13_COMMITTED':
++    data=v.parse_json(row['payload'].encode());data['event_hash']=eventhash;row['payload']=v.json_bytes(data).decode()
++   rows.append(row)
++  capture['records']=rows;self.capture=capture;self.capture_ref=store('cf-capture.json',capture)
++  self.launch_ref=self.launch_receipt();self.ctx=self.ctx.with_launch_record(self.launch_ref)
++  return self.ctx.build(self.capture_ref)
++
++ def test_long_and_short_bootstrap(self):
++  for side in ('LONG','SHORT'):
++   with self.subTest(side=side):
++    files=self.setup_fixture(side);s=v.read_package(files['sidecar.evidence'])
++    self.assertEqual(s['original']['side'],side);self.assertEqual(s['binding']['evidence_scope'],SCOPE)
++    self.assertNotIn('freeze_receipt_hash',s['binding']);self.assertNotIn('root_hash',s['binding'])
++
++ def test_no_successor_acceptance_without_context(self):
++  files=self.setup_fixture();s=v.read_package(files['sidecar.evidence'])
++  with self.assertRaises(ValueError):v.validate_package(files['sidecar.evidence'],s['binding'],self.ctx.profile)
++
++ def test_pinned_control_cotampering_rejects(self):
++  self.setup_fixture();old=self.ctx.control_hash
++  self.control['domain']='CAND-ETH-ST-002';self.store('cf-control.json',self.control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,'cf-control.json',old)
++
++ def test_successor_receipt_cannot_select_fixture(self):
++  self.setup_fixture();self.control['domain']='SUCCESSOR_FREEZE';p=self.store('cf-control.json',self.control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,p['path'],p['sha256'])
++
++ def test_fixture_payload_mismatch(self):
++  self.setup_fixture();row=self.capture['records'][0];data=v.parse_json(row['payload'].encode());data['V0']='4';row['payload']=v.json_bytes(data).decode()
++  with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_missing_or_rejected_order_check(self):
++  self.setup_fixture();original=copy.deepcopy(self.capture)
++  for bad in ('missing','false','retcode','foreign'):
++   self.capture=copy.deepcopy(original)
++   if bad=='missing':self.capture['records']=[r for r in self.capture['records'] if r['role']!='ORDER_CHECK']
++   else:
++    row=next(r for r in self.capture['records'] if r['role']=='ORDER_CHECK');c=json.loads(row['payload'])
++    c[{'false':'bool_return','retcode':'retcode','foreign':'group_id'}[bad]]={'false':False,'retcode':10009,'foreign':'FOREIGN'}[bad];row['payload']=json.dumps(c,separators=(',',':'))
++   with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_accepted_check_does_not_prove_fill(self):
++  self.setup_fixture();self.capture['records']=[r for r in self.capture['records'] if r['role']!='DEAL_ADD']
++  with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_long_cannot_claim_short(self):
++  self.setup_fixture('SHORT');row=next(r for r in self.capture['records'] if r['role']=='DEAL_ADD');p=row['payload'].split('|');p[5]='0';row['payload']='|'.join(p)
++  with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++
++ def launch_receipt(self):
++  c=self.ctx;b=c.binding();inputs=c.prepare_inputs()
++  record=dict(domain=DOMAIN,fixture_id=c.fixture['fixture_id'],run_id=c.fixture['run_id'],control_hash=c.control_hash,
++              source_hash=b['source_manifest_hash'],executable_hash=b['executable_hash'],profile_hash=b['tester_profile_hash'],
++              terminal_build=6140,agent_build=6140,compiler_build=6140,account_fingerprint='A'*64,
++              mql_tester=True,dll_disabled=True,local_only=True,process_exited=True)
++  data=dict(set=inputs['set_bytes'],ini=('[Tester]\n'+'\n'.join(k+'='+value for k,value in inputs['required_ini'].items())).encode(),manifest=inputs['manifest'],calendar=inputs['calendar'])
++  for key,raw in data.items():record[key+'_file']=self.store('launch-'+key,raw);record['consumed_'+key+'_hash']=v.digest(raw)
++  return self.store('launch-record.json',record)
++
++ def test_independent_seal_and_native_reconstruction(self):
++  files=self.setup_fixture('SHORT');scope=v.parse_json(files['archive.json'])['binding']
++  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=scope,archive_sha256=v.digest(files['archive.json']))
++  ref=self.store('seal.json',seal);launch=self.launch_receipt()
++  result=self.ctx.verify(files,ref,self.capture_ref,launch_record_reference=launch)
++  self.assertFalse(result['successor_eligible']);self.assertEqual(result['evidence_scope'],SCOPE)
++  for name in files:
++   with self.subTest(artifact=name):
++    bad=dict(files);bad[name]+=b'X'
++    with self.assertRaises(ValueError):self.ctx.verify(bad,ref,self.capture_ref,launch_record_reference=launch)
++
++ def test_fixture_inputs_are_exact_and_immutable(self):
++  self.setup_fixture();a=self.ctx.prepare_inputs();self.assertEqual(v.digest(a['manifest']),a['set_values']['InpManifestFileSha256'])
++  self.assertEqual(a['set_values']['InpGate'],'0');self.assertEqual(a['set_values']['InpRootSha256'],'')
++  self.assertNotIn('SET_AT_EXECUTION',a['set_bytes'].decode())
++  self.ctx.fixture['side']='SHORT'
++  with self.assertRaises(ValueError):self.ctx.prepare_inputs()
++
++ def test_action_schedule_and_interval_enforced(self):
++  self.setup_fixture();original=copy.deepcopy(self.capture)
++  for timestamp in (999,100000,2500):
++   self.capture=copy.deepcopy(original);row=next(r for r in self.capture['records'] if r['role']=='ORDER_CHECK');c=json.loads(row['payload']);c['time_msc']=timestamp;row['payload']=json.dumps(c,separators=(',',':'))
++   with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_payload_profile_cannot_authorize_short(self):
++  self.setup_fixture();p=copy.deepcopy(self.ctx.profile);p['side']='SHORT'
++  with self.assertRaises(ValueError):v.validate_profile(p,'SHORT')
++  with self.assertRaises(ValueError):v.validate_profile(p,'SHORT',conformance={'domain':DOMAIN})
++
++ def test_consumed_set_ini_and_profile_loss(self):
++  self.setup_fixture();ref=self.launch_receipt();record=v.parse_json((self.dir/ref['path']).read_bytes())
++  for field,value in [('dll_disabled',False),('local_only',False),('process_exited',False),('consumed_set_hash','0'*64),('control_hash','0'*64)]:
++   bad=dict(record);bad[field]=value
++   with self.assertRaises(ValueError):self.ctx.verify_launch_record(self.store('bad-launch.json',bad))
++
++ def test_wrong_local_scope_and_hash_reject(self):
++  self.setup_fixture()
++  self.control['local_inputs']['manifest_path']='Common/manifest.json';pin=self.store('wrong-control.json',self.control)
++  with self.assertRaises(ValueError):ConformanceControl(self.dir,pin['path'],pin['sha256'])
++
++
++ def test_conformance_archive_rejected_by_actual_successor_ingestion(self):
++  from research_pipeline.successor_evidence import PinnedControlContext,SuccessorEvidenceError
++  from research_pipeline.stage14 import ResearchRunCoordinator
++  files=self.setup_fixture();f=self.successor
++  scope=v.parse_json(files['archive.json'])['binding']
++  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=scope,archive_sha256=v.digest(files['archive.json']))
++  f.control['completed_archives'][f.manifest['manifest_sha256']+':0']=[self.store('substituted-seal.json',seal)]
++  f.pin=f.store('control.json',f.control)['sha256']
++  event=next(raw.decode() for name,raw in files.items() if name.startswith('support/stage13_event.'))
++  f.frame.update(native_cost_packages=[v.encode_archive(files)],boundary_finalization_count=0,stage13_close_frames=[event])
++  before={p:p.read_bytes() for p in self.dir.rglob('*') if p.is_file()};spool=self.dir/'spool-forbidden'
++  with self.assertRaises(SuccessorEvidenceError) as caught:
++   ResearchRunCoordinator(control_context=PinnedControlContext(self.dir,f.pin)).append_frame(spool,f.manifest,dict(frame_id='0',payload=f.frame))
++  self.assertEqual(str(caught.exception),'SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED')
++  self.assertEqual(caught.exception.stage,'ingestion');self.assertFalse(spool.exists())
++  self.assertEqual(before,{p:p.read_bytes() for p in self.dir.rglob('*') if p.is_file()})
++
++
++ def test_order_check_malformed_request_and_context(self):
++  self.setup_fixture();original=copy.deepcopy(self.capture)
++  for field,value in [('context_hash','0'*64),('request_hash','0'*64),('retcode',10018),('bool_return',False)]:
++   self.capture=copy.deepcopy(original);row=next(r for r in self.capture['records'] if r['role']=='ORDER_CHECK');check=json.loads(row['payload']);check[field]=value;row['payload']=json.dumps(check,separators=(',',':'))
++   with self.assertRaises(ValueError):self.ctx.build(self.store('bad.json',self.capture))
++
++ def test_conformance_requires_independent_launch_binding(self):
++  self.setup_fixture();unbound=ConformanceControl(self.dir,'cf-control.json',self.ctx.control_hash)
++  with self.assertRaisesRegex(ValueError,'INDEPENDENT_LAUNCH_RECORD_REQUIRED'):unbound.build(self.capture_ref)
++
++ def test_bound_artifact_mutation_cannot_redefine_authority(self):
++  self.setup_fixture();self.ctx.authorities['EXECUTABLE']+=b'changed'
++  with self.assertRaises(ValueError):self.ctx.build(self.capture_ref)
++
++
++ def test_launch_receipt_hash_uses_exact_bytes(self):
++  self.setup_fixture();record=json.loads((self.dir/self.launch_ref['path']).read_bytes())
++  exact=json.dumps(record,indent=4).encode();ref=self.store('pretty-launch.json',exact)
++  self.ctx=self.ctx.with_launch_record(ref);files=self.ctx.build(self.capture_ref)
++  scope=v.parse_json(files['archive.json'])['binding']
++  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=scope,archive_sha256=v.digest(files['archive.json']))
++  result=self.ctx.verify(files,self.store('pretty-seal.json',seal),self.capture_ref,launch_record_reference=ref)
++  self.assertEqual(result['launch_record_hash'],v.digest(exact))

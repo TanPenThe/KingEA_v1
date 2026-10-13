@@ -1,0 +1,47 @@
+{
+  "build_id": "B1-RUNTIME-IDENTITY-V7-20260904",
+  "controls": {
+    "b2": "LOCKED",
+    "candidate_execution": false,
+    "holdout_access": false,
+    "native_orders": false,
+    "oos_access": false
+  },
+  "created_at": "2026-09-04T04:46:57.586126+00:00",
+  "frozen_dependencies": [
+    {
+      "path": "governance/evidence/stage14/GOVERNANCE_ADOPTION_OPTION_B_B1_20260904.json",
+      "sha256": "64C6632B4930DDF79B39622688DCE99DD1CE6D78BFAEFA2F816DE9E3AC852BF6"
+    }
+  ],
+  "git_commit": "c4d08bd09949c0e5b3d5f6bfc53d2a2fdbd22479",
+  "kind": "PRE_TOOLING",
+  "sources": [
+    {
+      "path": "MQL5/Experts/KingEA/B1SyntheticNoOrder.mq5",
+      "sha256": "D7778D5D5B47BCE3A8DC48E94255E07AD18450240BB6FE077E543ED6189B6AFA",
+      "size": 1811
+    },
+    {
+      "path": "research_pipeline/b1_evidence_infrastructure.py",
+      "sha256": "2F9DD42B592581F5B1161BF6588C0931D46C06FC69A007A2A42AE3505AE8D603",
+      "size": 33790
+    },
+    {
+      "path": "research_pipeline/b1_evidence_cli.py",
+      "sha256": "CC3B3504C4C6D121A5C38C2BCA9632C4860AF13B534543FFFAAFABE53527CC67",
+      "size": 2268
+    },
+    {
+      "path": "research_pipeline/b1_governed_launcher.py",
+      "sha256": "279DF86AA16ECAE0D86EE776C5FAC6FE9711B209F3D317833FACD14DDAB269C0",
+      "size": 10371
+    },
+    {
+      "path": "tests/test_b1_evidence_infrastructure.py",
+      "sha256": "1A3F0B61225D0F14B6BDC2DD3397A6E1398406759FBE9A634B963680BDC83157",
+      "size": 17716
+    }
+  ],
+  "stage": "B1_RUNTIME_IDENTITY_V7"
+}

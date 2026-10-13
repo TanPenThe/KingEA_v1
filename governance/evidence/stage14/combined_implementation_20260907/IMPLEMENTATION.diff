@@ -1,0 +1,730 @@
+--- a/MQL5/Experts/KingEA/GuardedResearchTester.mq5
++++ b/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+@@ -205,35 +205,50 @@
+    return ResearchSha256Bytes(bytes);
+   }
+ 
+-int ResearchOpenInputFile(const string filename,const int flags,
+-                          const short delimiter=0,
+-                          const uint codepage=CP_ACP)
+-  {
+-   int handle=FileOpen(filename,flags|FILE_SHARE_READ,delimiter,codepage);
++// Captured once per tester initialization. Hashing and parsing share these bytes.
++uchar g_manifest_input_bytes[],g_calendar_input_bytes[];
++string g_manifest_input_hash="",g_calendar_input_hash="";
++bool g_manifest_capture_attempted=false,g_calendar_capture_attempted=false;
++
++bool ResearchCaptureLocalInput(const string filename,uchar &bytes[],string &hash)
++  {
++   // No shared fallback. A missing staged local artifact fails closed.
++   int handle=FileOpen(filename,FILE_READ|FILE_BIN|FILE_SHARE_READ);
+    if(handle==INVALID_HANDLE)
+-      handle=FileOpen(filename,flags|FILE_COMMON|FILE_SHARE_READ,
+-                      delimiter,codepage);
+-   return handle;
+-  }
+-
+-string ResearchFileSha256(const string filename)
+-  {
+-   int handle=ResearchOpenInputFile(filename,FILE_READ|FILE_BIN);
+-   if(handle==INVALID_HANDLE)
+-      return "";
++      return false;
+    ulong size=FileSize(handle);
+    if(size==0 || size>10000000)
+-     {
+-      FileClose(handle);
+-      return "";
+-     }
+-   uchar bytes[];
++     { FileClose(handle); return false; }
+    ArrayResize(bytes,(int)size);
+    uint read=FileReadArray(handle,bytes,0,(int)size);
+    FileClose(handle);
+    if(read!=(uint)size)
+-      return "";
+-   return ResearchSha256Bytes(bytes);
++      return false;
++   hash=ResearchSha256Bytes(bytes);
++   return ResearchHash(hash);
++  }
++
++string ResearchFileSha256(const string filename)
++  {
++   if(filename==InpRunManifest && filename!="")
++     {
++      if(!g_manifest_capture_attempted)
++        {
++         g_manifest_capture_attempted=true;
++         ResearchCaptureLocalInput(filename,g_manifest_input_bytes,g_manifest_input_hash);
++        }
++      return g_manifest_input_hash;
++     }
++   if(filename==InpCalendarIntervalsFile && filename!="")
++     {
++      if(!g_calendar_capture_attempted)
++        {
++         g_calendar_capture_attempted=true;
++         ResearchCaptureLocalInput(filename,g_calendar_input_bytes,g_calendar_input_hash);
++        }
++      return g_calendar_input_hash;
++     }
++   return "";
+   }
+ 
+ bool PersistDryBenchmarkPayload(const string payload)
+@@ -582,28 +597,28 @@
+    ArrayResize(g_market_interval_end,0);
+    ArrayResize(g_market_interval_prefix_max_end,0);
+    ArrayResize(g_market_interval_type,0);
+-   int handle=ResearchOpenInputFile(InpCalendarIntervalsFile,
+-                       FILE_READ|FILE_CSV|FILE_ANSI,',',CP_UTF8);
+-   if(handle==INVALID_HANDLE)
+-      return false;
+-   bool first=true;
++   if(!g_calendar_capture_attempted || !ResearchHash(g_calendar_input_hash) ||
++      g_calendar_input_hash!=InpCalendarFileSha256)
++      return false;
++   string captured=CharArrayToString(g_calendar_input_bytes,0,ArraySize(g_calendar_input_bytes),CP_UTF8);
++   if(StringLen(captured)>0 && StringGetCharacter(captured,0)==0xFEFF)
++      captured=StringSubstr(captured,1);
++   StringReplace(captured,"\r","");
++   string lines[];
++   int length=StringSplit(captured,'\n',lines);
++   if(length<2 || lines[0]!="type,start_msc,end_msc,identity")
++      return false;
+    long previous_start=0;
+-   while(!FileIsEnding(handle))
+-     {
+-      string type=FileReadString(handle);
+-      string start_text=FileReadString(handle);
+-      string end_text=FileReadString(handle);
+-      string identity=FileReadString(handle);
+-      if(first)
+-        {
+-         first=false;
+-         if(type!="type" || start_text!="start_msc" ||
+-            end_text!="end_msc" || identity!="identity")
+-           { FileClose(handle); return false; }
+-         continue;
+-        }
+-      if(type=="" && start_text=="" && end_text=="")
+-         continue;
++   for(int line=1;line<length;line++)
++     {
++      if(lines[line]=="")continue;
++      string fields[];
++      if(StringSplit(lines[line],',',fields)!=4)return false;
++      string type=fields[0],start_text=fields[1],end_text=fields[2],identity=fields[3];
++      for(int k=0;k<StringLen(start_text);k++)
++         if(StringGetCharacter(start_text,k)<'0'||StringGetCharacter(start_text,k)>'9')return false;
++      for(int k=0;k<StringLen(end_text);k++)
++         if(StringGetCharacter(end_text,k)<'0'||StringGetCharacter(end_text,k)>'9')return false;
+       long start=(long)StringToInteger(start_text);
+       long end=(long)StringToInteger(end_text);
+       string normalized_type="";
+@@ -612,7 +627,7 @@
+                                                 blocks_entry) ||
+          start<=0 || end<=start || identity=="" ||
+          (previous_start>0 && start<previous_start))
+-        { FileClose(handle); return false; }
++        { return false; }
+       previous_start=start;
+       if(!blocks_entry)
+          continue;
+@@ -627,7 +642,6 @@
+          (count==0 ? end : MathMax(g_market_interval_prefix_max_end[count-1],end));
+       g_market_interval_type[count]=normalized_type;
+      }
+-   FileClose(handle);
+    return ArraySize(g_market_interval_start)>0;
+   }
+ 
+--- a/tests/test_stage14_pipeline.py
++++ b/tests/test_stage14_pipeline.py
+@@ -548,10 +548,11 @@
+         source = (
+             workspace / "MQL5" / "Experts" / "KingEA" / "GuardedResearchTester.mq5"
+         ).read_text(encoding="utf-8")
+-        start = source.index("int ResearchOpenInputFile")
++        start = source.index("bool ResearchCaptureLocalInput")
+         end = source.index("string ResearchFileSha256", start)
+         open_helper = source[start:end]
+-        self.assertIn("flags|FILE_SHARE_READ", open_helper)
++        self.assertIn("FILE_READ|FILE_BIN|FILE_SHARE_READ", open_helper)
++        self.assertNotIn("FILE_COMMON", open_helper)
+ 
+     def test_replacement_gate1_root_preserves_consumed_candidate_budget(self):
+         common = {
+--- /dev/null
++++ b/MQL5/Include/KingEA/DecisionADealAdapter.mqh
+@@ -0,0 +1,43 @@
++#ifndef KINGEA_DECISION_A_DEAL_ADAPTER_MQH
++#define KINGEA_DECISION_A_DEAL_ADAPTER_MQH
++#include "DecisionALifecycle.mqh"
++// Exact-ticket authority: invoke only within current run DEAL_ADD callback.
++bool DAReadDeal(const MqlTradeTransaction &trans,DADeal &d){
++ ZeroMemory(d);if(!MQLInfoInteger(MQL_TESTER)||trans.type!=TRADE_TRANSACTION_DEAL_ADD||trans.deal==0)return false;
++ if(!HistoryDealSelect(trans.deal))return false;
++ d.ticket=trans.deal;long order=0,position=0;
++ if(HistoryDealGetInteger(d.ticket,DEAL_ORDER,order))d.reads|=1;
++ if(HistoryDealGetInteger(d.ticket,DEAL_POSITION_ID,position))d.reads|=2;
++ if(HistoryDealGetInteger(d.ticket,DEAL_TIME_MSC,d.time_msc))d.reads|=4;
++ if(HistoryDealGetInteger(d.ticket,DEAL_ENTRY,d.entry))d.reads|=8;
++ if(HistoryDealGetInteger(d.ticket,DEAL_TYPE,d.type))d.reads|=16;
++ if(HistoryDealGetInteger(d.ticket,DEAL_REASON,d.reason))d.reads|=32;
++ if(HistoryDealGetInteger(d.ticket,DEAL_MAGIC,d.magic))d.reads|=64;
++ if(HistoryDealGetString(d.ticket,DEAL_SYMBOL,d.symbol))d.reads|=128;
++ if(HistoryDealGetDouble(d.ticket,DEAL_VOLUME,d.volume))d.reads|=256;
++ if(HistoryDealGetDouble(d.ticket,DEAL_PRICE,d.price))d.reads|=512;
++ if(HistoryDealGetDouble(d.ticket,DEAL_PROFIT,d.profit))d.reads|=1024;
++ if(HistoryDealGetDouble(d.ticket,DEAL_COMMISSION,d.commission))d.reads|=2048;
++ if(HistoryDealGetDouble(d.ticket,DEAL_FEE,d.fee))d.reads|=4096;
++ if(HistoryDealGetDouble(d.ticket,DEAL_SWAP,d.swap))d.reads|=8192;
++ if(HistoryDealGetDouble(d.ticket,DEAL_SL,d.sl))d.reads|=16384;
++ if(trans.order==(ulong)order && trans.symbol==d.symbol)d.reads|=32768;
++ d.order=(ulong)order;d.position=(ulong)position;
++ d.valid=d.reads==65535&&order>0&&position>0&&d.time_msc>0&&d.volume>0&&d.price>0&&
++ MathIsValidNumber(d.volume)&&MathIsValidNumber(d.price)&&MathIsValidNumber(d.profit)&&MathIsValidNumber(d.commission)&&MathIsValidNumber(d.fee)&&MathIsValidNumber(d.swap)&&MathIsValidNumber(d.sl);
++ return d.valid;
++}
++bool DAReadPosition(ulong ticket,ulong stable,string symbol,const MqlTick &tick,DAPosition &p){
++ ZeroMemory(p);if(ticket==0||!PositionSelectByTicket(ticket))return false;
++ long id=0,t=0;bool ok=PositionGetInteger(POSITION_IDENTIFIER,id);
++ ok=PositionGetInteger(POSITION_TICKET,t)&&ok;ok=PositionGetInteger(POSITION_TYPE,p.side)&&ok;
++ ok=PositionGetInteger(POSITION_MAGIC,p.magic)&&ok;ok=PositionGetString(POSITION_SYMBOL,p.symbol)&&ok;
++ ok=PositionGetDouble(POSITION_VOLUME,p.volume)&&ok;ok=PositionGetDouble(POSITION_PRICE_OPEN,p.basis)&&ok;
++ ok=PositionGetDouble(POSITION_SL,p.sl)&&ok;ok=PositionGetDouble(POSITION_SWAP,p.swap)&&ok;
++ p.id=(ulong)id;p.ticket=(ulong)t;p.time_msc=tick.time_msc;
++ ok=ok&&id>0&&t>0&&(stable==0||p.id==stable)&&p.symbol==symbol&&p.magic==12001&&p.volume>0&&p.basis>0&&p.sl>0;
++ ok=ok&&(p.side==POSITION_TYPE_BUY||p.side==POSITION_TYPE_SELL)&&tick.bid>0&&tick.ask>=tick.bid;
++ if(ok)ok=OrderCalcProfit(p.side==POSITION_TYPE_BUY?ORDER_TYPE_BUY:ORDER_TYPE_SELL,symbol,p.volume,p.basis,p.side==POSITION_TYPE_BUY?tick.bid:tick.ask,p.mark);
++ p.valid=ok&&MathIsValidNumber(p.mark)&&MathIsValidNumber(p.swap);return p.valid;
++}
++#endif
+--- /dev/null
++++ b/MQL5/Include/KingEA/DecisionALifecycle.mqh
+@@ -0,0 +1,95 @@
++#ifndef KINGEA_DECISION_A_LIFECYCLE_MQH
++#define KINGEA_DECISION_A_LIFECYCLE_MQH
++#include "AccountingEvents.mqh"
++enum DAExposure { DA_FULL=0,DA_REQUEST_PENDING=1,DA_REDUCED=2,DA_QUARANTINED=3,DA_AMBIGUOUS=4,DA_CLOSE_PENDING=5,DA_FLAT=6 };
++enum DAIntent { DA_ENTRY=0,DA_REDUCTION=1,DA_CLOSE=2,DA_CONTAINMENT=3 };
++struct DADeal {
++ ulong ticket,order,position; long time_msc,entry,type,reason,magic;
++ string symbol; double volume,price,profit,commission,fee,swap,sl;
++ uint reads; bool valid;
++};
++struct DAPosition {
++ ulong id,ticket; long side,magic; string symbol;
++ double volume,basis,sl,swap,mark; long time_msc; bool valid;
++};
++string DADealCanonical(const DADeal &d) {
++ return (string)d.ticket+"|"+(string)d.order+"|"+(string)d.position+"|"+(string)d.time_msc+"|"+
++ (string)d.entry+"|"+(string)d.type+"|"+(string)d.reason+"|"+(string)d.magic+"|"+d.symbol+"|"+
++ DoubleToString(d.volume,16)+"|"+DoubleToString(d.price,16)+"|"+DoubleToString(d.profit,16)+"|"+
++ DoubleToString(d.commission,16)+"|"+DoubleToString(d.fee,16)+"|"+DoubleToString(d.swap,16)+"|"+
++ DoubleToString(d.sl,16)+"|"+(string)d.reads+"|"+(string)d.valid;
++}
++bool DAVolumeEqual(double a,double b){return MathIsValidNumber(a)&&MathIsValidNumber(b)&&NormalizeDouble(a,8)==NormalizeDouble(b,8);}
++class DecisionALifecycle {
++public:
++ bool invalid,projected,pending,terminal,contained,reduced,started,projection_prepared,no_fill;
++ string failure,group,symbol; DAExposure exposure; DAIntent intent;
++ double v0,p0,e0,r0,s0,gross,commission,fee,swap,requested,before_swap;
++ ulong position,position_ticket,order; int digits,side,count; long end_msc;
++ DAPosition residual; DADeal facts[64]; bool applied[64];
++ void Reset(){projection_prepared=false;no_fill=false;invalid=false;projected=false;pending=false;terminal=false;contained=false;reduced=false;started=false;
++ failure="";group="";symbol="";v0=0;p0=0;e0=0;r0=0;s0=0;gross=0;commission=0;fee=0;swap=0;requested=0;before_swap=0;
++ position=0;position_ticket=0;order=0;digits=0;side=0;count=0;end_msc=0;exposure=DA_FULL;intent=DA_ENTRY;ZeroMemory(residual);
++ for(int i=0;i<64;i++)applied[i]=false;}
++ void Invalidate(string why){if(!invalid)failure=why;invalid=true;if(exposure!=DA_FLAT)exposure=DA_QUARANTINED;}
++ bool Begin(string g,string sym,int direction,double volume,double stop,double equity,double risk,int precision,long end){
++ Reset();if(g==""||sym==""||volume<=0||stop<=0||equity<=0||risk<=0||precision<0||precision>8||(direction!=1&&direction!=-1)||!MathIsValidNumber(volume)||!MathIsValidNumber(stop)||!MathIsValidNumber(equity)||!MathIsValidNumber(risk))return false;
++ group=g;symbol=sym;side=direction;v0=volume;s0=NormalizeDouble(stop,precision);e0=equity;r0=risk;digits=precision;end_msc=end;started=true;return true;}
++ bool Prepare(DAIntent what,double volume){
++ if(!started||pending||projected||!MathIsValidNumber(volume)||volume<=0)return false;
++ if(what==DA_CONTAINMENT){if((failure!="PARTIAL_ORDER_EXECUTION"&&failure!="FOK_FULL_MULTI_DEAL_UNSUPPORTED_LEDGER_CARDINALITY")||!invalid||contained||!terminal||!residual.valid||residual.volume<=0||!DAVolumeEqual(volume,residual.volume))return false;contained=true;}
++ else if(invalid)return false;
++ if(what==DA_ENTRY && (position!=0||count!=0))return false;
++ if(what==DA_CLOSE && (!residual.valid||!DAVolumeEqual(volume,residual.volume)))return false;
++ if(what==DA_REDUCTION && (reduced||!residual.valid||volume>=residual.volume))return false;
++ no_fill=false;projection_prepared=false;intent=what;requested=volume;order=0;terminal=false;pending=true;before_swap=residual.swap;exposure=(what==DA_CLOSE||what==DA_CONTAINMENT)?DA_CLOSE_PENDING:DA_REQUEST_PENDING;return true;}
++ void Receipt(ulong ticket,bool completed,bool rejected_without_fill=false){order=ticket;terminal=completed;no_fill=completed&&rejected_without_fill;if(ticket==0&&!completed)exposure=DA_AMBIGUOUS;}
++ bool Capture(const DADeal &d){
++ for(int i=0;i<count;i++)if(facts[i].ticket==d.ticket){if(DADealCanonical(facts[i])!=DADealCanonical(d)){Invalidate("CONFLICTING_DUPLICATE_DEAL");return false;}return true;}
++ if(count>=64){Invalidate("DEAL_CAPTURE_OVERFLOW");return false;}
++ facts[count]=d;applied[count]=false;count++;
++ if(!d.valid||d.reads!=65535||d.ticket==0||d.order==0||d.position==0||d.symbol!=symbol||d.magic!=12001){Invalidate("MISSING_OR_FAILED_READ_OR_FOREIGN_DEAL");return false;}
++ if(projected){Invalidate("NORMAL_BOUNDARY_IMMUTABLE_CONFLICT");return false;}
++ return true;}
++ bool Reconcile(const DAPosition &now,bool flat_authenticated){
++ if(!pending||!terminal)return false;
++ int n=0,index=-1;double filled=0;
++ for(int i=0;i<count;i++)if(facts[i].order==order){n++;index=i;filled+=facts[i].volume;}
++ // A terminal rejection plus an authenticated unchanged position is the only no-fill outcome.
++ if(n==0){if(no_fill&&now.valid&&now.id==position&&DAVolumeEqual(now.volume,residual.volume)){pending=false;residual=now;exposure=invalid?DA_QUARANTINED:(reduced?DA_REDUCED:DA_FULL);}return false;}
++ if(!DAVolumeEqual(filled,requested)||n>1){
++ Invalidate(DAVolumeEqual(filled,requested)?"FOK_FULL_MULTI_DEAL_UNSUPPORTED_LEDGER_CARDINALITY":"PARTIAL_ORDER_EXECUTION");
++ pending=false;if(now.valid && (position==0||now.id==position)){residual=now;exposure=DA_QUARANTINED;}else{residual.valid=false;exposure=DA_AMBIGUOUS;}return false;}
++ DADeal d=facts[index];
++ if(!d.valid||(position!=0&&d.position!=position)||(intent!=DA_CONTAINMENT&&d.time_msc>=end_msc)){Invalidate("DEAL_BINDING_OR_TIME_INVALID");return false;}
++ if(intent==DA_CONTAINMENT){pending=false;residual=now;if(flat_authenticated)exposure=DA_FLAT;else exposure=now.valid?DA_QUARANTINED:DA_AMBIGUOUS;return false;}
++ if(invalid)return false;
++ if(intent==DA_ENTRY){
++ if(d.entry!=DEAL_ENTRY_IN||d.type!=(side==1?DEAL_TYPE_BUY:DEAL_TYPE_SELL)||d.profit!=0||d.swap!=0||!now.valid||now.id!=d.position||!DAVolumeEqual(now.volume,v0)||NormalizeDouble(now.sl,digits)!=s0){Invalidate("ENTRY_RECONCILIATION_FAILED");return false;}
++ position=d.position;position_ticket=now.ticket;p0=now.basis;commission=d.commission;fee=d.fee;residual=now;pending=false;exposure=DA_FULL;applied[index]=true;return true;}
++ if(d.entry!=DEAL_ENTRY_OUT||d.type!=(side==1?DEAL_TYPE_SELL:DEAL_TYPE_BUY)){Invalidate("UNSUPPORTED_EXIT_TYPE");return false;}
++ if(d.reason!=DEAL_REASON_EXPERT && d.reason!=DEAL_REASON_SL){Invalidate("MANUAL_OR_UNSUPPORTED_EXIT");return false;}
++ if(d.reason==DEAL_REASON_SL && NormalizeDouble(d.sl,digits)!=s0){Invalidate("EXIT_STOP_MISMATCH");return false;}
++ if(intent==DA_REDUCTION){
++ if(!now.valid||now.id!=position||now.basis!=p0||NormalizeDouble(now.sl,digits)!=s0||!DAVolumeEqual(now.volume,v0-requested)||NormalizeDouble(before_swap-d.swap-now.swap,8)!=0){Invalidate("RESIDUAL_RECONCILIATION_FAILED");return false;}
++ reduced=true;residual=now;exposure=DA_REDUCED;
++ }else{
++ if(!flat_authenticated||NormalizeDouble(before_swap-d.swap,8)!=0){Invalidate("FINAL_SWAP_OR_FLAT_UNAUTHENTICATED");return false;}
++ ZeroMemory(residual);residual.valid=true;exposure=DA_FLAT;
++ }
++ if(applied[index]){Invalidate("DUPLICATE_COMPONENT_APPLICATION");return false;}
++ gross+=d.profit;commission+=d.commission;fee+=d.fee;swap+=d.swap;applied[index]=true;pending=false;return true;
++ }
++ double Contribution(){return gross+commission+fee+swap+(residual.valid?residual.mark+residual.swap:0);}
++ bool Projection(bool boundary,KingEAAccountingEvent &event){
++ if(projected){Invalidate("SECOND_FINANCIAL_PROJECTION_ATTEMPT");return false;}
++ if(invalid||pending||!started||e0<=0||r0<=0)return false;
++ if(boundary){if(!residual.valid||residual.time_msc>=end_msc||residual.volume<=0)return false;}
++ else if(exposure!=DA_FLAT)return false;
++ event.gross_profit=gross+(boundary?residual.mark:0);event.commission=commission;event.fee=fee;event.swap=swap+(boundary?residual.swap:0);
++ double net=event.gross_profit+event.commission+event.fee+event.swap;event.net_return=net/e0;event.net_r=net/r0;
++ projection_prepared=true;return true;
++ }
++ bool Commit(){if(projected||invalid||!projection_prepared)return false;projected=true;projection_prepared=false;return true;}
++};
++#endif
+--- /dev/null
++++ b/MQL5/Include/KingEA/DecisionAStaticStop.mqh
+@@ -0,0 +1,36 @@
++#ifndef KINGEA_DECISION_A_STATIC_STOP_MQH
++#define KINGEA_DECISION_A_STATIC_STOP_MQH
++#include "DecisionALifecycle.mqh"
++struct DAObservation { long type;ulong position,order;double sl;uint retcode;long action; };
++class DAObservationRing {
++public:
++ DAObservation rows[256];int head,tail,size;bool overflow;
++ void Reset(){head=0;tail=0;size=0;overflow=false;}
++ bool Capture(const MqlTradeTransaction &t,const MqlTradeRequest &r,const MqlTradeResult &s){
++ if(t.type!=TRADE_TRANSACTION_POSITION&&t.type!=TRADE_TRANSACTION_REQUEST)return true;
++ if(size==256){overflow=true;return false;}
++ rows[tail].type=t.type;rows[tail].position=t.position;rows[tail].order=t.order;rows[tail].sl=t.price_sl;rows[tail].action=-1;rows[tail].retcode=0;
++ if(t.type==TRADE_TRANSACTION_REQUEST){rows[tail].position=r.position;rows[tail].order=s.order;rows[tail].action=r.action;rows[tail].retcode=s.retcode;}
++ tail=(tail+1)%256;size++;return true;}
++ bool Pop(DAObservation &o){if(size==0)return false;o=rows[head];head=(head+1)%256;size--;return true;}
++};
++bool DAStaticSendAllowed(const MqlTradeRequest &r,DAIntent intent,const DecisionALifecycle &ledger){
++ if(r.action!=TRADE_ACTION_DEAL||r.type_filling!=ORDER_FILLING_FOK||r.symbol!=ledger.symbol||r.magic!=12001||r.volume<=0||!MathIsValidNumber(r.volume))return false;
++ if(r.type!=(intent==DA_ENTRY?(ledger.side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL):(ledger.side==1?ORDER_TYPE_SELL:ORDER_TYPE_BUY)))return false;
++ if(intent!=ledger.intent||!ledger.pending)return false;
++ if(intent==DA_ENTRY)return !ledger.invalid&&r.tp==0&&r.position==0&&NormalizeDouble(r.sl,ledger.digits)==ledger.s0&&DAVolumeEqual(r.volume,ledger.v0);
++ if(r.position!=ledger.position_ticket||r.sl!=0||r.tp!=0)return false;
++ if(intent==DA_CONTAINMENT)return ledger.invalid&&ledger.contained&&ledger.pending&&ledger.terminal==false&&ledger.residual.valid&&DAVolumeEqual(r.volume,ledger.residual.volume);
++ return !ledger.invalid&&ledger.pending&&DAVolumeEqual(r.volume,ledger.requested);
++}
++// Accepted native profile, exact signed rates and weekday factors. No symbol-name equivalence.
++bool DABoundNativeProfile(){
++ if(!MQLInfoInteger(MQL_TESTER)||MQLInfoInteger(MQL_VISUAL_MODE)||MQLInfoInteger(MQL_DLLS_ALLOWED)||TerminalInfoInteger(TERMINAL_BUILD)!=6140||AccountInfoString(ACCOUNT_SERVER)!="JustMarkets-Demo2"||_Symbol!="ETHUSD.s")return false;
++ long mode=0,roll=0,digits=0,fill=0;
++ if(!SymbolInfoInteger(_Symbol,SYMBOL_SWAP_MODE,mode)||!SymbolInfoInteger(_Symbol,SYMBOL_SWAP_ROLLOVER3DAYS,roll)||!SymbolInfoInteger(_Symbol,SYMBOL_DIGITS,digits)||!SymbolInfoInteger(_Symbol,SYMBOL_FILLING_MODE,fill))return false;
++ if(mode!=1||roll!=3||digits!=2||(fill&SYMBOL_FILLING_FOK)==0)return false;
++ ENUM_SYMBOL_INFO_DOUBLE ids[]={SYMBOL_SWAP_LONG,SYMBOL_SWAP_SHORT,SYMBOL_VOLUME_MIN,SYMBOL_VOLUME_STEP,SYMBOL_VOLUME_MAX,SYMBOL_POINT,SYMBOL_TRADE_TICK_SIZE,SYMBOL_TRADE_CONTRACT_SIZE,SYMBOL_SWAP_MONDAY,SYMBOL_SWAP_TUESDAY,SYMBOL_SWAP_WEDNESDAY,SYMBOL_SWAP_THURSDAY,SYMBOL_SWAP_FRIDAY,SYMBOL_SWAP_SATURDAY,SYMBOL_SWAP_SUNDAY};
++ double expected[]={-280.56,-184.08,0.01,0.01,100,0.01,0.01,1,1,1,3,1,1,0,0};
++ for(int i=0;i<ArraySize(ids);i++){double v=0;if(!SymbolInfoDouble(_Symbol,ids[i],v)||!MathIsValidNumber(v)||v!=expected[i])return false;}return true;
++}
++#endif
+--- /dev/null
++++ b/research_pipeline/decision_a_evidence.py
+@@ -0,0 +1,253 @@
++"""Controlled-tester V3 verification. No trading, launch, or historical fallback.
++
++The caller supplies independently resolved expectations, never a payload-selected
++trust directory. Native economics are checked with Decimal, not account equity.
++"""
++from __future__ import annotations
++from dataclasses import dataclass, field
++from decimal import Decimal, InvalidOperation
++import hashlib
++import json
++from pathlib import Path
++
++CONTRACT = 'NATIVE_GROUP_LIFECYCLE_CONTRACT_V3'
++PACKAGE = 'NATIVE_GROUP_LIFECYCLE_PACKAGE_V3'
++SEMANTICS = 'PARTIAL_POSITION_COMPONENTS_V1'
++ADOPTION = '335148375AF80997CCEFF73F883F358EDCB1876419F328D071C7F3E94331EFAF'
++NATIVE_PROOF = 'D429EA8BC417878320CB9E5A786A252C7D292E5298C946CA056CE3F8B56C93A7'
++
++def require(ok, reason):
++    if not ok:
++        raise ValueError(reason)
++
++def unique(pairs):
++    result = {}
++    for key, value in pairs:
++        require(key not in result, 'DUPLICATE_FIELD')
++        result[key] = value
++    return result
++
++def canonical(value):
++    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
++
++def digest(value):
++    return hashlib.sha256(value if isinstance(value, bytes) else value.encode()).hexdigest().upper()
++
++def number(value):
++    require(not isinstance(value, bool) and isinstance(value, (int, float, str, Decimal)), 'INVALID_NUMBER')
++    try:
++        result = Decimal(str(value))
++    except InvalidOperation as exc:
++        raise ValueError('INVALID_NUMBER') from exc
++    require(result.is_finite(), 'NONFINITE_NUMBER')
++    return result
++
++def hash_value(value):
++    return isinstance(value, str) and len(value) == 64 and all(c in '0123456789ABCDEF' for c in value)
++
++@dataclass(frozen=True)
++class ImmutableInput:
++    """One capture used for hashing and parsing. No reopen/reload API."""
++    path: str
++    sha256: str
++    data: bytes
++
++    @classmethod
++    def capture(cls, root: Path, reference: dict):
++        require(set(reference) == {'path', 'sha256'}, 'INPUT_REFERENCE_FIELDS')
++        name = reference['path']
++        require(isinstance(name, str) and name not in ('', '.', '..') and
++                '/' not in name and '\\' not in name and ':' not in name, 'INPUT_PATH_INVALID')
++        require(hash_value(reference['sha256']), 'INPUT_PIN_INVALID')
++        root = Path(root)
++        path = root / name
++        require(not root.is_symlink() and not path.is_symlink(), 'INPUT_LINK_FORBIDDEN')
++        with path.open('rb') as stream:
++            raw = stream.read(10_000_001)
++        require(0 < len(raw) <= 10_000_000, 'INPUT_SIZE_INVALID')
++        require(digest(raw) == reference['sha256'], 'INPUT_PIN_MISMATCH')
++        return cls(name, reference['sha256'], raw)
++
++    def json(self):
++        return json.loads(self.data.decode('utf-8-sig'), object_pairs_hook=unique)
++
++    def calendar(self):
++        lines = self.data.decode('utf-8-sig').splitlines()
++        require(lines and lines[0] == 'type,start_msc,end_msc,identity', 'CALENDAR_HEADER')
++        rows = []
++        for line in lines[1:]:
++            if not line:
++                continue
++            row = line.split(',')
++            require(len(row) == 4 and row[0] and row[3], 'CALENDAR_ROW')
++            require(row[1].isdigit() and row[2].isdigit(), 'CALENDAR_TIME')
++            start, end = int(row[1]), int(row[2])
++            require(0 < start < end and (not rows or start >= rows[-1][1]), 'CALENDAR_ORDER')
++            rows.append((row[0], start, end, row[3]))
++        require(rows, 'CALENDAR_EMPTY')
++        return tuple(rows)
++
++SWAP_FACTS = dict(SYMBOL_SWAP_MODE='1', SYMBOL_SWAP_ROLLOVER3DAYS='3', SYMBOL_DIGITS='2',
++    SYMBOL_SWAP_LONG='-280.56', SYMBOL_SWAP_SHORT='-184.08', SYMBOL_VOLUME_MIN='.01',
++    SYMBOL_VOLUME_STEP='.01', SYMBOL_VOLUME_MAX='100', SYMBOL_POINT='.01',
++    SYMBOL_TRADE_TICK_SIZE='.01', SYMBOL_TRADE_CONTRACT_SIZE='1',
++    SYMBOL_SWAP_MONDAY='1', SYMBOL_SWAP_TUESDAY='1', SYMBOL_SWAP_WEDNESDAY='3',
++    SYMBOL_SWAP_THURSDAY='1', SYMBOL_SWAP_FRIDAY='1', SYMBOL_SWAP_SATURDAY='0', SYMBOL_SWAP_SUNDAY='0')
++
++def validate_profile(profile, side='LONG'):
++    require(isinstance(profile, dict), 'SWAP_PROFILE_NOT_AUTHORIZED')
++    require(profile.get('accepted_proof_sha256') == NATIVE_PROOF and
++            profile.get('server') == 'JustMarkets-Demo2' and profile.get('symbol') == 'ETHUSD.s' and
++            all(profile.get(k) == 6140 for k in ('terminal_build', 'compiler_build', 'agent_build')),
++            'SWAP_PROFILE_NOT_AUTHORIZED')
++    require(profile.get('local') is True and profile.get('visual') is False and
++            profile.get('dll') is False and profile.get('command_bridge') is False and
++            profile.get('shared_trading_input') is False, 'TESTER_PROFILE_INVALID')
++    facts = profile.get('facts', {})
++    for key, expected in SWAP_FACTS.items():
++        require(key in facts and number(facts[key]) == number(expected), 'SWAP_PROFILE_NOT_AUTHORIZED')
++    # No separately accepted SHORT proof is currently in the governing contract.
++    require(side == 'LONG', 'NATIVE_CONFORMANCE_REQUIRED_BEFORE_SUCCESSOR_READINESS')
++
++def classify_execution(requested, volumes, *, terminal):
++    if not terminal:
++        return 'EXECUTION_EVIDENCE_INCOMPLETE'
++    q = number(requested)
++    require(q > 0, 'REQUEST_VOLUME_INVALID')
++    values = [number(x) for x in volumes]
++    require(all(x > 0 for x in values), 'DEAL_VOLUME_INVALID')
++    total = sum(values, Decimal(0))
++    if not values:
++        return 'FOK_REJECTED_NO_FILL'
++    if total < q:
++        return 'PARTIAL_ORDER_EXECUTION'
++    require(total == q, 'EXECUTED_VOLUME_EXCEEDS_REQUEST')
++    return 'FOK_FULL_SINGLE_DEAL' if len(values) == 1 else 'FOK_FULL_MULTI_DEAL'
++
++@dataclass
++class ExposureControl:
++    """Research validity never acts as the monitoring-enable flag."""
++    invalid: bool = False
++    exposure: str = 'FULL_POSITION'
++    terminal: bool = False
++    residual: dict | None = None
++    containment_attempts: int = 0
++    reason: str = ''
++    monitoring: bool = True
++
++    def invalidate(self, reason):
++        self.invalid = True
++        self.reason = self.reason or reason
++
++    def observe(self, classification, *, terminal, residual, expected_position):
++        self.terminal = terminal
++        if classification in ('FOK_FULL_MULTI_DEAL', 'PARTIAL_ORDER_EXECUTION'):
++            self.invalidate(classification)
++        require(self.monitoring, 'MONITORING_DISABLED')
++        if not terminal or not residual or residual.get('read_ok') is not True or residual.get('position_id') != expected_position:
++            self.residual = None
++            self.exposure = 'AMBIGUOUS_EXPOSURE_FAIL_CLOSED'
++            return
++        require(number(residual['volume']) >= 0, 'RESIDUAL_VOLUME_INVALID')
++        self.residual = dict(residual)
++        self.exposure = 'QUARANTINED_MONITORED_POSITION' if self.invalid else 'REDUCED_POSITION'
++
++    def containment(self):
++        require(self.reason in ('FOK_FULL_MULTI_DEAL', 'PARTIAL_ORDER_EXECUTION'), 'CONTAINMENT_CAUSE_NOT_AUTHORIZED')
++        require(self.invalid and self.terminal and self.residual is not None and
++                self.containment_attempts == 0 and number(self.residual['volume']) > 0, 'CONTAINMENT_NOT_AUTHORIZED')
++        self.containment_attempts = 1  # consumed at submission, including rejection
++        self.exposure = 'CONTAINMENT_PENDING'
++        return dict(classification='INVALID_RUN_CONTAINMENT_FLATTEN', filling='ORDER_FILLING_FOK',
++                    position_id=self.residual['position_id'], volume=self.residual['volume'])
++
++    def containment_result(self, *, flat_authenticated, residual=None):
++        require(self.containment_attempts == 1 and self.invalid, 'CONTAINMENT_STATE_INVALID')
++        self.residual = residual
++        self.exposure = ('FLAT_CONFIRMED' if flat_authenticated else
++                         'QUARANTINED_MONITORED_POSITION' if residual and residual.get('read_ok') is True else
++                         'AMBIGUOUS_EXPOSURE_FAIL_CLOSED')
++
++TOP = {'contract_id','package_id','semantic_id','binding','precision','original','entry',
++       'exit_portions','residual_snapshots','swap_reconciliations','safety_handoff','terminal','integrity'}
++DEAL_FIELDS = {'deal_id','order_id','position_id','request_intent_hash','request_receipt_hash','role',
++    'requested_volume','executed_volume','native_time_msc','capture_sequence','price','profit','commission','fee',
++    'swap','reason','exit_sl','read_flags','previous_fact_hash','fact_hash'}
++
++def read_package(raw):
++    if isinstance(raw, bytes):
++        raw = raw.decode('utf-8')
++    require(isinstance(raw, str), 'PACKAGE_TYPE')
++    body, sep, checksum = raw.rpartition('|sha256=')
++    require(sep and digest(body) == checksum, 'PACKAGE_DIGEST_MISMATCH')
++    value = json.loads(body, object_pairs_hook=unique)
++    require(isinstance(value, dict) and set(value) == TOP, 'V3_FIELDS_REQUIRED')
++    return value
++
++def validate_package(raw, expected, profile):
++    p = read_package(raw)
++    require((p['contract_id'], p['package_id'], p['semantic_id']) == (CONTRACT, PACKAGE, SEMANTICS), 'V3_SEMANTICS_REQUIRED')
++    b = p['binding']
++    require(isinstance(b, dict) and all(b.get(k) == v for k, v in expected.items()), 'V3_BINDING_MISMATCH')
++    require(b.get('decision_a_hash') and b.get('decision_s_hash') and b.get('specification_hash') == ADOPTION, 'ADOPTION_BINDING_INVALID')
++    original = p['original']; validate_profile(profile, original.get('side'))
++    for k in ('V0', 'P0', 'E0', 'R0', 'S0'):
++        require(number(original[k]) > 0, 'ORIGINAL_BASIS_INVALID')
++    require(isinstance(p['exit_portions'], list) and 0 <= len(p['exit_portions']) <= 2, 'EXIT_CARDINALITY')
++    deals = [p['entry']] + p['exit_portions']; seen=set(); orders=set(); previous='0'*64
++    gross=Decimal(0); commission=Decimal(0); fee=Decimal(0); swap=Decimal(0); exited=Decimal(0)
++    reductions=0; previous_time=0
++    for i, d in enumerate(deals):
++        require(isinstance(d, dict) and set(d) == DEAL_FIELDS, 'DEAL_FIELDS')
++        require(d['deal_id'] not in seen and d['order_id'] not in orders, 'UNSUPPORTED_LEDGER_CARDINALITY')
++        seen.add(d['deal_id']); orders.add(d['order_id'])
++        require(type(d['deal_id']) is int and d['deal_id']>0 and type(d['order_id']) is int and d['order_id']>0, 'DEAL_ID_INVALID')
++        require(d['position_id']==original['position_id'], 'POSITION_ID_MISMATCH')
++        require(type(d['native_time_msc']) is int and d['native_time_msc']>=previous_time, 'DEAL_TIME_INVALID')
++        previous_time=d['native_time_msc']
++        require(d['previous_fact_hash']==previous and hash_value(d['fact_hash']), 'DEAL_CHAIN_INVALID')
++        require(d['fact_hash']==digest(canonical({k:v for k,v in d.items() if k!='fact_hash'})), 'DEAL_DIGEST_INVALID')
++        previous=d['fact_hash']
++        required_reads={'volume','price','profit','commission','fee','swap','reason','identity','time'}
++        require(isinstance(d['read_flags'],dict) and required_reads <= set(d['read_flags']) and
++                all(d['read_flags'][k] is True for k in required_reads), 'MISSING_OR_FAILED_READ')
++        volume=number(d['executed_volume'])
++        require(volume>0 and volume==number(d['requested_volume']), 'PARTIAL_ORDER_EXECUTION')
++        require(hash_value(d['request_intent_hash']) and hash_value(d['request_receipt_hash']), 'REQUEST_AUTHORITY_MISSING')
++        if i==0:
++            require(d['role']=='ENTRY' and volume==number(original['V0']) and number(d['profit'])==0 and number(d['swap'])==0, 'ENTRY_INVALID')
++        else:
++            require(d['role'] in ('SAFETY_REDUCTION','FINAL_CLOSE'), 'CONTAINMENT_OR_UNSUPPORTED_ROLE')
++            if d['role']=='SAFETY_REDUCTION':
++                reductions+=1;require(i==1 and reductions==1 and volume<number(original['V0']), 'SECOND_REDUCTION')
++            else:
++                require(i==len(deals)-1, 'CLOSE_ORDER_INVALID')
++            require(d['reason'] in ('DEAL_REASON_EXPERT','DEAL_REASON_SL'), 'EXIT_ORIGIN_INVALID')
++            if d['reason']=='DEAL_REASON_SL':
++                require(d['read_flags'].get('exit_sl') is True and number(d['exit_sl'])==number(original['S0']), 'STOP_MISMATCH')
++            exited+=volume;gross+=number(d['profit']);swap+=number(d['swap'])
++        commission+=number(d['commission']);fee+=number(d['fee'])
++    require(exited<=number(original['V0']), 'EXIT_VOLUME_EXCEEDED')
++    term=p['terminal'];require(term['outcome'] in ('NORMAL_CLOSE','EVALUATOR_BOUNDARY') and term['financial_projection_count']==1, 'TERMINAL_PROJECTION_INVALID')
++    if term['outcome']=='NORMAL_CLOSE':
++        require(exited==number(original['V0']) and deals[-1]['role']=='FINAL_CLOSE' and term['boundary_snapshot_hash'] is None, 'NORMAL_CLOSE_INVALID')
++    else:
++        require(exited<number(original['V0']) and p['residual_snapshots'], 'BOUNDARY_RESIDUAL_MISSING')
++        s=p['residual_snapshots'][-1]
++        require(s['snapshot_hash']==term['boundary_snapshot_hash'] and s['position_id']==original['position_id'] and
++                number(s['Vr'])==number(original['V0'])-exited and number(s['P0'])==number(original['P0']) and number(s['S0'])==number(original['S0']), 'RESIDUAL_BINDING_MISMATCH')
++        require(all(v is True for v in s['read_flags'].values()) and s['read_flags'], 'RESIDUAL_READ_FAILED')
++        gross+=number(s['mark']);swap+=number(s['position_swap'])
++    require(len(p['swap_reconciliations'])==len(p['exit_portions']), 'SWAP_RECONCILIATION_MISSING')
++    for r,d in zip(p['swap_reconciliations'],p['exit_portions']):
++        require(r['deal_id']==d['deal_id'] and r['status']=='RECONCILED' and hash_value(r['interval_authority_hash']) and
++                r['native_swap_profile_hash']==b['native_swap_profile_hash'], 'SWAP_AUTHORITY_INVALID')
++        require(number(r['interval_accrual'])==0 and number(r['realized_swap'])==number(d['swap']) and
++                number(r['before_swap'])==number(r['realized_swap'])+number(r['after_swap']), 'SWAP_RECONCILIATION_FAILED')
++    net=gross+commission+fee+swap
++    for k,v in dict(aggregate_gross=gross,aggregate_commission=commission,aggregate_fee=fee,aggregate_swap=swap,group_net=net,
++                    net_return=net/number(original['E0']),net_R=net/number(original['R0'])).items():
++        require(number(term[k]).quantize(Decimal('0.000000000001'))==v.quantize(Decimal('0.000000000001')), 'COMPONENT_ORACLE_MISMATCH:'+k)
++    h=p['safety_handoff'];require(number(h['base_after'])==number(h['base_before'])+net and number(h['contribution_before'])==net and number(h['contribution_after'])==0, 'DOUBLE_SAFETY_PROJECTION')
++    require(p['integrity']['lifecycle_root']==previous and p['integrity']['sidecar_hash_algorithm']=='SHA256', 'LIFECYCLE_ROOT_INVALID')
++    return p
+--- /dev/null
++++ b/MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5
+@@ -0,0 +1,28 @@
++#property strict
++#include <KingEA/DecisionADealAdapter.mqh>
++#include <KingEA/DecisionAStaticStop.mqh>
++// Compile-only in this implementation phase. No orders or history queries.
++int failures=0;
++void Check(bool ok,string name){if(!ok){failures++;Print("FAIL ",name);}}
++void OnStart(){
++ DecisionALifecycle ledger;ledger.Reset();
++ Check(ledger.Begin("group","ETHUSD.s",1,1,90,1000,10,2,200000),"original basis");
++ Check(!ledger.Commit(),"no commit without projection");
++ Check(ledger.Prepare(DA_ENTRY,1),"entry prepare");
++ MqlTradeRequest request;ZeroMemory(request);
++ request.action=TRADE_ACTION_DEAL;request.type_filling=ORDER_FILLING_FOK;request.symbol="ETHUSD.s";
++ request.magic=12001;request.volume=1;request.sl=90;request.type=ORDER_TYPE_BUY;
++ Check(DAStaticSendAllowed(request,DA_ENTRY,ledger),"FOK entry seam");
++ request.type_filling=ORDER_FILLING_IOC;
++ Check(!DAStaticSendAllowed(request,DA_ENTRY,ledger),"IOC denied");
++ request.type_filling=ORDER_FILLING_FOK;request.type=ORDER_TYPE_SELL;
++ Check(!DAStaticSendAllowed(request,DA_ENTRY,ledger),"wrong direction denied");
++ ledger.Receipt(123,true);DAPosition unknown;ZeroMemory(unknown);
++ Check(!ledger.Reconcile(unknown,false)&&ledger.pending,"missing callback stays pending");
++ DAObservationRing ring;ring.Reset();MqlTradeTransaction trans;MqlTradeResult result;
++ ZeroMemory(trans);ZeroMemory(result);trans.type=TRADE_TRANSACTION_POSITION;
++ for(int i=0;i<256;i++)Check(ring.Capture(trans,request,result),"bounded capture");
++ Check(!ring.Capture(trans,request,result)&&ring.overflow,"overflow sticky");
++ DAObservation row;Check(ring.Pop(row)&&ring.overflow,"drain does not clear overflow");
++ Print("Combined deterministic harness failures=",failures);
++}
+--- /dev/null
++++ b/tests/test_combined_foundations.py
+@@ -0,0 +1,99 @@
++"""Deterministic foundation tests; no MT5, no native proof, no execution authority."""
++import copy
++import tempfile
++import unittest
++from pathlib import Path
++from research_pipeline.decision_a_evidence import (
++    ImmutableInput, ExposureControl, classify_execution, validate_profile,
++    digest, number, unique, SWAP_FACTS, NATIVE_PROOF,
++)
++
++class ImmutableCaptureTests(unittest.TestCase):
++    def test_same_buffer_survives_mutation(self):
++        with tempfile.TemporaryDirectory() as directory:
++            p=Path(directory)/'input.json'; original=b'{"value":1}'; p.write_bytes(original)
++            capture=ImmutableInput.capture(p.parent,dict(path=p.name,sha256=digest(original)))
++            p.write_bytes(b'{"value":2}')
++            self.assertEqual(capture.json(),{'value':1})
++            self.assertEqual(capture.sha256,digest(original))
++            with self.assertRaisesRegex(ValueError,'INPUT_PIN_MISMATCH'):
++                ImmutableInput.capture(p.parent,dict(path=p.name,sha256=digest(original)))
++    def test_calendar_uses_captured_bytes(self):
++        raw=b'type,start_msc,end_msc,identity\nNEWS,100,200,event\n'
++        c=ImmutableInput('calendar.csv',digest(raw),raw)
++        self.assertEqual(c.calendar(),(('NEWS',100,200,'event'),))
++    def test_duplicate_manifest_fields(self):
++        with self.assertRaisesRegex(ValueError,'DUPLICATE_FIELD'):
++            ImmutableInput('x','',b'{"x":1,"x":2}').json()
++    def test_path_escape(self):
++        for name in ('../x','C:x','x/y','x\\y','..',''):
++            with self.subTest(name=name),self.assertRaisesRegex(ValueError,'INPUT_PATH_INVALID'):
++                ImmutableInput.capture(Path('.'),dict(path=name,sha256='A'*64))
++    def test_missing_local_never_uses_common(self):
++        with tempfile.TemporaryDirectory() as directory:
++            with self.assertRaises(FileNotFoundError):
++                ImmutableInput.capture(Path(directory),dict(path='missing',sha256='A'*64))
++    def test_bad_calendar_rows(self):
++        for row in ('NEWS,200,100,event','NEWS,x,200,event','NEWS,100,200,','NEWS,100,200,event,extra'):
++            with self.subTest(row=row),self.assertRaises(ValueError):
++                ImmutableInput('x','',('type,start_msc,end_msc,identity\n'+row).encode()).calendar()
++    def test_nonfinite_and_bool_rejected(self):
++        for value in ('NaN','Infinity',True,float('-inf')):
++            with self.subTest(value=value),self.assertRaises(ValueError):number(value)
++
++class ExecutionContainmentTests(unittest.TestCase):
++    def test_full_single(self):
++        self.assertEqual(classify_execution('1',['1'],terminal=True),'FOK_FULL_SINGLE_DEAL')
++    def test_full_multi_is_not_partial(self):
++        self.assertEqual(classify_execution('1',['.4','.6'],terminal=True),'FOK_FULL_MULTI_DEAL')
++    def test_partial(self):
++        self.assertEqual(classify_execution('1',['.4'],terminal=True),'PARTIAL_ORDER_EXECUTION')
++    def test_missing_terminality(self):
++        self.assertEqual(classify_execution('1',['.4'],terminal=False),'EXECUTION_EVIDENCE_INCOMPLETE')
++    def test_no_fill(self):
++        self.assertEqual(classify_execution('1',[],terminal=True),'FOK_REJECTED_NO_FILL')
++    def test_excess_rejected(self):
++        with self.assertRaisesRegex(ValueError,'EXCEEDS_REQUEST'):classify_execution('1',['1.1'],terminal=True)
++    def invalid_control(self,**overrides):
++        c=ExposureControl(); args=dict(terminal=True,residual=dict(read_ok=True,position_id=7,volume='.6'),expected_position=7);args.update(overrides)
++        c.observe('PARTIAL_ORDER_EXECUTION',**args);return c
++    def test_actual_residual_not_requested_volume(self):
++        c=self.invalid_control();self.assertEqual(c.containment()['volume'],'.6')
++        self.assertTrue(c.invalid);self.assertTrue(c.monitoring)
++    def test_no_retry_after_rejection(self):
++        c=self.invalid_control();c.containment();c.containment_result(flat_authenticated=False)
++        with self.assertRaisesRegex(ValueError,'CONTAINMENT_NOT_AUTHORIZED'):c.containment()
++        self.assertTrue(c.invalid);self.assertTrue(c.monitoring)
++    def test_no_retry_after_success(self):
++        c=self.invalid_control();c.containment();c.containment_result(flat_authenticated=True)
++        self.assertEqual(c.exposure,'FLAT_CONFIRMED');self.assertTrue(c.invalid)
++        with self.assertRaises(ValueError):c.containment()
++    def test_no_speculative_containment(self):
++        for options in (dict(terminal=False),dict(residual=None),dict(expected_position=8),dict(residual=dict(read_ok=False,position_id=7,volume='.6'))):
++            with self.subTest(options=options):
++                c=self.invalid_control(**options)
++                with self.assertRaises(ValueError):c.containment()
++                self.assertTrue(c.monitoring)
++    def test_unrelated_invalidation_not_containment_authority(self):
++        c=ExposureControl();c.invalidate('PROFILE_LOST')
++        c.observe('FOK_FULL_SINGLE_DEAL',terminal=True,residual=dict(read_ok=True,position_id=7,volume='.6'),expected_position=7)
++        with self.assertRaisesRegex(ValueError,'CONTAINMENT_CAUSE_NOT_AUTHORIZED'):c.containment()
++    def test_sticky_invalidity_after_later_supported_observation(self):
++        c=self.invalid_control();c.observe('FOK_FULL_SINGLE_DEAL',terminal=True,residual=dict(read_ok=True,position_id=7,volume='.6'),expected_position=7)
++        self.assertTrue(c.invalid);self.assertEqual(c.reason,'PARTIAL_ORDER_EXECUTION')
++
++class ProfileTests(unittest.TestCase):
++    def profile(self):
++        return dict(accepted_proof_sha256=NATIVE_PROOF,server='JustMarkets-Demo2',symbol='ETHUSD.s',terminal_build=6140,compiler_build=6140,agent_build=6140,local=True,visual=False,dll=False,command_bridge=False,shared_trading_input=False,facts=copy.deepcopy(SWAP_FACTS))
++    def test_exact_long_profile(self):validate_profile(self.profile())
++    def test_long_proof_cannot_authorize_short(self):
++        with self.assertRaisesRegex(ValueError,'NATIVE_CONFORMANCE_REQUIRED'):validate_profile(self.profile(),'SHORT')
++    def test_profile_mismatch(self):
++        for key,value in [('terminal_build',6141),('agent_build',6141),('compiler_build',6141),('server','other'),('dll',True),('shared_trading_input',True)]:
++            p=self.profile();p[key]=value
++            with self.subTest(key=key),self.assertRaises(ValueError):validate_profile(p)
++    def test_signed_swap_mismatch(self):
++        p=self.profile();p['facts']['SYMBOL_SWAP_LONG']='280.56'
++        with self.assertRaises(ValueError):validate_profile(p)
++
++if __name__=='__main__':unittest.main()

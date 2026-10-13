@@ -1,0 +1,80 @@
+{
+  "kind": "NATIVE_SWAP_PROFILE_RECEIPT_SPECIFICATION_REFERENCE_NOT_EXECUTION_AUTHORITY",
+  "accepted_status": "ACCEPTED_FOR_BOUND_NATIVE_PROFILE",
+  "server": "JustMarkets-Demo2",
+  "symbol": "ETHUSD.s",
+  "terminal_build": 6140,
+  "agent_build": 6140,
+  "compiler_build": 6140,
+  "binaries": [
+    {
+      "path": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+      "version": "5.0.0.6140",
+      "sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7"
+    },
+    {
+      "path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+      "version": "5.0.0.6140",
+      "sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2"
+    },
+    {
+      "path": "C:\\Program Files\\MetaTrader 5\\metatester64.exe",
+      "version": "5.0.0.6140",
+      "sha256": "46DA12974EA4B393FA6855576DA57549A1E3255DBE5C667CCE60D7F32C1A889F"
+    }
+  ],
+  "native_specification": {
+    "SYMBOL_VOLUME_MIN": "0.010000000000",
+    "SYMBOL_VOLUME_STEP": "0.010000000000",
+    "SYMBOL_VOLUME_MAX": "100.000000000000",
+    "SYMBOL_POINT": "0.010000000000",
+    "SYMBOL_TRADE_TICK_SIZE": "0.010000000000",
+    "SYMBOL_TRADE_CONTRACT_SIZE": "1.000000000000",
+    "SYMBOL_SWAP_LONG": "-280.560000000000",
+    "SYMBOL_SWAP_SHORT": "-184.080000000000",
+    "SYMBOL_SWAP_MONDAY": "1.000000000000",
+    "SYMBOL_SWAP_TUESDAY": "1.000000000000",
+    "SYMBOL_SWAP_WEDNESDAY": "3.000000000000",
+    "SYMBOL_SWAP_THURSDAY": "1.000000000000",
+    "SYMBOL_SWAP_FRIDAY": "1.000000000000",
+    "SYMBOL_SWAP_SATURDAY": "0.000000000000",
+    "SYMBOL_SWAP_SUNDAY": "0.000000000000",
+    "SYMBOL_DIGITS": "2",
+    "SYMBOL_FILLING_MODE": "1",
+    "SYMBOL_TRADE_MODE": "4",
+    "SYMBOL_TRADE_EXEMODE": "2",
+    "SYMBOL_SWAP_MODE": "1",
+    "SYMBOL_SWAP_ROLLOVER3DAYS": "3",
+    "SYMBOL_TRADE_STOPS_LEVEL": "0",
+    "SYMBOL_TRADE_FREEZE_LEVEL": "0"
+  },
+  "controlled_tester_required": true,
+  "direct_native_sides": [
+    "LONG"
+  ],
+  "short": "NATIVE_CONFORMANCE_REQUIRED_BEFORE_SUCCESSOR_READINESS",
+  "proof_inventory": {
+    "path": "governance/evidence/stage14/decision_s_native_20260907/SEALED_INVENTORY.json",
+    "sha256": "D429EA8BC417878320CB9E5A786A252C7D292E5298C946CA056CE3F8B56C93A7"
+  },
+  "native_evidence": {
+    "path": "governance/evidence/stage14/decision_s_native_20260907/DS-NATIVE-LONG-01/runtime/native.txt",
+    "sha256": "2E5B6E3DA6868558EAC5810C662BD98B3F9898F63DD8191975B781B9D55F65C9"
+  },
+  "reviewer_acceptance": {
+    "path": "REVIEWER_DIRECTIVE.txt",
+    "sha256": "50CE63E0A2071F002E155B050048D9C6E9F2B0831D83BA3271E9AE1613A54796"
+  },
+  "future_receipt_required_fields": [
+    "actual_independently_captured_profile_hash",
+    "controlled_tester_profile_hash",
+    "independent_control_pin",
+    "exact_source_dependency_SET_INI_hashes",
+    "accepted_specification_hash",
+    "successful_native_property_read_flags"
+  ],
+  "comparison": "All required bound symbol/build/swap/volume/tick fields exact; no name-only equivalence",
+  "mismatch": "SWAP_PROFILE_NOT_AUTHORIZED",
+  "decision_s": "NOT_ADOPTED",
+  "b2": "LOCKED"
+}

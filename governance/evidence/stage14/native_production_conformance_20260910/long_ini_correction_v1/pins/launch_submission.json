@@ -1,0 +1,12 @@
+{
+  "kind": "NATIVE_LONG_CONFORMANCE_INI_ENCODING_CORRECTION_V1_LAUNCH",
+  "fixture_id": "NCV1-LONG-NORMAL-001",
+  "run_id": "C666040B2B67CB6C5B62BC73193104F84F99731AD695DF250B9E3B17D5D60F2F",
+  "started_utc": "2026-09-10T08:31:40.8576552Z",
+  "terminal": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+  "config": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260910\\long_ini_correction_v1\\tester_long_ini_correction_v1.ini",
+  "ini_sha256": "EED4F590156443D4187C7600F919A5A8AAAF9686E716CC59891F9E9C6A3A9A26",
+  "source_modification": false,
+  "recompile": false,
+  "B2": "LOCKED"
+}

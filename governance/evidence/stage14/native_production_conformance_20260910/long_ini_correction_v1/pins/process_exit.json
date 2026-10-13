@@ -1,0 +1,10 @@
+{
+  "kind": "NATIVE_LONG_PROCESS_EXIT_V1",
+  "process_id": 34168,
+  "exit_code": 0,
+  "started_utc": "2026-09-10T08:31:40.8576552Z",
+  "ended_utc": "2026-09-10T08:31:42.0058825Z",
+  "terminal_exited": true,
+  "metatester_running": 0,
+  "B2": "LOCKED"
+}

@@ -1,0 +1,8 @@
+; KingEA Strategy Tester reconciliation input set
+; Build ID: TESTER-RECON-20260724-A
+; UI settings are governed separately in tester_recon_run_matrix.csv
+InpRunLabel=DEMO2_ORIGIN_20210701_WARMUP
+InpExpectedSymbol=ETHUSD.s
+InpWindowStart=2021.07.01 00:00:00
+InpWindowEnd=2021.07.02 00:00:00
+InpExpectedTicks=173712

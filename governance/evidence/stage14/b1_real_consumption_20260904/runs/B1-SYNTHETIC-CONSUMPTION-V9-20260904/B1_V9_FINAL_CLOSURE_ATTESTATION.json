@@ -1,0 +1,32 @@
+{
+  "attestation_sha256": "1B15A5864A86F77FC5FCCD5528BDFEE8E25BC45D1ED3335828DF410EE37EFFAA",
+  "controls": {
+    "b2": "LOCKED",
+    "candidate_budget_consumption": 0,
+    "candidate_execution": false,
+    "holdout_access": false,
+    "native_orders": 0,
+    "oos_access": false
+  },
+  "created_at": "2026-09-04T04:51:55.146616+00:00",
+  "full_regression": {
+    "command": "python -m unittest discover -s tests -p test_*.py",
+    "count": 128,
+    "log_sha256": "B02AB02BE69554C93D5C37D6BF8A7A2B4D240538067032530208A6E14BDA9700",
+    "result": "PASS"
+  },
+  "kind": "B1_V9_FINAL_CLOSURE_ATTESTATION",
+  "policy_scans": {
+    "candidate_pipeline_reference": "PASS",
+    "mql_prohibited_api": "PASS"
+  },
+  "pre_post_source_equality": "PASS",
+  "pre_tooling_manifest_sha256": "333B35373957E0AEA59BE5B652BDCB2982C7B16CC8DB6FC2022C3AA206A01A6E",
+  "run_id": "B1-SYNTHETIC-CONSUMPTION-V9-20260904",
+  "runtime_postcondition": {
+    "terminal64_running": false
+  },
+  "sealed_only_verification": "PASS",
+  "sealed_packet_sha256": "38A0E1A359135DD37FC22B345466B6C6A13300FAA87209A00B76E4CF6F67FD0E",
+  "status": "PASS"
+}

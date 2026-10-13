@@ -1,0 +1,217 @@
+{
+  "compiler": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+  "compiler_build": 6140,
+  "compiler_sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7",
+  "builds": [
+    {
+      "source": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "source_sha256": "0E6C47F63BE7C44A13A9A1CCAB3181975A73B98D417FA8FD007532A16CC4FB58",
+      "copy": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\GuardedResearchTester.mq5",
+      "copy_equal": true,
+      "log": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\GuardedResearchTester.log",
+      "log_sha256": "7A297B224AA5EA80C59529CDB2E827A93A463CAF100382C8601C554AC883D292",
+      "ex5": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\GuardedResearchTester.ex5",
+      "ex5_sha256": "8CE725A97A2F153EE4378A2D7F102CF51431BD5D6F23F828DC3A795D8CCDEDD5",
+      "ex5_bytes": 211120,
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "stale_control": "Source copied into new empty compile_final directory before compilation; EX5 generated there, never reused from production directories.",
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\GuardedResearchTester.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\GuardedResearchTester.log"
+      ]
+    },
+    {
+      "source": "MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5",
+      "source_sha256": "891A312A355F412C8ED08602FB2C5F0BA689EC8ADB4CDE2E0DAC9E203DFB12D8",
+      "copy": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestCombinedLifecycle.mq5",
+      "copy_equal": true,
+      "log": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestCombinedLifecycle.log",
+      "log_sha256": "F643C29957CDDF1AF407BD85957F52D85201EDF2289802AFC9859E94AF7226B6",
+      "ex5": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestCombinedLifecycle.ex5",
+      "ex5_sha256": "8CE7647D7E032A094B58075AA997ACF56223791C1AD06D75B1BCB06C30880398",
+      "ex5_bytes": 32474,
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "stale_control": "Source copied into new empty compile_final directory before compilation; EX5 generated there, never reused from production directories.",
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestCombinedLifecycle.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestCombinedLifecycle.log"
+      ]
+    },
+    {
+      "source": "MQL5/Scripts/KingEA/TestSwapTransition.mq5",
+      "source_sha256": "705E3A21C30083EDDD389A737B68ADEA95E68D926CB25F72C2B74259E9BCA023",
+      "copy": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestSwapTransition.mq5",
+      "copy_equal": true,
+      "log": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestSwapTransition.log",
+      "log_sha256": "38501E26564BB5730DC6212496233B95D23A60BC0F64E51029A31894D774352F",
+      "ex5": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestSwapTransition.ex5",
+      "ex5_sha256": "B4E9A71DF91AF6E16BD741043A905659F35765756C8F5C35D52BA9C1C15AC794",
+      "ex5_bytes": 35284,
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "stale_control": "Source copied into new empty compile_final directory before compilation; EX5 generated there, never reused from production directories.",
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestSwapTransition.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\compile_final\\TestSwapTransition.log"
+      ]
+    }
+  ],
+  "include_inventory": [
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "size": 8730,
+      "original_sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/BrokerInventoryAdapter.mqh",
+      "sha256": "58D4F30E3DDC7C4070245651025609ACC46F7AA435D652B5E1CC4FA5AD52D3C7",
+      "size": 3447,
+      "original_sha256": "58D4F30E3DDC7C4070245651025609ACC46F7AA435D652B5E1CC4FA5AD52D3C7",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+      "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "size": 6588,
+      "original_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/CorrelationClustering.mqh",
+      "sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "size": 15125,
+      "original_sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/DecisionADealAdapter.mqh",
+      "sha256": "B86BA788527A98DD69238CE9DC698351F7386A26E7213F86964C10083B80C2C7",
+      "size": 4632,
+      "original_sha256": null,
+      "changed_or_new": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/DecisionALifecycle.mqh",
+      "sha256": "C01EA494B37E2C7F4CD5C9AA7A7F6B4E81A331BA745591CAFAE616CFD51BEE03",
+      "size": 11054,
+      "original_sha256": null,
+      "changed_or_new": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/DecisionAStaticStop.mqh",
+      "sha256": "82AF48B433961220F0D37540090C4D191773DE16B8CB935E3F51762BE5D6CDDE",
+      "size": 3346,
+      "original_sha256": null,
+      "changed_or_new": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh",
+      "sha256": "EB5DCADCE5B56BE91DD55CF6C32F18ADB7D4962627B372E4C7F0FD4AF80A75D5",
+      "size": 20581,
+      "original_sha256": "92C449A7794146CD523C80C8E9BEA69F1D0106D7306CF327CAEDE3139FD4E93F",
+      "changed_or_new": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostContractTests.mqh",
+      "sha256": "874A7F2B95AE47BFE22263CD65F5D6DA178C7121A1BC078404088DD42D81DA13",
+      "size": 7730,
+      "original_sha256": "874A7F2B95AE47BFE22263CD65F5D6DA178C7121A1BC078404088DD42D81DA13",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "size": 13033,
+      "original_sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegration.mqh",
+      "sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "size": 4755,
+      "original_sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegrationTests.mqh",
+      "sha256": "443EFAEBE847FAD659DAE538AB561B9702AD2D91FFD44E6E1AD39248DFB235C3",
+      "size": 4496,
+      "original_sha256": "443EFAEBE847FAD659DAE538AB561B9702AD2D91FFD44E6E1AD39248DFB235C3",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "size": 3561,
+      "original_sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/OperationalSafety.mqh",
+      "sha256": "B6178D0A660523DEFEF67361A04650411AA4B347C6F218F01C4F37C75B719468",
+      "size": 30938,
+      "original_sha256": "B6178D0A660523DEFEF67361A04650411AA4B347C6F218F01C4F37C75B719468",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/RegimeClassifier.mqh",
+      "sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "size": 14442,
+      "original_sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/ResearchExecution.mqh",
+      "sha256": "F69FA5EED1192B9910E16A19A2EC05A7DAC54402A0B8AF47ECBD5932FD1650D3",
+      "size": 14910,
+      "original_sha256": "F69FA5EED1192B9910E16A19A2EC05A7DAC54402A0B8AF47ECBD5932FD1650D3",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SafetyKernel.mqh",
+      "sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "size": 36521,
+      "original_sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SleeveEthSt001.mqh",
+      "sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "size": 21733,
+      "original_sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SpecificationMonitor.mqh",
+      "sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "size": 24780,
+      "original_sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SymbolSpecificationAdapter.mqh",
+      "sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "size": 6983,
+      "original_sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "changed_or_new": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/ZeroEntryDiagnostic.mqh",
+      "sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8",
+      "size": 5740,
+      "original_sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8",
+      "changed_or_new": false
+    }
+  ],
+  "runtime": "NOT_EXECUTED"
+}

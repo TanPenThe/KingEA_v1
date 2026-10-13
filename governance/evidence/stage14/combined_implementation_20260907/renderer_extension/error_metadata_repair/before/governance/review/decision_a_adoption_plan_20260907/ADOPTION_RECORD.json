@@ -1,0 +1,39 @@
+{
+  "kind": "OWNER_DECISION_A_SPECIFICATION_ADOPTION_RECORD",
+  "authority": "Explicit owner decision in this conversation; recorded, not independently signed",
+  "scope": "CONTROLLED_STRATEGY_TESTER_RESEARCH_ONLY",
+  "specification_path": "ADOPTED_SPECIFICATION.md",
+  "specification_sha256": "13F2CDDD2D58864ECE033A2041B0B4885A4501B3ED0CD869D003235BD9E1E23E",
+  "incorporated_review_inputs": [
+    {
+      "path": "C:\\KingEA_v1\\governance\\review\\decision_a_source_authority_20260907\\ACCOUNTING_AND_BOOKING_ORACLE.md",
+      "sha256": "01C46DDED74F0EEAD9792E9505132A8DCD3EA252B84691102CAB5A89BD0C1FE8"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\review\\decision_a_source_authority_20260907\\OPERATIONAL_SAFETY_EQUITY.md",
+      "sha256": "CC0424B720F1C2AC3A05C31662885967B970997682116D99A41A5C2C3241489A"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\review\\decision_a_source_authority_20260907\\SOURCE_AUTHORITY.md",
+      "sha256": "B48E5605EE31525D9C9200389445DEF0F1A81B6A81B30CC690EF7FE8DFE415F2"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\review\\decision_a_source_authority_20260907\\TEST_MATRIX.md",
+      "sha256": "467B44D468704AACB08522E352EE5D1892C3EC3A00A56A207F35FD1CECC7D7E1"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\review\\static_stop_feasibility_20260907\\FEASIBILITY.md",
+      "sha256": "34270928980B5469C21A70C13A10B71C21F03A8C942A4E29BBECFECE999FB996"
+    }
+  ],
+  "precedence": "Owner decision and adopted specification override conflicting older proposed wording",
+  "specification_status": "ADOPTED_FOR_CONTROLLED_STRATEGY_TESTER",
+  "tester_provenance": "RESOLVED_BY_CONTROLLED_CONTEXT_DESIGN",
+  "demo_live": "UNRESOLVED",
+  "implementation": "NOT_YET_ACCEPTED",
+  "current_work_authority": "IMPLEMENTATION_PLAN_ONLY",
+  "decision_s": "NOT_ADOPTED",
+  "successor_freeze": "NOT_AUTHORIZED",
+  "b2": "LOCKED",
+  "execution_authorized": false
+}

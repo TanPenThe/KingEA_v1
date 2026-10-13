@@ -1,0 +1,528 @@
+{
+  "compiler": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+  "compiler_build": 6140,
+  "compiler_sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7",
+  "builds": [
+    {
+      "source": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "source_sha256": "198EEA17963013E0F85508A4F5D47734FE04D551BFE4E39A310875B01E6292E7",
+      "copy": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\GuardedResearchTester.mq5",
+      "copy_equal": true,
+      "ex5": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\GuardedResearchTester.ex5",
+      "ex5_sha256": "E46DE22668CFC07BC2EA8BD091FD9A7398030B25D81CDFFDD4A1CC44E82196FB",
+      "ex5_created_in_new_empty_output_directory": true,
+      "log": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\GuardedResearchTester.log",
+      "log_sha256": "57BA620A5078BF12FC4ACB70EA2B891F97FA70A80D74603D32AE0BA914FDAA80",
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\GuardedResearchTester.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\GuardedResearchTester.log"
+      ]
+    },
+    {
+      "source": "MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5",
+      "source_sha256": "3EE402C39F529DD4D5D7A8CE96DFF3AD2BCF9A4BA9562ACED1C773D0E884AE34",
+      "copy": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\TestCombinedLifecycle.mq5",
+      "copy_equal": true,
+      "ex5": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\TestCombinedLifecycle.ex5",
+      "ex5_sha256": "943FC1611EDE7658114BC52AC2892F8B3F1F8D85DA54E996825ABD8C74B47179",
+      "ex5_created_in_new_empty_output_directory": true,
+      "log": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\TestCombinedLifecycle.log",
+      "log_sha256": "C747272E1B0756B02302A128E279B27F86F9A45E49BE6FB9B2EF4C243615A63A",
+      "result": "0 errors, 0 warnings",
+      "runtime_executed": false,
+      "command": [
+        "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+        "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\TestCombinedLifecycle.mq5",
+        "/inc:C:\\KingEA_v1\\MQL5",
+        "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\interval_authority_blocker\\compile\\TestCombinedLifecycle.log"
+      ]
+    }
+  ],
+  "mql_source_dependency_hashes": [
+    {
+      "path": "MQL5/Experts/KingEA/B1SyntheticNoOrder.mq5",
+      "sha256": "D7778D5D5B47BCE3A8DC48E94255E07AD18450240BB6FE077E543ED6189B6AFA",
+      "size": 1811,
+      "original_pre_sha256": "D7778D5D5B47BCE3A8DC48E94255E07AD18450240BB6FE077E543ED6189B6AFA",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Experts/KingEA/FOKInfrastructureConformance.mq5",
+      "sha256": "4D618B0348592675469707DF12433637677938E47F67CC05142DEF6E46C2FE87",
+      "size": 12383,
+      "original_pre_sha256": "4D618B0348592675469707DF12433637677938E47F67CC05142DEF6E46C2FE87",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "sha256": "198EEA17963013E0F85508A4F5D47734FE04D551BFE4E39A310875B01E6292E7",
+      "size": 76382,
+      "original_pre_sha256": "59D976250D70B6E28CB9DEEB30D96FB27321C100A60183709B23F3D9D252FC98",
+      "within_implementation_or_test_scope": true,
+      "original_equal": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/IOCExecutionConformance.mq5",
+      "sha256": "15C1CF69DCCBB52EA4782CC3A053C8053DC1027F415F4BDFE4945352711F73BD",
+      "size": 7134,
+      "original_pre_sha256": "15C1CF69DCCBB52EA4782CC3A053C8053DC1027F415F4BDFE4945352711F73BD",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Experts/KingEA/NativeCostConformance.mq5",
+      "sha256": "72F89F1D1BF8298204ADA4ACE46BAAAF3970993E18B5636C28874A536520569A",
+      "size": 7350,
+      "original_pre_sha256": "72F89F1D1BF8298204ADA4ACE46BAAAF3970993E18B5636C28874A536520569A",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Experts/KingEA/ReconcileTesterRealTicks.mq5",
+      "sha256": "00AA91CFA53E848D91B8B2095071F9790E461FA898D512CB4BB080CAEC29777D",
+      "size": 7265,
+      "original_pre_sha256": "00AA91CFA53E848D91B8B2095071F9790E461FA898D512CB4BB080CAEC29777D",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Experts/KingEA/ResearchThroughputBenchmark.mq5",
+      "sha256": "1B36A6D270B4AB0910BEB78096F2019F2F46E45E0148FAB6960F2D8F85305814",
+      "size": 4054,
+      "original_pre_sha256": "1B36A6D270B4AB0910BEB78096F2019F2F46E45E0148FAB6960F2D8F85305814",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "size": 8730,
+      "original_pre_sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/BrokerInventoryAdapter.mqh",
+      "sha256": "58D4F30E3DDC7C4070245651025609ACC46F7AA435D652B5E1CC4FA5AD52D3C7",
+      "size": 3447,
+      "original_pre_sha256": "58D4F30E3DDC7C4070245651025609ACC46F7AA435D652B5E1CC4FA5AD52D3C7",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+      "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "size": 6588,
+      "original_pre_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/CorrelationClustering.mqh",
+      "sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "size": 15125,
+      "original_pre_sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/DecisionADealAdapter.mqh",
+      "sha256": "B03B22141978D0DA9763852D02ABA349F83DB42686E5E952DFABA53149024106",
+      "size": 3082,
+      "original_pre_sha256": null,
+      "within_implementation_or_test_scope": true,
+      "original_equal": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/DecisionALifecycle.mqh",
+      "sha256": "BE3FF723521E32ADBCF2E584C6C14EFAB3E371FBFB0C424AFB201984B22F9BBA",
+      "size": 10477,
+      "original_pre_sha256": null,
+      "within_implementation_or_test_scope": true,
+      "original_equal": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/DecisionAStaticStop.mqh",
+      "sha256": "82AF48B433961220F0D37540090C4D191773DE16B8CB935E3F51762BE5D6CDDE",
+      "size": 3346,
+      "original_pre_sha256": null,
+      "within_implementation_or_test_scope": true,
+      "original_equal": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh",
+      "sha256": "92C449A7794146CD523C80C8E9BEA69F1D0106D7306CF327CAEDE3139FD4E93F",
+      "size": 8674,
+      "original_pre_sha256": "92C449A7794146CD523C80C8E9BEA69F1D0106D7306CF327CAEDE3139FD4E93F",
+      "within_implementation_or_test_scope": true,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostContractTests.mqh",
+      "sha256": "874A7F2B95AE47BFE22263CD65F5D6DA178C7121A1BC078404088DD42D81DA13",
+      "size": 7730,
+      "original_pre_sha256": "874A7F2B95AE47BFE22263CD65F5D6DA178C7121A1BC078404088DD42D81DA13",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "size": 13033,
+      "original_pre_sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegration.mqh",
+      "sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "size": 4755,
+      "original_pre_sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegrationTests.mqh",
+      "sha256": "443EFAEBE847FAD659DAE538AB561B9702AD2D91FFD44E6E1AD39248DFB235C3",
+      "size": 4496,
+      "original_pre_sha256": "443EFAEBE847FAD659DAE538AB561B9702AD2D91FFD44E6E1AD39248DFB235C3",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "size": 3561,
+      "original_pre_sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/OperationalSafety.mqh",
+      "sha256": "B6178D0A660523DEFEF67361A04650411AA4B347C6F218F01C4F37C75B719468",
+      "size": 30938,
+      "original_pre_sha256": "B6178D0A660523DEFEF67361A04650411AA4B347C6F218F01C4F37C75B719468",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/RegimeClassifier.mqh",
+      "sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "size": 14442,
+      "original_pre_sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/ResearchExecution.mqh",
+      "sha256": "F69FA5EED1192B9910E16A19A2EC05A7DAC54402A0B8AF47ECBD5932FD1650D3",
+      "size": 14910,
+      "original_pre_sha256": "F69FA5EED1192B9910E16A19A2EC05A7DAC54402A0B8AF47ECBD5932FD1650D3",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/SafetyKernel.mqh",
+      "sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "size": 36521,
+      "original_pre_sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/SleeveEthSt001.mqh",
+      "sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "size": 21733,
+      "original_pre_sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/SpecificationMonitor.mqh",
+      "sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "size": 24780,
+      "original_pre_sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/SymbolSpecificationAdapter.mqh",
+      "sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "size": 6983,
+      "original_pre_sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/ZeroEntryDiagnostic.mqh",
+      "sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8",
+      "size": 5740,
+      "original_pre_sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/AuditHistoryAvailability.mq5",
+      "sha256": "CE737F0EEFE2BC9F86F40ADD875F92122B38B5C72D6C40F23D25033E999C0139",
+      "size": 11226,
+      "original_pre_sha256": "CE737F0EEFE2BC9F86F40ADD875F92122B38B5C72D6C40F23D25033E999C0139",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/AuditHistoryQuality.mq5",
+      "sha256": "72BCD49F3A2E3C87AF9A62550088ACA5031CF4856426311A365F8599E6729283",
+      "size": 18161,
+      "original_pre_sha256": "72BCD49F3A2E3C87AF9A62550088ACA5031CF4856426311A365F8599E6729283",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/AuditSpreadBracketEvidence.mq5",
+      "sha256": "ED86D6498C79D207748B6769677068E101337BEAE5BF43C6F6F81454DE3F2013",
+      "size": 15176,
+      "original_pre_sha256": "ED86D6498C79D207748B6769677068E101337BEAE5BF43C6F6F81454DE3F2013",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/BuildNativeReducedSpreadSymbol.mq5",
+      "sha256": "5D7E8714A6BAF5B5D1667F38B7473E66CD7ABFE342D5EC130F747556661368BA",
+      "size": 19793,
+      "original_pre_sha256": "5D7E8714A6BAF5B5D1667F38B7473E66CD7ABFE342D5EC130F747556661368BA",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/BuildRSB3MinuteBars.mq5",
+      "sha256": "CFA93FA6711FB921734738F428CBB82F5703604BAF5E2F754F04F25F38BB486D",
+      "size": 14449,
+      "original_pre_sha256": "CFA93FA6711FB921734738F428CBB82F5703604BAF5E2F754F04F25F38BB486D",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/CaptureKillSwitchInventory.mq5",
+      "sha256": "DBBD07CF6F29F2CEAD3676E83CDCC7BEADE6E98F538FBD7E4ABE826F4D13E1B0",
+      "size": 5664,
+      "original_pre_sha256": "DBBD07CF6F29F2CEAD3676E83CDCC7BEADE6E98F538FBD7E4ABE826F4D13E1B0",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/CompareCrossedTickFields.mq5",
+      "sha256": "E27B9C1DB540ACC2503A651AA6B968DB614C07E4B3F2D6BCF26048834B52760B",
+      "size": 4175,
+      "original_pre_sha256": "E27B9C1DB540ACC2503A651AA6B968DB614C07E4B3F2D6BCF26048834B52760B",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseCustomTesterReadiness.mq5",
+      "sha256": "BF7F620F79D2066A86E33A3B8DEBAF1852814B9C1317AA063D7A0BACC422DEFF",
+      "size": 7332,
+      "original_pre_sha256": "BF7F620F79D2066A86E33A3B8DEBAF1852814B9C1317AA063D7A0BACC422DEFF",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseCustomTickRetention.mq5",
+      "sha256": "0B134CA435000A4A503FB07BC51C271B48C548417A0218CAC4073F3D726D49BC",
+      "size": 3437,
+      "original_pre_sha256": "0B134CA435000A4A503FB07BC51C271B48C548417A0218CAC4073F3D726D49BC",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseMinuteBarDerivation.mq5",
+      "sha256": "17386EC153B2AEC35428D932717594D7F8438571D7220D285FC5D42A5447D040",
+      "size": 11930,
+      "original_pre_sha256": "17386EC153B2AEC35428D932717594D7F8438571D7220D285FC5D42A5447D040",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseNativeBuildFailure.mq5",
+      "sha256": "2AC3A8D58B1F8BC98D203D62A11173FD5D4097B69B02F06BE50B8080CF369765",
+      "size": 4924,
+      "original_pre_sha256": "2AC3A8D58B1F8BC98D203D62A11173FD5D4097B69B02F06BE50B8080CF369765",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnosePersistedFlagNormalization.mq5",
+      "sha256": "CC8E47C9C88C51A1A77E30145FBDF27C28CC146560B70B4D17F5DD46386C9F09",
+      "size": 3713,
+      "original_pre_sha256": "CC8E47C9C88C51A1A77E30145FBDF27C28CC146560B70B4D17F5DD46386C9F09",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseReversedSpread.mq5",
+      "sha256": "DB9DD15233B37A2B3322DB5F0FDDFD88991DCED1AD379E13C50962FB6DD41054",
+      "size": 5015,
+      "original_pre_sha256": "DB9DD15233B37A2B3322DB5F0FDDFD88991DCED1AD379E13C50962FB6DD41054",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ExportAccountingHistory.mq5",
+      "sha256": "9EAF54A90F89597DEE1980FD6B4CD1E92A6B79F650AEBB78FAD576177B0FFE67",
+      "size": 5356,
+      "original_pre_sha256": "9EAF54A90F89597DEE1980FD6B4CD1E92A6B79F650AEBB78FAD576177B0FFE67",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ExportResearchCalendar.mq5",
+      "sha256": "405F21EC4B1F591D82EA865FF460BD63FC4784B1F47FEC632E33599050518F6F",
+      "size": 5739,
+      "original_pre_sha256": "405F21EC4B1F591D82EA865FF460BD63FC4784B1F47FEC632E33599050518F6F",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ExportSymbolFeasibility.mq5",
+      "sha256": "DDB700A346096E4FE920DB8EAE9854A293F5EC9DC02866E0E7CBFD3869149F6D",
+      "size": 21105,
+      "original_pre_sha256": "DDB700A346096E4FE920DB8EAE9854A293F5EC9DC02866E0E7CBFD3869149F6D",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ImportIndependentTicks.mq5",
+      "sha256": "EB433806314B522BEFF97EDBAA07239D5E9B48340C8D669CA5D02655C94B3F45",
+      "size": 5964,
+      "original_pre_sha256": "EB433806314B522BEFF97EDBAA07239D5E9B48340C8D669CA5D02655C94B3F45",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ObserveSpecificationMonitor.mq5",
+      "sha256": "E1BABB2E23647CB1997EE5E321B0A9946AB5135CF01866B3B7792E04A206F101",
+      "size": 7306,
+      "original_pre_sha256": "E1BABB2E23647CB1997EE5E321B0A9946AB5135CF01866B3B7792E04A206F101",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ProbeCrossedTickRoundTrip.mq5",
+      "sha256": "FF0FA0454EAC125D996FF74EB1BF2DC9CC17A61F75A6A54369E35DA7C8EBC0D5",
+      "size": 5692,
+      "original_pre_sha256": "FF0FA0454EAC125D996FF74EB1BF2DC9CC17A61F75A6A54369E35DA7C8EBC0D5",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ProbeCustomTicksReplace.mq5",
+      "sha256": "59FE23B1334EF57E729F74ADA156ED87309267C89E371B6C1D2D8DC5AEF1DFDC",
+      "size": 4786,
+      "original_pre_sha256": "59FE23B1334EF57E729F74ADA156ED87309267C89E371B6C1D2D8DC5AEF1DFDC",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestAccountingLedger.mq5",
+      "sha256": "7E28FE0E321EDE93914E5EE3E7EAC2B8E375D87F8D7AA4364111EE2574AC431B",
+      "size": 4253,
+      "original_pre_sha256": "7E28FE0E321EDE93914E5EE3E7EAC2B8E375D87F8D7AA4364111EE2574AC431B",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestCandidateEthSt001.mq5",
+      "sha256": "F2C60631629AC3EFC2CC485824AF6447D834CC90C6ABF06EEB1BF6AFBF61045C",
+      "size": 3878,
+      "original_pre_sha256": "F2C60631629AC3EFC2CC485824AF6447D834CC90C6ABF06EEB1BF6AFBF61045C",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5",
+      "sha256": "3EE402C39F529DD4D5D7A8CE96DFF3AD2BCF9A4BA9562ACED1C773D0E884AE34",
+      "size": 4415,
+      "original_pre_sha256": null,
+      "within_implementation_or_test_scope": true,
+      "original_equal": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestMarketContext.mq5",
+      "sha256": "1B1A281AB0FB8F076FD4602224132E208B1B6D8BD66AD7AE25564D20F635956F",
+      "size": 31079,
+      "original_pre_sha256": "1B1A281AB0FB8F076FD4602224132E208B1B6D8BD66AD7AE25564D20F635956F",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestOperationalSafety.mq5",
+      "sha256": "E9DC24C7D2330DC3A8A8A6948852DE447099B32F4038EE8B452CA0B468D71840",
+      "size": 11132,
+      "original_pre_sha256": "E9DC24C7D2330DC3A8A8A6948852DE447099B32F4038EE8B452CA0B468D71840",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestResearchPipeline.mq5",
+      "sha256": "A22BBB0DCC7FB1EB9B4B8986B2E92333A369F323A9BA00D755ED7C4AAFFF9DFF",
+      "size": 10614,
+      "original_pre_sha256": "A22BBB0DCC7FB1EB9B4B8986B2E92333A369F323A9BA00D755ED7C4AAFFF9DFF",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestSafetyKernel.mq5",
+      "sha256": "59FC0C37191F80E9C0BEB0B64019BDF439162F0713F164B14818DB73840FDF67",
+      "size": 18829,
+      "original_pre_sha256": "59FC0C37191F80E9C0BEB0B64019BDF439162F0713F164B14818DB73840FDF67",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestSleeveEthSt001.mq5",
+      "sha256": "690E553DEF009E80A9DB53240059D2F7EEDE0B9F36CFC6E0BA78F161D4FE72EC",
+      "size": 21364,
+      "original_pre_sha256": "690E553DEF009E80A9DB53240059D2F7EEDE0B9F36CFC6E0BA78F161D4FE72EC",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestSpecificationMonitor.mq5",
+      "sha256": "F983F8820B66A61B5A749D4197DA3675D6D231C6639E2D274B9959514D1B34FE",
+      "size": 14629,
+      "original_pre_sha256": "F983F8820B66A61B5A749D4197DA3675D6D231C6639E2D274B9959514D1B34FE",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestZeroEntryDiagnostic.mq5",
+      "sha256": "73B2674E419EFAB31947BAF7768EF82F08172F15D90D70EB321BD3BA3F630CEA",
+      "size": 2505,
+      "original_pre_sha256": "73B2674E419EFAB31947BAF7768EF82F08172F15D90D70EB321BD3BA3F630CEA",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ValidateRSB3ManifestGate.mq5",
+      "sha256": "BCD1D5653EF4C811DDF254FB15D2AB3AE11BDA3A89E64F6D5310C104BCD74649",
+      "size": 15874,
+      "original_pre_sha256": "BCD1D5653EF4C811DDF254FB15D2AB3AE11BDA3A89E64F6D5310C104BCD74649",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/VerifyNativeReducedSpreadSymbol.mq5",
+      "sha256": "21234DF52860515BFC78D547ED59461A765457C73C6D401EC3281741A438D8C3",
+      "size": 13813,
+      "original_pre_sha256": "21234DF52860515BFC78D547ED59461A765457C73C6D401EC3281741A438D8C3",
+      "within_implementation_or_test_scope": false,
+      "original_equal": true
+    }
+  ],
+  "post_source_equal_investigation_baseline": true
+}

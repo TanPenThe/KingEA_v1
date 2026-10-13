@@ -1,0 +1,11 @@
+{
+  "kind": "SYNTHETIC_NON_RUNTIME_COMPATIBILITY_CHECK",
+  "changed_fields": [
+    "terminal_build",
+    "compiler_build",
+    "agent_build"
+  ],
+  "value": 6182,
+  "observed_rejection": "SWAP_PROFILE_NOT_AUTHORIZED",
+  "runtime": false
+}

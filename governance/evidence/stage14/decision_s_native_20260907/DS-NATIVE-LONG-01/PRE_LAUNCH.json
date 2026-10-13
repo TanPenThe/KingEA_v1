@@ -1,0 +1,27 @@
+{
+  "scope": "NON_CANDIDATE_DECISION_S_NATIVE_SEMANTICS_PROOF",
+  "at": "2026-09-07T06:45:06.037845+00:00",
+  "free_bytes": 109650862080,
+  "required_bytes": 32212254720,
+  "shortfall": 0,
+  "formula": "max(200*64MiB + 2*64MiB + 16GiB,30GiB)",
+  "incremental_disk_stop_bytes": 8589934592,
+  "wall_timeout_seconds": 600,
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\decision_s_native_20260907\\DS-NATIVE-LONG-01\\tester.ini"
+  ],
+  "source_sha256": "172327ABF35574561A6E452088BC6C1A4EB08DD351B982A3A373254E6BC33B50",
+  "executable_sha256": "589FB8BC01766774304A7CBCF1F4620781DECE4BCBA1C7212A5886BE0AE01681",
+  "deployed_sha256": "589FB8BC01766774304A7CBCF1F4620781DECE4BCBA1C7212A5886BE0AE01681",
+  "compiler_sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7",
+  "terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+  "compiler_terminal_version": "5.0.0.6140",
+  "set_sha256": "23712EE04C94F395037C0117343C97BF6C0235397BE008739FE93BCDC63B29EC",
+  "ini_sha256": "5C51B121794AFDCC7AB9BDB63B6E3755922EDC40EE22AD3E08876B3FB66D2283",
+  "owner_directive_sha256": "4540FE0BC39984A1CD32B39777285413754ED72A49C25DE31376CCFA3062E7A1",
+  "b2": "LOCKED",
+  "candidate_execution": false,
+  "optimization": false,
+  "development_binding": "CAND-ETH-ST-001_DRAFT validation.rolling_folds[0].train: 2021-07-01 <= dates < 2023-01-01"
+}

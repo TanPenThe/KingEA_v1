@@ -1,0 +1,641 @@
+diff --git a/governance/evidence/stage14/successor_enforcement_20260906/baseline/stage14.py b/research_pipeline/stage14.py
+index 4fcc247..bd58513 100644
+--- a/governance/evidence/stage14/successor_enforcement_20260906/baseline/stage14.py
++++ b/research_pipeline/stage14.py
+@@ -19,6 +19,7 @@ from typing import Any, Iterable, Mapping, Sequence
+ 
+ from .stage12 import Stage12Pipeline
+ from .b2_date_gate import realize_partition_dates
++from .successor_evidence import validate, validate_frame, SuccessorEvidenceError
+ 
+ 
+ class Stage14Error(ValueError):
+@@ -28,6 +29,10 @@ class Stage14Error(ValueError):
+ class ResearchRunCoordinator:
+     """Deep deterministic interface for Stage 14 preparation and evidence."""
+ 
++    def __init__(self, *, control_context=None):
++        # Supplied by the independent control plane, never a manifest field.
++        self._control_context = control_context
++
+     BUILD_ID = "KINGEA-STAGE14-20260802-A"
+     TOTAL_DEVELOPMENT_PASSES = 194_400
+     MAX_ACTIVE_SECONDS = 30 * 86_400
+@@ -461,6 +466,10 @@ class ResearchRunCoordinator:
+     def authorize(
+         self, manifest: Mapping[str, Any], authorization: Mapping[str, Any] | None
+     ) -> dict[str, Any]:
++        try:
++            validate(self._control_context, manifest, 'authorization', authorization)
++        except SuccessorEvidenceError as exc:
++            return {"allowed": False, "reason": str(exc), "stage": exc.stage, "detail": exc.detail}
+         stored = manifest.get("manifest_sha256")
+         unhashed = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
+         if not self._valid_hash(stored) or self.canonical_hash(unhashed) != stored:
+@@ -478,6 +487,7 @@ class ResearchRunCoordinator:
+     def render_bundle(
+         self, manifest: Mapping[str, Any], authorization: Mapping[str, Any]
+     ) -> dict[str, str]:
++        validate(self._control_context, manifest, 'rendering', authorization)
+         decision = self.authorize(manifest, authorization)
+         if not decision["allowed"]:
+             raise Stage14Error(str(decision["reason"]))
+@@ -561,7 +571,7 @@ class ResearchRunCoordinator:
+     ) -> dict[str, Any]:
+         expected = self.render_bundle(manifest, authorization)
+         if set(bundle) != {"set", "ini"} or any(bundle[name] != expected[name] for name in expected):
+-            raise Stage14Error("TESTER_BUNDLE_NOT_DERIVED_FROM_CHILD_MANIFEST")
++            raise SuccessorEvidenceError('rendering', "TESTER_BUNDLE_NOT_DERIVED_FROM_CHILD_MANIFEST")
+         return {
+             "passed": True,
+             "set_sha256": hashlib.sha256(bundle["set"].encode()).hexdigest().upper(),
+@@ -571,12 +581,14 @@ class ResearchRunCoordinator:
+     def append_frame(
+         self, spool: Path, manifest: Mapping[str, Any], frame: Mapping[str, Any]
+     ) -> dict[str, Any]:
++        validate(self._control_context, manifest, 'ingestion')
++        validate_frame(self._control_context, manifest, frame.get('payload'), 'ingestion')
+         final_path = spool / "FINALIZED.json"
+         if final_path.exists():
+             raise Stage14Error("LATE_FRAME_AFTER_FINALIZATION")
+         frame_id = str(frame.get("frame_id", ""))
+         if frame_id not in manifest.get("expected_frame_ids", []):
+-            raise Stage14Error("UNEXPECTED_FRAME_ID")
++            raise SuccessorEvidenceError('ingestion', "UNEXPECTED_FRAME_ID")
+         payload = frame.get("payload")
+         if not isinstance(payload, Mapping) or payload.get("complete") != 1:
+             raise Stage14Error("MALFORMED_OR_INCOMPLETE_FRAME")
+@@ -590,28 +602,36 @@ class ResearchRunCoordinator:
+         target = spool / f"{hashlib.sha256(frame_id.encode()).hexdigest().upper()}.frame.json"
+         if target.exists():
+             if target.read_bytes() != encoded:
+-                raise Stage14Error("CONFLICTING_DUPLICATE_FRAME")
++                raise SuccessorEvidenceError('ingestion', "CONFLICTING_DUPLICATE_FRAME")
+             return {"status": "IDEMPOTENT_REPLAY", "path": str(target)}
+         target.write_bytes(encoded)
+         return {"status": "APPENDED", "path": str(target)}
+ 
+-    def finalize_frames(self, spool: Path, manifest: Mapping[str, Any]) -> dict[str, Any]:
++    def finalize_frames(self, spool: Path, manifest: Mapping[str, Any], *,
++                        finalization_stage: str = 'normal_finalization') -> dict[str, Any]:
++        if finalization_stage not in ('normal_finalization', 'boundary_finalization'):
++            raise SuccessorEvidenceError('normal_finalization', 'UNKNOWN_FINALIZATION_STAGE')
++        validate(self._control_context, manifest, finalization_stage)
+         records: dict[str, dict[str, Any]] = {}
+         for path in spool.glob("*.frame.json"):
+             try:
+                 record = json.loads(path.read_text(encoding="utf-8"))
+             except (OSError, json.JSONDecodeError) as exc:
+-                raise Stage14Error("MALFORMED_FRAME_SPOOL") from exc
++                raise SuccessorEvidenceError(finalization_stage, "MALFORMED_FRAME_SPOOL") from exc
+             if record.get("manifest_sha256") != manifest.get("manifest_sha256"):
+-                raise Stage14Error("FRAME_MANIFEST_CONFLICT")
++                raise SuccessorEvidenceError(finalization_stage, "FRAME_MANIFEST_CONFLICT")
+             frame_id = str(record.get("frame_id", ""))
+             if frame_id in records:
+-                raise Stage14Error("DUPLICATE_FRAME_ID")
++                raise SuccessorEvidenceError(finalization_stage, "DUPLICATE_FRAME_ID")
+             records[frame_id] = record
+         expected = set(manifest.get("expected_frame_ids", []))
+         if set(records) != expected:
+-            raise Stage14Error("FRAME_SET_INCOMPLETE")
++            raise SuccessorEvidenceError(finalization_stage, "FRAME_SET_INCOMPLETE")
+         frames = [records[frame_id]["payload"] for frame_id in sorted(records)]
++        for frame in frames:
++            stage = ('boundary_finalization' if frame.get('boundary_finalization_count', 0)
++                     else finalization_stage)
++            validate_frame(self._control_context, manifest, frame, stage)
+         # Prospective evidence contract only; historical immutable roots retain their schema.
+         if manifest.get("native_cost_contract"):
+             from .native_cost_archive import NativeCostArchiveConsumer
+diff --git a/governance/evidence/stage14/successor_enforcement_20260906/baseline/gate1_finalization.py b/research_pipeline/gate1_finalization.py
+index 37df2f0..85c359a 100644
+--- a/governance/evidence/stage14/successor_enforcement_20260906/baseline/gate1_finalization.py
++++ b/research_pipeline/gate1_finalization.py
+@@ -13,6 +13,7 @@ from typing import Any, Callable, Mapping
+ from .stage12 import Stage12Error, Stage12Pipeline
+ from .stage14 import ResearchRunCoordinator
+ from .native_cost_archive import NativeCostArchiveConsumer
++from .successor_evidence import SuccessorEvidenceError, validate, validate_frame
+ 
+ 
+ class Gate1FinalizationError(ValueError):
+@@ -34,6 +35,18 @@ class Gate1FinalizationRequest:
+ class Gate1Finalizer:
+     """Stream Gate 1 evidence, classify it, and publish one immutable result."""
+ 
++    def __init__(self, *, control_context=None):
++        self._control_context = control_context
++
++    def finalize_successor_frames(self, spool: Path, manifest: Mapping[str, Any], *, boundary=False):
++        """Evidence acceptance only; no scoring, economics or gate advancement.
++
++        Old epoch/archive APIs below cannot interpret a successor or use a
++        generic historical compatibility fallback. They remain default-deny.
++        """
++        return ResearchRunCoordinator(control_context=self._control_context).finalize_frames(
++            spool, manifest, finalization_stage='boundary_finalization' if boundary else 'normal_finalization')
++
+     _STAGE12 = re.compile(r"^(\d+)_KINGEA_STAGE12_COMPLETE_(\d+)\.frame$")
+     _NATIVE_COST = re.compile(r"^(\d+)_KINGEA_NATIVE_COST_PACKAGE_(\d+)\.frame$")
+     _STAGE13_COMPLETE = re.compile(
+@@ -407,6 +420,8 @@ class Gate1Finalizer:
+         record: Mapping[str, Any],
+         child: Mapping[str, Any],
+     ) -> dict[str, Any]:
++        validate(self._control_context, child, 'normal_finalization')
++        validate_frame(self._control_context, child, record.get('successor_evidence_frame'), 'normal_finalization')
+         native_contract=record.get("stage12",{}).get("native_cost_contract")
+         native_present="native_packages" in record
+         expected_record={
+@@ -1137,6 +1152,7 @@ class Gate1Finalizer:
+         }
+ 
+     def finalize(self, request: Gate1FinalizationRequest) -> dict[str, Any]:
++        raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         output = Path(request.output_root)
+         if output.exists() and any(output.iterdir()):
+             raise Gate1FinalizationError("OUTPUT_ROOT_NOT_EMPTY")
+@@ -1347,6 +1363,7 @@ class Gate1Finalizer:
+         *,
+         batch_size: int = 20,
+     ) -> dict[str, Any]:
++        raise SuccessorEvidenceError('ingestion', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         rows, selected, batch = self._batch_rows(request, batch_id, batch_size)
+         archive_inventory = self._verify_archive_inventory(request, rows)
+         binding = self._audit_binding(request, rows, archive_inventory)
+@@ -1409,6 +1426,7 @@ class Gate1Finalizer:
+         *,
+         batch_size: int = 20,
+     ) -> dict[str, Any]:
++        raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         rows, _, batch = self._batch_rows(request, 1, batch_size)
+         archive_inventory = self._verify_archive_inventory(request, rows)
+         binding = self._audit_binding(request, rows, archive_inventory)
+@@ -1436,6 +1454,7 @@ class Gate1Finalizer:
+         *,
+         batch_size: int = 20,
+     ) -> dict[str, Any]:
++        raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         rows, _, batch = self._batch_rows(request, 1, batch_size)
+         archive_inventory = self._verify_archive_inventory(request, rows)
+         binding = self._audit_binding(request, rows, archive_inventory)
+diff --git a/research_pipeline/successor_evidence.py b/research_pipeline/successor_evidence.py
+new file mode 100644
+index 0000000..5a57212
+--- /dev/null
++++ b/research_pipeline/successor_evidence.py
+@@ -0,0 +1,154 @@
++"""Successor evidence enforcement. No runtime, orders, pricing or financial booking.
++
++The control directory and pin are injected by the independent control plane.
++Never construct them from a manifest/bundle. No default production pin exists.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass
++import hashlib
++import json
++from pathlib import Path
++from typing import Mapping
++
++from .native_cost_archive import NativeCostArchiveConsumer, COST, MTM, unique
++
++REJECTION = 'SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED'
++
++
++class SuccessorEvidenceError(ValueError):
++    def __init__(self, stage, detail):
++        super().__init__(REJECTION)
++        self.stage, self.detail = stage, detail
++
++
++def canonical_hash(value):
++    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'),
++                                    ensure_ascii=False).encode()).hexdigest().upper()
++
++
++def require(ok, detail):
++    if not ok:
++        raise ValueError(detail)
++
++
++@dataclass(frozen=True)
++class PinnedControlContext:
++    directory: Path
++    control_sha256: str
++
++    def _read(self, reference):
++        require(isinstance(reference, dict) and set(reference) == {'path', 'sha256'}, 'INVALID_CONTROL_REFERENCE')
++        name = reference['path']
++        require(isinstance(name, str) and name not in ('', '.', '..') and
++                '/' not in name and '\\' not in name and ':' not in name, 'CONTROL_REFERENCE_PATH')
++        directory = Path(self.directory)
++        path = directory / name
++        require(not directory.is_symlink() and not path.is_symlink(), 'CONTROL_LINK_NOT_ALLOWED')
++        require(path.stat().st_size <= 1024 * 1024, 'CONTROL_RECORD_TOO_LARGE')
++        raw = path.read_bytes()
++        require(hashlib.sha256(raw).hexdigest().upper() == reference['sha256'], 'PINNED_CONTROL_HASH_MISMATCH')
++        value = json.loads(raw.decode('utf-8'), object_pairs_hook=unique)
++        require(isinstance(value, dict), 'CONTROL_OBJECT_REQUIRED')
++        return value
++
++    def resolve(self, stage, *, design_only=False):
++        try:
++            control = self._read(dict(path='control.json', sha256=self.control_sha256))
++            require(control.get('kind') == 'INDEPENDENT_SUCCESSOR_CONTROL' and control.get('active') is True,
++                    'UNRECOGNIZED_OR_INACTIVE_CONTROL')
++            spec = self._read(control['specification'])
++            review = self._read(control['review'])
++            require(spec.get('kind') == 'REVIEWED_SUCCESSOR_SPECIFICATION' and
++                    review.get('kind') == 'INDEPENDENT_SPECIFICATION_REVIEW' and review.get('accepted') is True and
++                    review.get('specification_sha256') == control['specification']['sha256'], 'SPECIFICATION_NOT_INDEPENDENTLY_REVIEWED')
++            binding = spec['binding']
++            require(binding.get('candidate_id') == 'CAND-ETH-ST-002', 'SUCCESSOR_IDENTITY_REQUIRED')
++            require(binding.get('native_cost_contract') == 'NATIVE_COST_BOUNDARY_V2' and
++                    binding.get('package_schema') == 'NATIVE_COST_BOUNDARY_PACKAGE_V2' and
++                    binding.get('evidence_semantics') == 'WHOLE_POSITION_V2' and
++                    binding.get('filling') == 'ORDER_FILLING_FOK' and
++                    binding.get('metadata_policy_sha256') == COST and binding.get('boundary_policy_sha256') == MTM,
++                    'UNADOPTED_EVIDENCE_SEMANTICS')
++            for key in ('configuration_sha256', 'source_sha256', 'successor_evidence_sha256'):
++                v = binding[key]
++                require(isinstance(v, str) and len(v) == 64 and all(c in '0123456789ABCDEF' for c in v), 'SPECIFICATION_HASH_INVALID')
++            if design_only:
++                require(control.get('phase') in ('design', 'execution'), 'UNKNOWN_CONTROL_PHASE')
++                return dict(binding=binding, control=control)
++            require(control.get('phase') == 'execution', 'EXECUTION_AUTHORITY_REQUIRED')
++            freeze = self._read(control['freeze'])
++            execution = self._read(control['execution'])
++            require(freeze.get('kind') == 'OWNER_SUCCESSOR_FREEZE' and freeze.get('owner_approved') is True and
++                    freeze.get('candidate_id') == binding['candidate_id'] and
++                    freeze.get('specification_sha256') == control['specification']['sha256'], 'FREEZE_RECEIPT_MISMATCH')
++            require(execution.get('kind') == 'OWNER_SUCCESSOR_GATE1_EXECUTION' and execution.get('owner_approved') is True and
++                    execution.get('candidate_id') == binding['candidate_id'] and execution.get('gate') == 'GATE1' and
++                    execution.get('specification_sha256') == control['specification']['sha256'] and
++                    execution.get('freeze_receipt_sha256') == control['freeze']['sha256'], 'EXECUTION_RECEIPT_MISMATCH')
++            return dict(binding=binding, control=control, execution=execution)
++        except (ValueError, KeyError, TypeError, OSError, AttributeError) as exc:
++            raise SuccessorEvidenceError(stage, str(exc)) from exc
++
++
++def validate(context, manifest, stage, authorization=None, *, design_only=False):
++    try:
++        require(type(context) is PinnedControlContext, 'INDEPENDENT_CONTROL_CONTEXT_REQUIRED')
++        expected = context.resolve(stage, design_only=design_only)
++        require(isinstance(manifest, Mapping), 'BINDING_OBJECT_REQUIRED')
++        require(not any(k.startswith('historical_') or k in ('trusted_expectation', 'control_context', 'trust_store',
++                    'control_path', 'control_sha256') for k in manifest), 'PAYLOAD_SELECTED_TRUST_OR_HISTORICAL_FALLBACK')
++        for key, value in expected['binding'].items():
++            require(manifest.get(key) == value, 'BINDING_MISMATCH:' + key)
++        if design_only:
++            return expected
++        execution = expected['execution']
++        require(manifest.get('gate') == 'GATE1' and manifest.get('root_sha256') == execution['root_sha256'], 'EXECUTION_SCOPE_MISMATCH')
++        require(manifest.get('manifest_sha256') == execution['child_sha256'] ==
++                canonical_hash({k: v for k, v in manifest.items() if k != 'manifest_sha256'}), 'EXECUTION_CHILD_MISMATCH')
++        if authorization is not None or stage in ('authorization', 'rendering'):
++            require(isinstance(authorization, Mapping) and authorization.get('owner_approved') is True,
++                    'SUPPLIED_AUTHORIZATION_REQUIRED')
++            for key, value in dict(gate='GATE1',root_sha256=execution['root_sha256'],
++                    child_sha256=execution['child_sha256'],freeze_receipt_sha256=expected['control']['freeze']['sha256'],
++                    execution_receipt_sha256=expected['control']['execution']['sha256']).items():
++                require(authorization.get(key) == value, 'AUTHORIZATION_COPY_MISMATCH:' + key)
++        return expected
++    except SuccessorEvidenceError:
++        raise
++    except (ValueError, KeyError, TypeError, AttributeError) as exc:
++        raise SuccessorEvidenceError(stage, str(exc)) from exc
++
++
++def validate_frame(context, manifest, frame, stage):
++    expected = validate(context, manifest, stage)
++    try:
++        require(isinstance(frame, Mapping) and frame.get('complete') == 1, 'INCOMPLETE_EVIDENCE_FRAME')
++        require(isinstance(frame.get('authorization_binding'), Mapping), 'FRAME_AUTHORIZATION_BINDING_REQUIRED')
++        validate(context, manifest, stage, frame['authorization_binding'])
++        require(frame.get('evidence_binding') == expected['binding'], 'FRAME_EVIDENCE_BINDING_MISMATCH')
++        configuration = frame['configuration_id']
++        require(type(configuration) is int and manifest['configuration_start'] <= configuration <= manifest['configuration_end'],
++                'CONFIGURATION_SCOPE_MISMATCH')
++        require(type(frame['boundary_finalization_count']) is int and frame['boundary_finalization_count'] >= 0,
++                'BOUNDARY_COUNT_INVALID')
++        packages = frame['native_cost_packages']
++        require(isinstance(packages, list) and isinstance(frame['stage13_close_frames'], list), 'EVIDENCE_COLLECTION_REQUIRED')
++        for raw in packages:
++            text = raw.decode('utf-8') if isinstance(raw, bytes) else raw
++            package = json.loads(text.rsplit('|sha256=', 1)[0], object_pairs_hook=unique)
++            require(set(package) == {'schema','run','configuration','branch','partition','group','boundary_finalization_count',
++                'candidate_exit_count_delta','records','housekeeping_evidence','sidecar','stage13_frame','stage13_canonical'},
++                'UNADOPTED_PACKAGE_FIELDS_OR_RESIDUAL_SEMANTICS')
++            financial = package['stage13_canonical'].split('|')
++            require(len(financial) == 39 and financial[7] == expected['binding']['candidate_id'] and
++                    financial[8] == expected['binding']['configuration_sha256'], 'FINANCIAL_IDENTITY_BINDING_MISMATCH')
++        NativeCostArchiveConsumer.validate_packages(packages,
++            dict(run=manifest['manifest_sha256'],configuration=configuration,branch=manifest['branch'],partition=manifest['partition'],
++                 package_schema=expected['binding']['package_schema']),
++            boundary_count=frame['boundary_finalization_count'],close_frames=frame['stage13_close_frames'])
++        return expected
++    except SuccessorEvidenceError:
++        raise
++    except (ValueError, KeyError, TypeError, AttributeError, IndexError, UnicodeError) as exc:
++        raise SuccessorEvidenceError(stage, str(exc)) from exc
+diff --git a/tests/test_successor_evidence.py b/tests/test_successor_evidence.py
+new file mode 100644
+index 0000000..54e9923
+--- /dev/null
++++ b/tests/test_successor_evidence.py
+@@ -0,0 +1,293 @@
++"""Non-runtime public-interface successor enforcement tests."""
++import unittest
++import json
++import hashlib
++import tempfile
++import copy
++from pathlib import Path
++from research_pipeline.stage14 import ResearchRunCoordinator
++
++REJECTION = 'SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED'
++
++
++class SuccessorEvidenceTests(unittest.TestCase):
++    def rejected(self, mutate, stages=None):
++        from research_pipeline.successor_evidence import PinnedControlContext
++        from research_pipeline.gate1_finalization import Gate1Finalizer
++        stages = stages or ['authorization','rendering','ingestion','normal_finalization','boundary_finalization']
++        for stage in stages:
++            with self.subTest(stage=stage), tempfile.TemporaryDirectory() as tmp:
++                f = ControlFixture(Path(tmp)); mutate(f)
++                context = PinnedControlContext(f.directory, f.pin)
++                coordinator = ResearchRunCoordinator(control_context=context)
++                spool = Path(tmp)/'spool'
++                if stage == 'authorization':
++                    result = coordinator.authorize(f.manifest, f.authorization)
++                    self.assertFalse(result['allowed']); self.assertEqual(result['reason'], REJECTION)
++                    self.assertEqual(result['stage'],stage); self.assertTrue(result['detail'])
++                    self.assertNotIn('next_status',result)
++                else:
++                    if stage.endswith('finalization'):
++                        # An untrusted persisted frame, not a call to valid ingestion.
++                        spool.mkdir()
++                        (spool/'untrusted.frame.json').write_bytes(canonical(dict(manifest_sha256=f.manifest['manifest_sha256'],
++                            frame_id='0',payload=f.frame)))
++                    before = set(spool.iterdir()) if spool.exists() else set()
++                    with self.assertRaisesRegex(ValueError, REJECTION) as caught:
++                        if stage == 'rendering': coordinator.render_bundle(f.manifest,f.authorization)
++                        elif stage == 'ingestion': coordinator.append_frame(spool,f.manifest,dict(frame_id='0',payload=f.frame))
++                        else: Gate1Finalizer(control_context=context).finalize_successor_frames(spool,f.manifest,boundary=stage=='boundary_finalization')
++                    self.assertEqual(caught.exception.stage,stage)
++                    self.assertTrue(caught.exception.detail)
++                    self.assertEqual(set(spool.iterdir()) if spool.exists() else set(),before)
++
++    def test_E01_declaration_and_packages_omitted_all_gates(self):
++        def mutate(f): f.manifest.pop('native_cost_contract'); f.frame.pop('native_cost_packages')
++        self.rejected(mutate)
++
++    def test_E02_empty_null_wrong_type_declaration(self):
++        for value in ['',None,[], '   ']:
++            with self.subTest(value=value): self.rejected(lambda f:f.manifest.update(native_cost_contract=value))
++
++    def test_E03_downgrade_unknown_wrong_policy(self):
++        for key,value in [('native_cost_contract','NATIVE_COST_BOUNDARY_V1'),('package_schema','UNKNOWN'),('metadata_policy_sha256','A'*64)]:
++            self.rejected(lambda f:f.manifest.update({key:value}))
++
++    def test_E04_parent_identity(self):
++        self.rejected(lambda f:f.manifest.update(candidate_id='CAND-ETH-ST-001'))
++
++    def test_E05_parent_approval(self):
++        self.rejected(lambda f:f.authorization.update(execution_receipt_sha256='1'*64))
++
++    def test_E06_parent_evidence(self):
++        self.rejected(lambda f:f.manifest.update(successor_evidence_sha256='1'*64))
++
++    def test_E07_wrong_configuration_source_root_branch_partition(self):
++        for key in ['configuration_sha256','source_sha256','root_sha256','branch','partition']:
++            self.rejected(lambda f:f.manifest.update({key:'FOREIGN'}))
++
++    def test_E08_missing_evidence_at_consumption(self):
++        for key in ['native_cost_packages','stage13_close_frames','boundary_finalization_count']:
++            self.rejected(lambda f:f.frame.pop(key),['ingestion','normal_finalization','boundary_finalization'])
++
++    def test_E09_zero_boundary_does_not_waive_contract(self):
++        self.rejected(lambda f:f.manifest.pop('native_cost_contract'))
++
++    def test_E10_hidden_evaluator_close(self):
++        self.rejected(lambda f:f.frame.update(stage13_close_frames=['schema=1|event_type=9|order=0|deal=0|']),
++                      ['ingestion','normal_finalization','boundary_finalization'])
++
++    def test_E11_historical_default_deny(self):
++        self.rejected(lambda f:f.manifest.update(historical_scope_id='OLD',historical_schema_version=1,historical_authorization_hash='1'*64))
++        from research_pipeline.gate1_finalization import Gate1Finalizer
++        for call in [lambda:Gate1Finalizer().finalize(None),lambda:Gate1Finalizer().audit_batch(None,None,1),
++                     lambda:Gate1Finalizer().merge_batches(None,None)]:
++            with self.assertRaisesRegex(ValueError,REJECTION):call()
++
++    def test_E12_change_after_authorization(self):
++        def mutate(f):
++            from research_pipeline.successor_evidence import PinnedControlContext
++            c=ResearchRunCoordinator(control_context=PinnedControlContext(f.directory,f.pin))
++            self.assertTrue(c.authorize(f.manifest,f.authorization)['allowed'])
++            f.manifest['configuration_sha256']='B'*64
++        self.rejected(mutate)
++
++    def test_E13_co_tampered_expectation_declaration_and_local_seals(self):
++        def mutate(f):
++            spec=json.loads((f.directory/'spec.json').read_text())
++            spec['binding']['source_sha256']='A'*64; f.manifest['source_sha256']='A'*64
++            f.control['specification']=f.store('spec.json',spec)
++            f.store('control.json',f.control)  # External pin deliberately unchanged.
++            f.manifest['manifest_sha256']=hashed({k:v for k,v in f.manifest.items() if k!='manifest_sha256'})
++        self.rejected(mutate)
++
++    def test_E14_stale_wrong_execution_receipt(self):
++        self.rejected(lambda f:f.authorization.update(execution_receipt_sha256='B'*64))
++
++    def test_E15_freeze_alone(self):
++        self.rejected(lambda f:(f.directory/'execution.json').unlink())
++
++    def test_E16_unrecognized_receipt_resealed_local_control(self):
++        def mutate(f):
++            f.control['execution']=f.store('foreign.json',dict(owner_approved=True,kind='OWNER_SUCCESSOR_GATE1_EXECUTION'))
++            f.store('control.json',f.control)
++        self.rejected(mutate)
++
++    def test_E17_payload_selected_store_or_design_as_execution(self):
++        self.rejected(lambda f:f.manifest.update(trust_store='attacker'))
++        def mutate(f):
++            f.control['phase']='design';f.pin=f.store('control.json',f.control)['sha256']
++        self.rejected(mutate)
++
++    def test_E18_residual_semantics_not_v2(self):
++        self.rejected(lambda f:f.manifest.update(evidence_semantics='PARTIAL_POSITION_LIFECYCLE'))
++        self.rejected(lambda f:f.frame['evidence_binding'].update(evidence_semantics='PARTIAL_POSITION_LIFECYCLE'),
++                      ['ingestion','normal_finalization','boundary_finalization'])
++
++    def test_positive_render_ingest_and_both_finalizers(self):
++        from research_pipeline.successor_evidence import PinnedControlContext
++        from research_pipeline.gate1_finalization import Gate1Finalizer
++        for boundary in [False,True]:
++            with self.subTest(boundary=boundary),tempfile.TemporaryDirectory() as tmp:
++                f=ControlFixture(Path(tmp));context=PinnedControlContext(f.directory,f.pin)
++                if boundary: f.add_boundary_package()
++                c=ResearchRunCoordinator(control_context=context)
++                self.assertEqual(set(c.render_bundle(f.manifest,f.authorization)),{'ini','set'})
++                spool=Path(tmp)/'spool'
++                self.assertEqual(c.append_frame(spool,f.manifest,dict(frame_id='0',payload=f.frame))['status'],'APPENDED')
++                self.assertEqual(Gate1Finalizer(control_context=context).finalize_successor_frames(spool,f.manifest,boundary=boundary)['status'],'COMPLETE')
++
++    def test_E08_boundary_sidecar_tampered(self):
++        def mutate(f):
++            f.add_boundary_package()
++            f.frame['native_cost_packages'][0] += 'ALTERED'
++        self.rejected(mutate,['ingestion','boundary_finalization'])
++
++    def test_E04_parent_financial_identity_inside_package(self):
++        def mutate(f):
++            f.add_boundary_package()
++            p=json.loads(f.frame['native_cost_packages'][0].rsplit('|sha256=',1)[0])
++            p['stage13_canonical']=p['stage13_canonical'].replace('CAND-ETH-ST-002','CAND-ETH-ST-001')
++            raw=json.dumps(p,separators=(',',':'))
++            f.frame['native_cost_packages'][0]=raw+'|sha256='+hashlib.sha256(raw.encode()).hexdigest().upper()
++        self.rejected(mutate,['ingestion','boundary_finalization'])
++
++    def test_E10_duplicate_boundary_package(self):
++        def mutate(f):
++            f.add_boundary_package()
++            f.frame['native_cost_packages'] *= 2
++            f.frame['boundary_finalization_count'] = 2
++        self.rejected(mutate,['ingestion','boundary_finalization'])
++
++    def test_E18_residual_package_fields_cannot_hide_behind_v2(self):
++        def mutate(f):
++            f.add_boundary_package()
++            p=json.loads(f.frame['native_cost_packages'][0].rsplit('|sha256=',1)[0])
++            p['residual_volume']=0.005
++            raw=json.dumps(p,separators=(',',':'))
++            f.frame['native_cost_packages'][0]=raw+'|sha256='+hashlib.sha256(raw.encode()).hexdigest().upper()
++        self.rejected(mutate,['ingestion','boundary_finalization'])
++
++    def test_design_validation_cannot_authorize_execution(self):
++        from research_pipeline.successor_evidence import PinnedControlContext,validate
++        with tempfile.TemporaryDirectory() as tmp:
++            f=ControlFixture(Path(tmp));f.control['phase']='design'
++            f.control.pop('execution');f.control.pop('freeze');f.pin=f.store('control.json',f.control)['sha256']
++            context=PinnedControlContext(f.directory,f.pin)
++            self.assertEqual(validate(context,f.manifest,'design',design_only=True)['binding'],f.binding)
++            self.assertFalse(ResearchRunCoordinator(control_context=context).authorize(f.manifest,f.authorization)['allowed'])
++
++    def test_E12_rendered_bundle_tampering_and_E08_missing_frame(self):
++        from research_pipeline.successor_evidence import PinnedControlContext
++        with tempfile.TemporaryDirectory() as tmp:
++            f=ControlFixture(Path(tmp));c=ResearchRunCoordinator(control_context=PinnedControlContext(f.directory,f.pin))
++            bundle=c.render_bundle(f.manifest,f.authorization);bundle['set']+='TAMPERED'
++            with self.assertRaisesRegex(ValueError,REJECTION) as e:c.verify_bundle(f.manifest,f.authorization,bundle)
++            self.assertEqual(e.exception.stage,'rendering')
++            for stage in ['normal_finalization','boundary_finalization']:
++                with self.assertRaisesRegex(ValueError,REJECTION) as e:c.finalize_frames(Path(tmp)/'missing',f.manifest,finalization_stage=stage)
++                self.assertEqual(e.exception.stage,stage)
++    def test_E01_omission_rejects_before_ingestion_write(self):
++        from research_pipeline.successor_evidence import PinnedControlContext
++        with tempfile.TemporaryDirectory() as tmp:
++            f = ControlFixture(Path(tmp))
++            coordinator = ResearchRunCoordinator(control_context=PinnedControlContext(f.directory, f.pin))
++            del f.manifest['native_cost_contract']
++            spool = Path(tmp)/'spool'
++            with self.assertRaisesRegex(ValueError, REJECTION):
++                coordinator.append_frame(spool, f.manifest, dict(frame_id='0',payload=dict(complete=1)))
++            self.assertFalse(spool.exists())
++    def test_independently_pinned_authorization_positive_control(self):
++        from research_pipeline.successor_evidence import PinnedControlContext
++        with tempfile.TemporaryDirectory() as tmp:
++            f = ControlFixture(Path(tmp))
++            coordinator = ResearchRunCoordinator(control_context=PinnedControlContext(f.directory, f.pin))
++            self.assertTrue(coordinator.authorize(f.manifest, f.authorization)['allowed'])
++    def test_missing_independent_context_denies_authorization(self):
++        result = ResearchRunCoordinator().authorize({}, {'owner_approved': True})
++        self.assertFalse(result['allowed'])
++        self.assertEqual(result['reason'], REJECTION)
++        self.assertEqual(result['stage'], 'authorization')
++
++
++def canonical(value):
++    return json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
++
++
++def hashed(value):
++    return hashlib.sha256(canonical(value)).hexdigest().upper()
++
++
++class ControlFixture:
++    """Independent control-plane fixture, never a production approval/root."""
++    def __init__(self, directory):
++        self.directory = directory
++        self.binding = dict(candidate_id='CAND-ETH-ST-002', configuration_sha256='C'*64,
++            source_sha256='D'*64, successor_evidence_sha256='E'*64,
++            native_cost_contract='NATIVE_COST_BOUNDARY_V2', package_schema='NATIVE_COST_BOUNDARY_PACKAGE_V2',
++            evidence_semantics='WHOLE_POSITION_V2', filling='ORDER_FILLING_FOK',
++            metadata_policy_sha256='CDFE801225C54C622A566CB125FE37B0759A3E47320D988571B796629CF984D9',
++            boundary_policy_sha256='909C23E3B14BB64A62BC371890B2FFFB1964D24FC24879971DB614FB078E92C6')
++        spec = dict(kind='REVIEWED_SUCCESSOR_SPECIFICATION', binding=self.binding)
++        spec_ref = self.store('spec.json', spec)
++        review_ref = self.store('review.json', dict(kind='INDEPENDENT_SPECIFICATION_REVIEW', accepted=True, specification_sha256=spec_ref['sha256']))
++        freeze_ref = self.store('freeze.json', dict(kind='OWNER_SUCCESSOR_FREEZE', owner_approved=True,
++            candidate_id=self.binding['candidate_id'], specification_sha256=spec_ref['sha256']))
++        self.manifest = dict(self.binding, gate='GATE1', root_sha256='F'*64,
++            branch='RECORDED', partition='FINAL_SELECTION', configuration_start=0, configuration_end=0,
++            expected_frame_ids=['0'], scenario='BASELINE_20MS', purpose='RESEARCH', expected_symbol='ETHUSD.s',
++            execution_adapter='NATIVE', execution_mode=20, seed=0,
++            from_date='2022.04.02', evaluation_start='2022-07-01T00:00:00',
++            evaluation_end_exclusive='2024-01-01T00:00:00', to_date_inclusive='2023.12.31',
++            artifact_hashes=dict(calendar='A'*64,cost='A'*64,research_specification='A'*64),
++            operational_facts=dict(calendar_intervals_file='fixture.csv',calendar_file_sha256='A'*64,
++                commission_per_lot_round_turn=0,swap_per_lot_stress=0,weekend_risk_multiplier=.5,
++                maintenance_entry_block_minutes=30,maintenance_force_flat_minutes=5,maintenance_clean_minutes=15))
++        self.manifest['manifest_sha256'] = hashed(self.manifest)
++        execution_ref = self.store('execution.json', dict(kind='OWNER_SUCCESSOR_GATE1_EXECUTION', owner_approved=True,
++            candidate_id=self.binding['candidate_id'], specification_sha256=spec_ref['sha256'],
++            freeze_receipt_sha256=freeze_ref['sha256'], gate='GATE1',root_sha256='F'*64,
++            child_sha256=self.manifest['manifest_sha256']))
++        self.control = dict(kind='INDEPENDENT_SUCCESSOR_CONTROL', phase='execution', active=True,
++            specification=spec_ref, review=review_ref, freeze=freeze_ref, execution=execution_ref)
++        self.pin = self.store('control.json', self.control)['sha256']
++        self.authorization = dict(owner_approved=True,gate='GATE1',root_sha256='F'*64,
++            child_sha256=self.manifest['manifest_sha256'],freeze_receipt_sha256=freeze_ref['sha256'],
++            execution_receipt_sha256=execution_ref['sha256'])
++        self.frame = dict(complete=1,configuration_id=0,evidence_binding=copy.deepcopy(self.binding),
++            authorization_binding=self.authorization,native_cost_packages=[],boundary_finalization_count=0,stage13_close_frames=[])
++
++    def store(self, name, value):
++        (self.directory/name).write_bytes(canonical(value))
++        return dict(path=name,sha256=hashed(value))
++
++    def add_boundary_package(self):
++        # Rebind a retained non-Candidate format fixture entirely in memory.
++        # This is synthetic test evidence, not successor execution evidence.
++        from research_pipeline.native_cost_archive import digest,COST
++        root=Path(__file__).resolve().parents[1]
++        source=root/'governance/evidence/stage14/fok_infrastructure_20260905/NC-FOK-09-FINAL/runtime/harness/native-cost-package.evidence'
++        p=json.loads(source.read_text().rsplit('|sha256=',1)[0])
++        old_binding=p['records'][1].split('|')[2]
++        bodies=[r.split('|',1)[1].rsplit('|',1)[0] for r in p['records']]
++        b=bodies[0].split('|');b[1]=self.manifest['manifest_sha256'];b[3]='RECORDED';b[4]='FINAL_SELECTION'
++        bodies[0]='|'.join(b);new_binding=digest('|'.join(b[1:]))
++        previous=digest(COST+'|'+new_binding);records=[]
++        for body in bodies:
++            body=body.replace(old_binding,new_binding);current=digest(previous+'|'+body)
++            records.append(previous+'|'+body+'|'+current);previous=current
++        c=p['stage13_canonical'].split('|');old_root=digest(p['stage13_canonical'])
++        c[7]=self.binding['candidate_id'];c[8]=self.binding['configuration_sha256']
++        p['stage13_canonical']='|'.join(c);new_root=digest(p['stage13_canonical'])
++        p['stage13_frame']=p['stage13_frame'].replace(old_root,new_root)
++        side=p['sidecar'].rsplit('|sha256=',1)[0].replace(old_binding,new_binding).replace(old_root,new_root)
++        old_cost_root=p['records'][-1].rsplit('|',1)[1]
++        side=side.replace(old_cost_root,previous);p['sidecar']=side+'|sha256='+digest(side)
++        p.update(records=records,run=self.manifest['manifest_sha256'],branch='RECORDED',partition='FINAL_SELECTION')
++        raw=json.dumps(p,separators=(',',':'))
++        self.frame.update(native_cost_packages=[raw+'|sha256='+digest(raw)],boundary_finalization_count=1,
++                          stage13_close_frames=[p['stage13_frame']])
++
++
++if __name__ == '__main__':
++    unittest.main()

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-04-FINAL\\tester.ini"
+  ],
+  "launcher_sha256": "E3C8D378BD0832736701EABF119B1B9C6D4C308FDD29461B28C3E6D01209F92F",
+  "manifest_sha256": "56A8D13A416AC6182F7D751A4590DB542D583B5F889B7C102FE4C85ADB5EF239",
+  "pid": 12832,
+  "run_id": "NC-FOK-04-FINAL",
+  "started": "2026-09-05T14:24:21.885872+00:00"
+}

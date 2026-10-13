@@ -1,0 +1,21 @@
+{
+  "compiler": {
+    "path": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "version": "5.0.0.6140",
+    "sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7"
+  },
+  "source": "MQL5\\Scripts\\KingEA\\TestCombinedLifecycle.mq5",
+  "source_sha256": "E7FD2A446BE5004C5BF9F0096106AC483672384421205699E9E76009ABFAD3B2",
+  "compile_copy_sha256": "E7FD2A446BE5004C5BF9F0096106AC483672384421205699E9E76009ABFAD3B2",
+  "source_equal": true,
+  "ex5_sha256": "CFBCF194B1E463685ABB77068E7F63C33100AF8D13E08A80603EE24CFA0BBD0B",
+  "log_sha256": "EA54C47B549ADBC23EB8176B6BFB7B2A1DD43C9E9FECDF963CB550FCA04F1C80",
+  "result": "0 errors, 0 warnings",
+  "runtime_executed": false,
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\renderer_extension\\compile\\TestCombinedLifecycle.mq5",
+    "/inc:C:\\KingEA_v1\\MQL5",
+    "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\renderer_extension\\compile\\harness.log"
+  ]
+}

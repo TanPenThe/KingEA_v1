@@ -1,0 +1,18 @@
+{
+  "b2_status": "LOCKED",
+  "build_id": "KINGEA-B2-END-BOUNDARY-CLOSURE-20260904-V9",
+  "candidate_execution": false,
+  "created_at": "2026-09-04T00:00:00Z",
+  "kind": "PRE_TOOLING_SOURCE_MANIFEST",
+  "scope": "TERMINAL_END_FAIL_CLOSED_AND_DATE_RECONCILIATION_ONLY",
+  "sources": [
+    {"path": "C:/KingEA_v1/MQL5/Experts/KingEA/GuardedResearchTester.mq5", "size": 72166, "sha256": "1AE8A6BB77FA04CCE9D25CBC3BC96264B3CB63087B777092DD92653463BFB95C"},
+    {"path": "C:/KingEA_v1/research_pipeline/stage12.py", "size": 37727, "sha256": "59C076881E270BCAD6E0D1A82BC077F698ED6B215D083F388986AA0049895A53"},
+    {"path": "C:/KingEA_v1/research_pipeline/stage14.py", "size": 75022, "sha256": "485DE76F92ED9DA72143720EA4EDA847471DF3E97ED226250178DE9D5866A28D"},
+    {"path": "C:/KingEA_v1/research_pipeline/b2_date_gate.py", "size": 4774, "sha256": "AF645FA25DE62E2FF297F4AA6D3532F15F44337690948D4C1826EAA438C42276"},
+    {"path": "C:/KingEA_v1/tests/test_b2_date_gate.py", "size": 8536, "sha256": "93F142339D629BA58A103EA8A4C98AB6E6ED2C976932E19742EFD8780AD3DB52"},
+    {"path": "C:/KingEA_v1/tests/Test-Stage14ResearchReadinessPolicy.ps1", "size": 28147, "sha256": "3CEC0D21CF498A6F3137A817E21538FDA48C7890AC1D42303BED2F94FE599398"}
+  ],
+  "status": "PRE_TOOLING",
+  "supersedes": "PRE_TOOLING_B2_END_BOUNDARY_CLOSURE_V8_20260904.json"
+}

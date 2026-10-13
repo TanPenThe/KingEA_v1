@@ -1,0 +1,18 @@
+{
+  "source": "Senior Reviewer Directive — Final B2 Integration Closure, Section 1, current owner message",
+  "authorization": "BOUNDED_NON_CANDIDATE_IOC_EXECUTION_CONFORMANCE_ONLY",
+  "symbol": "ETHUSD.s",
+  "adapter": "NATIVE",
+  "scenario": "BASELINE_20MS",
+  "ExecutionMode": 20,
+  "type_filling": "ORDER_FILLING_IOC",
+  "simulated_entry_limit": 1,
+  "fallback_permitted": false,
+  "candidate_execution": false,
+  "new_budget": 0,
+  "b2_root_creation": false,
+  "oos": false,
+  "holdout": false,
+  "b2": "LOCKED",
+  "on_incompatible": "STOP_B2_READINESS_NO_FOK_SUBSTITUTION_NO_HISTORICAL_CAUSE_INFERENCE"
+}

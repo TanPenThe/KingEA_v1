@@ -1,0 +1,34 @@
+test_E01_declaration_and_packages_omitted_all_gates (tests.test_successor_evidence.SuccessorEvidenceTests.test_E01_declaration_and_packages_omitted_all_gates) ... ok
+test_E01_omission_rejects_before_ingestion_write (tests.test_successor_evidence.SuccessorEvidenceTests.test_E01_omission_rejects_before_ingestion_write) ... ok
+test_E02_empty_null_wrong_type_declaration (tests.test_successor_evidence.SuccessorEvidenceTests.test_E02_empty_null_wrong_type_declaration) ... ok
+test_E03_downgrade_unknown_wrong_policy (tests.test_successor_evidence.SuccessorEvidenceTests.test_E03_downgrade_unknown_wrong_policy) ... ok
+test_E04_parent_financial_identity_inside_package (tests.test_successor_evidence.SuccessorEvidenceTests.test_E04_parent_financial_identity_inside_package) ... ok
+test_E04_parent_identity (tests.test_successor_evidence.SuccessorEvidenceTests.test_E04_parent_identity) ... ok
+test_E05_parent_approval (tests.test_successor_evidence.SuccessorEvidenceTests.test_E05_parent_approval) ... ok
+test_E06_parent_evidence (tests.test_successor_evidence.SuccessorEvidenceTests.test_E06_parent_evidence) ... ok
+test_E07_wrong_configuration_source_root_branch_partition (tests.test_successor_evidence.SuccessorEvidenceTests.test_E07_wrong_configuration_source_root_branch_partition) ... ok
+test_E08_boundary_sidecar_tampered (tests.test_successor_evidence.SuccessorEvidenceTests.test_E08_boundary_sidecar_tampered) ... ok
+test_E08_missing_evidence_at_consumption (tests.test_successor_evidence.SuccessorEvidenceTests.test_E08_missing_evidence_at_consumption) ... ok
+test_E09_zero_boundary_does_not_waive_contract (tests.test_successor_evidence.SuccessorEvidenceTests.test_E09_zero_boundary_does_not_waive_contract) ... ok
+test_E10_duplicate_boundary_package (tests.test_successor_evidence.SuccessorEvidenceTests.test_E10_duplicate_boundary_package) ... ok
+test_E10_hidden_evaluator_close (tests.test_successor_evidence.SuccessorEvidenceTests.test_E10_hidden_evaluator_close) ... ok
+test_E11_historical_default_deny (tests.test_successor_evidence.SuccessorEvidenceTests.test_E11_historical_default_deny) ... ok
+test_E12_change_after_authorization (tests.test_successor_evidence.SuccessorEvidenceTests.test_E12_change_after_authorization) ... ok
+test_E12_rendered_bundle_tampering_and_E08_missing_frame (tests.test_successor_evidence.SuccessorEvidenceTests.test_E12_rendered_bundle_tampering_and_E08_missing_frame) ... ok
+test_E13_co_tampered_expectation_declaration_and_local_seals (tests.test_successor_evidence.SuccessorEvidenceTests.test_E13_co_tampered_expectation_declaration_and_local_seals) ... ok
+test_E14_stale_wrong_execution_receipt (tests.test_successor_evidence.SuccessorEvidenceTests.test_E14_stale_wrong_execution_receipt) ... ok
+test_E15_freeze_alone (tests.test_successor_evidence.SuccessorEvidenceTests.test_E15_freeze_alone) ... ok
+test_E16_unrecognized_receipt_resealed_local_control (tests.test_successor_evidence.SuccessorEvidenceTests.test_E16_unrecognized_receipt_resealed_local_control) ... ok
+test_E17_payload_selected_store_or_design_as_execution (tests.test_successor_evidence.SuccessorEvidenceTests.test_E17_payload_selected_store_or_design_as_execution) ... ok
+test_E18_residual_package_fields_cannot_hide_behind_v2 (tests.test_successor_evidence.SuccessorEvidenceTests.test_E18_residual_package_fields_cannot_hide_behind_v2) ... ok
+test_E18_residual_semantics_not_v2 (tests.test_successor_evidence.SuccessorEvidenceTests.test_E18_residual_semantics_not_v2) ... ok
+test_design_validation_cannot_authorize_execution (tests.test_successor_evidence.SuccessorEvidenceTests.test_design_validation_cannot_authorize_execution) ... ok
+test_historical_audit_result_cannot_satisfy_successor_evidence (tests.test_successor_evidence.SuccessorEvidenceTests.test_historical_audit_result_cannot_satisfy_successor_evidence) ... ok
+test_independently_pinned_authorization_positive_control (tests.test_successor_evidence.SuccessorEvidenceTests.test_independently_pinned_authorization_positive_control) ... ok
+test_missing_independent_context_denies_authorization (tests.test_successor_evidence.SuccessorEvidenceTests.test_missing_independent_context_denies_authorization) ... ok
+test_positive_render_ingest_and_both_finalizers (tests.test_successor_evidence.SuccessorEvidenceTests.test_positive_render_ingest_and_both_finalizers) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 1.907s
+
+OK

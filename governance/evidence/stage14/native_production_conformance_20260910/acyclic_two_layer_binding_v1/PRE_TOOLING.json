@@ -1,0 +1,39 @@
+{
+  "kind": "PRE_TOOLING_CONFORMANCE_ACYCLIC_TWO_LAYER_BINDING_V1",
+  "created_utc": "2026-09-10T03:06:41.9125832Z",
+  "files": [
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\GuardedResearchTester.mq5",
+      "byte_length": 85698,
+      "sha256": "D6BE60CE82BD1354C2162820B8E912B2C680867645B21AE5B88280EFA2C4EDCA"
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\GuardedNativeCostIntegration.mqh",
+      "byte_length": 28133,
+      "sha256": "5181E4D65DEAD8C7561E210BED48C9CF1E815E7579AA5624609D93C870B595F0"
+    },
+    {
+      "path": "C:\\KingEA_v1\\research_pipeline\\native_conformance_control.py",
+      "byte_length": 25764,
+      "sha256": "48066FD4595BA0B7D6457E270BF3DAD61593AD0A1200451BF8E695B2F5C7327C"
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\test_native_conformance_control.py",
+      "byte_length": 25159,
+      "sha256": "EFFCEF4EE5CB5BCE36350CA80FD38975A0ABECD5CEE943E1147D61531DB793DE"
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\test_conformance_production_control_flow.py",
+      "byte_length": 7852,
+      "sha256": "5728266E456856396D244D38B2C0783A2F9BD9EEFE272A987B5620318FBD9515"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\construct_fixture_packages.py",
+      "byte_length": 7854,
+      "sha256": "7708F50FBA7EDA244689DFAB538B7E19F04265512507526E1EC080F35664ED21"
+    }
+  ],
+  "runtime": "NOT_LAUNCHED",
+  "B2": "LOCKED",
+  "successor_freeze": "NOT_AUTHORIZED"
+}

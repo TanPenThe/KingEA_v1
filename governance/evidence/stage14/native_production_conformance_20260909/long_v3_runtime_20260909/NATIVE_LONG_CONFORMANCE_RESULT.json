@@ -1,0 +1,41 @@
+{
+  "kind": "NON_CANDIDATE_NATIVE_PRODUCTION_PATH_CONFORMANCE_V3_RESULT",
+  "fixture_id": "NCV1-LONG-NORMAL-001",
+  "run_id": "C666040B2B67CB6C5B62BC73193104F84F99731AD695DF250B9E3B17D5D60F2F",
+  "classification": "BLOCKED",
+  "reason": "ONINIT_MANIFEST_AUTHORIZATION_GUARD_FAILED",
+  "input_consumption": {
+    "status": "PASS",
+    "InpNativeConformance": true,
+    "InpConformanceControlSha256": "409C8F2F136A3F0A237A78A2BD5D50AAAEB65B85BCEC0170CD502372492C901A",
+    "InpManifestSha256": "C666040B2B67CB6C5B62BC73193104F84F99731AD695DF250B9E3B17D5D60F2F",
+    "InpRunManifest": "KingEA\\conformance\\NCV1-LONG-NORMAL-001\\manifest.json",
+    "InpManifestFileSha256": "972190C85F1AAB94C004222A6273C5F7D95967380EE916FA44BC2D3A645C405A",
+    "InpEvaluationStart": "2022-12-06T11:55:00",
+    "InpEvaluationEndExclusive": "2022-12-07T12:05:00",
+    "InpCalendarIntervalsFile": "KingEA\\conformance\\NCV1-LONG-NORMAL-001\\calendar.csv",
+    "InpCalendarFileSha256": "4E01CE4DB034F9AB49A0D77808178E8933026A514674D2A50A67042BB35442E3"
+  },
+  "lifecycle": "NOT_ENTERED",
+  "orders": "NONE",
+  "native_capture": "NOT_PRODUCED",
+  "R_S_A_SEAL": "NOT_PRODUCED",
+  "tester_log": {
+    "path": "tester_20260909.log",
+    "sha256": "1318210D2FEACF80539E13ACDBCCE96B245EEB2662EAB6BE3CF0FEC85555A567"
+  },
+  "post_runtime_equality": {
+    "python_source_sha256": "48066FD4595BA0B7D6457E270BF3DAD61593AD0A1200451BF8E695B2F5C7327C",
+    "mql_source_sha256": "1CA356757CDC0CEC4985B7CA077A589F4C6DBBCCD0C6239725B436F08CA5707C",
+    "deployed_ex5_sha256": "C3E6AE0BD47E071CA3454D9FF07968D24EF8FA302EE2B92DCDEABDA03D9B8E81",
+    "loader_set_sha256": "B7175B43C6E1488900D7C9F4AB3505A186AF09A16B410AB9F12C4A5EADAD0D41"
+  },
+  "terminal_exited": true,
+  "metatester_exited": true,
+  "rerun": false,
+  "short_launched": false,
+  "boundary_launched": false,
+  "candidate_evidence": false,
+  "B2": "LOCKED",
+  "successor_freeze": "NOT_AUTHORIZED"
+}

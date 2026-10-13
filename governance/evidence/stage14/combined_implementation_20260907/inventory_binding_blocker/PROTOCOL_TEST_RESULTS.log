@@ -1,0 +1,11 @@
+test_altered_support_rejects_without_transition (__main__.ProtocolProof.test_altered_support_rejects_without_transition) ... ok
+test_literal_single_inventory_requires_cycle (__main__.ProtocolProof.test_literal_single_inventory_requires_cycle) ... ok
+test_missing_artifact_rejects_without_transition (__main__.ProtocolProof.test_missing_artifact_rejects_without_transition) ... ok
+test_proposal_constructs_without_omitted_hash_fields (__main__.ProtocolProof.test_proposal_constructs_without_omitted_hash_fields) ... ok
+test_proposed_two_level_order_is_acyclic (__main__.ProtocolProof.test_proposed_two_level_order_is_acyclic) ... ok
+test_resealed_local_archive_cannot_change_external_pin (__main__.ProtocolProof.test_resealed_local_archive_cannot_change_external_pin) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK

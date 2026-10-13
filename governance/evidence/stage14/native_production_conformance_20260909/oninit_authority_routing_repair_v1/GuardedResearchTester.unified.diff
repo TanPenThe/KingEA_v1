@@ -1,0 +1,132 @@
+warning: in the working copy of 'C:\KingEA_v1\governance\evidence\stage14\native_production_conformance_20260909\oninit_authority_routing_repair_v1\GuardedResearchTester.pre_edit.mq5', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'MQL5/Experts/KingEA/GuardedResearchTester.mq5', CRLF will be replaced by LF the next time Git touches it
+diff --git "a/C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_authority_routing_repair_v1\\GuardedResearchTester.pre_edit.mq5" b/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+index a703e3c..0071f9f 100644
+--- "a/C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_authority_routing_repair_v1\\GuardedResearchTester.pre_edit.mq5"
++++ b/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+@@ -2,6 +2,9 @@
+ #property version   "1.01"
+ #property tester_everytick_calculate
+ #property tester_file "KingEA\\research_inputs\\PROTECTION_INTERVALS_STAGE14_20260802.csv"
++#property tester_file "KingEA\\conformance\\NCV1-LONG-NORMAL-001\\manifest.json"
++#property tester_file "KingEA\\conformance\\NCV1-SHORT-NORMAL-001\\manifest.json"
++#property tester_file "KingEA\\conformance\\NCV1-LONG-BOUNDARY-001\\manifest.json"
+ #property description "Guarded Candidate 001 research adapter; Strategy Tester only."
+ #property description "Requires a separately authorized content-addressed manifest."
+ 
+@@ -179,6 +182,8 @@ bool ResearchNativeContext();
+ string DAManifestString(string key);
+ bool ResearchNativeCompletion();
+ bool ResearchConformanceValid();
++bool ResearchConformanceAuthorizationValidate();
++bool ResearchActiveAuthorizationValid();
+ void ResearchConformanceTick(const MqlTick &tick);
+ bool ResearchNativeOrderCheck(MqlTradeRequest &request);
+ bool g_da_last_send_attempted=false;
+@@ -456,7 +461,6 @@ bool ResearchPartitionAuthorized()
+ 
+ bool ResearchAuthorizationValid()
+   {
+-   if(InpNativeConformance)return ResearchConformanceValid();
+    if(!MQLInfoInteger(MQL_TESTER) || InpTesterModel!=4 ||
+       !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
+       !InpCloudAgentsDisabled || !ResearchPartitionAuthorized())
+@@ -489,7 +493,70 @@ bool ResearchAuthorizationValid()
+       return false;
+    string expected=ResearchSha256String(InpManifestSha256+"|"+
+                                          InpPurpose+"|RUNNING");
+-   return expected!="" && InpDetachedAuthorizationToken==expected;
++  return expected!="" && InpDetachedAuthorizationToken==expected;
++  }
++
++bool ResearchConformanceAuthorizationValidate()
++  {
++   if(!InpNativeConformance || InpPurpose!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1" ||
++      InpGate!="0" || InpRootSha256!="" || InpDetachedAuthorizationToken!="" ||
++      InpConfigurationId!=0 || InpExecutionAdapter!="NATIVE" ||
++      InpScenario!="BASELINE_20MS" || InpTesterModel!=4 ||
++      !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
++      !InpCloudAgentsDisabled || InpExpectedSymbol!="ETHUSD.s" ||
++      InpZeroEntryDiagnostic || InpWorkloadDryRun)
++      return false;
++   if(!ResearchHash(InpConformanceControlSha256) ||
++      !ResearchHash(InpManifestSha256) || !ResearchHash(InpManifestFileSha256) ||
++      !ResearchEvaluationWindowValid() || InpRunManifest=="" ||
++      ResearchFileSha256(InpRunManifest)!=InpManifestFileSha256 ||
++      !ResearchHash(InpCalendarFileSha256) ||
++      InpCalendarFileSha256!=InpCalendarSha256 ||
++      InpCalendarIntervalsFile=="" ||
++      ResearchFileSha256(InpCalendarIntervalsFile)!=InpCalendarFileSha256)
++      return false;
++   if(!ResearchConformanceValid())
++      return false;
++   string fixture=DAManifestString("fixture_id");
++   string expected_manifest="KingEA\\conformance\\"+fixture+"\\manifest.json";
++   if(fixture=="" || InpRunManifest!=expected_manifest ||
++      DAManifestString("domain")!="NON_CANDIDATE_NATIVE_CONFORMANCE_V1" ||
++      DAManifestString("control_sha256")!=InpConformanceControlSha256 ||
++      DAManifestString("run_id")!=InpManifestSha256 ||
++      DAManifestString("group_id")=="" ||
++      DAManifestString("data_scope")!="DEVELOPMENT_ONLY" ||
++      DAManifestString("execution_mode")!="20" ||
++      DAManifestString("optimization")!="False" ||
++      DAManifestString("symbol")!="ETHUSD.s" ||
++      !ResearchHash(DAManifestString("configuration_sha256")) ||
++      !ResearchHash(DAManifestString("tester_profile_sha256")) ||
++      !ResearchHash(DAManifestString("source_sha256")))
++      return false;
++   string side=DAManifestString("side");
++   long start=(long)StringToInteger(DAManifestString("start_msc"));
++   long end=(long)StringToInteger(DAManifestString("end_msc"));
++   long entry=(long)StringToInteger(DAManifestString("entry_msc"));
++   long reduction=(long)StringToInteger(DAManifestString("reduction_msc"));
++   long close=(long)StringToInteger(DAManifestString("close_msc"));
++   bool boundary=DAManifestString("outcome")=="EVALUATOR_BOUNDARY";
++   return (side=="LONG" || side=="SHORT") &&
++          StringToDouble(DAManifestString("volume"))>0.0 &&
++          StringToDouble(DAManifestString("S0"))>0.0 &&
++          start==(long)g_evaluation_start*1000 &&
++          end==(long)g_evaluation_end_exclusive*1000 &&
++          start<=entry && entry<reduction && reduction<end &&
++          ((boundary && close==0) ||
++           (!boundary && DAManifestString("outcome")=="NORMAL_CLOSE" &&
++            close>reduction && close<end));
++  }
++
++bool ResearchActiveAuthorizationValid()
++  {
++   // Keep the non-Candidate conformance authority disjoint from every normal
++   // Candidate/Gate authorization predicate, including at the send seam.
++   if(InpNativeConformance)
++      return ResearchConformanceAuthorizationValidate();
++   return ResearchAuthorizationValid();
+   }
+ 
+ datetime ResearchParseEvaluationTime(const string value)
+@@ -859,7 +926,7 @@ bool ResearchOrderSend(MqlTradeRequest &request,MqlTradeResult &result)
+       return false;
+      }
+    // Every tester order path revalidates the complete immutable guard.
+-   if(!g_initialized || !ResearchAuthorizationValid() ||
++   if(!g_initialized || !ResearchActiveAuthorizationValid() ||
+       (!ResearchUsesVirtual() && !DAStaticSendAllowed(request,g_da.intent,g_da,ResearchNativeContext())))
+      {
+       g_hard_failures++;
+@@ -1657,10 +1724,13 @@ int OnInit()
+    if(!InpZeroEntryDiagnostic && !InpWorkloadDryRun &&
+       !ResearchEvaluationWindowValid())
+       return INIT_PARAMETERS_INCORRECT;
+-   g_manifest_valid=(InpZeroEntryDiagnostic ?
+-                     ResearchZeroEntryDiagnosticAuthorizationValid() :
+-                     (InpWorkloadDryRun ? ResearchDryAuthorizationValid() :
+-                                          ResearchAuthorizationValid()));
++   if(InpNativeConformance)
++      g_manifest_valid=ResearchConformanceAuthorizationValidate();
++   else
++      g_manifest_valid=(InpZeroEntryDiagnostic ?
++                        ResearchZeroEntryDiagnosticAuthorizationValid() :
++                        (InpWorkloadDryRun ? ResearchDryAuthorizationValid() :
++                                             ResearchAuthorizationValid()));
+    if(!g_manifest_valid)
+      {
+       Print("KingEA research adapter refused: manifest/authorization guard failed.");

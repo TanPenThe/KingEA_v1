@@ -20,6 +20,8 @@ from itertools import combinations, product as cartesian_product
 from math import isfinite, prod, sqrt
 from typing import Any, Iterable, Mapping
 
+from .b2_date_gate import realize_partition_dates
+
 
 class Stage12Error(ValueError):
     """A fail-closed Stage 12 contract violation."""
@@ -130,6 +132,7 @@ class Stage12Pipeline:
             "expectancy_lcb": 0.20,
         }
         branch_scores: dict[str, dict[int, float]] = {}
+        branch_ranks: dict[str, dict[str, dict[int, float]]] = {}
         drawdowns: dict[int, list[float]] = {}
         for branch in branches:
             selected = [row for row in materialized if row.get("branch") == branch]
@@ -170,6 +173,7 @@ class Stage12Pipeline:
                     float(row["max_drawdown_percent"])
                 )
             branch_scores[branch] = scores
+            branch_ranks[branch] = ranks_by_metric
         all_identifiers = sorted(set(branch_scores["RECORDED"]) | set(branch_scores["RSB3"]))
         if set(branch_scores["RECORDED"]) != set(branch_scores["RSB3"]):
             raise Stage12Error("BRANCH_RESULT_SET_MISMATCH")
@@ -178,6 +182,13 @@ class Stage12Pipeline:
                 "configuration_id": identifier,
                 "branch_scores": {
                     branch: branch_scores[branch][identifier] for branch in branches
+                },
+                "branch_metric_percentiles": {
+                    branch: {
+                        metric: branch_ranks[branch][metric].get(identifier, 0.0)
+                        for metric in metrics
+                    }
+                    for branch in branches
                 },
                 "governing_score": min(
                     branch_scores[branch][identifier] for branch in branches
@@ -317,6 +328,7 @@ class Stage12Pipeline:
         if identifiers[0] < 0 or identifiers[-1] >= self.configuration_count:
             raise Stage12Error("CONFIGURATION_CHUNK_OUT_OF_RANGE")
         start, end = self.PARTITIONS[partition]
+        date_realization = realize_partition_dates(partition)
         manifest = dict(facts)
         manifest.update(
             {
@@ -325,6 +337,10 @@ class Stage12Pipeline:
                 "status": "PLANNED",
                 "start_inclusive": start,
                 "end_exclusive": end,
+                "from_date": date_realization["from_date"],
+                "evaluation_start": date_realization["evaluation_start"],
+                "evaluation_end_exclusive": date_realization["evaluation_end_exclusive"],
+                "to_date_inclusive": date_realization["to_date_inclusive"],
                 "initial_equity_usd": 1000.0,
                 "risk_percent": 1.10,
                 "expected_symbol": "ETHUSD.s" if branch == "RECORDED" else "KINGEA_ETHUSD_S_RSB3",
@@ -386,10 +402,9 @@ class Stage12Pipeline:
         token = hashlib.sha256(
             f"{manifest['manifest_sha256']}|{manifest['purpose']}|RUNNING".encode("utf-8")
         ).hexdigest().upper()
-        start = datetime.fromisoformat(str(manifest["start_inclusive"]))
-        end = datetime.fromisoformat(str(manifest["end_exclusive"]))
-        tester_start = max(datetime(2021, 4, 1), start - timedelta(days=90))
-        tester_end = end - timedelta(days=1)
+        required_dates = ("from_date", "evaluation_start", "evaluation_end_exclusive", "to_date_inclusive")
+        if any(not str(manifest.get(field, "")) for field in required_dates):
+            raise Stage12Error("EXPLICIT_DATE_REALIZATION_REQUIRED")
         set_lines = [
             "; Generated only from an authorized content-addressed Stage 12 manifest.",
             f"InpRunManifest=KingEA\\runs\\{manifest['manifest_sha256']}.json",
@@ -400,6 +415,10 @@ class Stage12Pipeline:
             f"InpPartition={manifest['partition']}",
             f"InpBranch={manifest['branch']}",
             f"InpExpectedSymbol={manifest['expected_symbol']}",
+            f"InpEvaluationStart={manifest['evaluation_start']}",
+            f"InpEvaluationEndExclusive={manifest['evaluation_end_exclusive']}",
+            "InpWorkloadDryRun=false",
+            "InpZeroEntryDiagnostic=false",
             f"InpConfigurationId={identifiers[0]}||{identifiers[0]}||1||{identifiers[-1]}||Y",
             "InpTesterModel=4",
             "InpLocalAgentsOnly=true",
@@ -423,8 +442,8 @@ class Stage12Pipeline:
             "Genetic=0",
             "Deposit=1000",
             "Currency=USD",
-            f"FromDate={tester_start:%Y.%m.%d}",
-            f"ToDate={tester_end:%Y.%m.%d}",
+            f"FromDate={manifest['from_date']}",
+            f"ToDate={manifest['to_date_inclusive']}",
             "ShutdownTerminal=1",
         ]
         return {"set": "\n".join(set_lines) + "\n", "ini": "\n".join(ini_lines) + "\n"}
@@ -763,6 +782,13 @@ class Stage12Pipeline:
             identifier = int(row["configuration_id"])
             if identifier not in neighborhoods:
                 raise Stage12Error("NEIGHBORHOOD_EVIDENCE_MISSING")
+        candidates = [
+            row
+            for row in candidates
+            if neighborhoods[int(row["configuration_id"])].get("passed") is True
+        ]
+        if not candidates:
+            raise Stage12Error("NO_NEIGHBORHOOD_ELIGIBLE_CANDIDATES")
         return min(
             candidates,
             key=lambda row: (
@@ -791,14 +817,13 @@ class Stage12Pipeline:
             if not isfinite(score):
                 raise Stage12Error("SURFACE_SCORE_INVALID")
             identifier = int(row["configuration_id"])
-            surface.append(
-                {
-                    "configuration_id": identifier,
-                    "parameters": self.decode_configuration(identifier),
-                    "governing_score": score,
-                }
-            )
+            surface_row = dict(row)
+            surface_row["configuration_id"] = identifier
+            surface_row["parameters"] = self.decode_configuration(identifier)
+            surface_row["governing_score"] = score
+            surface.append(surface_row)
         heatmap_hashes: dict[str, str] = {}
+        heatmaps: dict[str, dict[str, Any]] = {}
         names = [name for name, _ in self.PARAMETER_GRIDS]
         for first, second in combinations(names, 2):
             cells: dict[str, list[float]] = {}
@@ -817,11 +842,13 @@ class Stage12Pipeline:
                 }
                 for key, values in sorted(cells.items())
             ]
-            heatmap_hashes[f"{first}|{second}"] = self._canonical_sha256(
-                {"parameters": [first, second], "cells": heatmap}
-            )
+            key = f"{first}|{second}"
+            heatmaps[key] = {"parameters": [first, second], "cells": heatmap}
+            heatmap_hashes[key] = self._canonical_sha256(heatmaps[key])
         return {
             "configuration_count": len(surface),
             "surface_sha256": self._canonical_sha256({"surface": surface}),
             "pairwise_heatmap_sha256": heatmap_hashes,
+            "surface": surface,
+            "pairwise_heatmaps": heatmaps,
         }

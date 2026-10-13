@@ -1,0 +1,86 @@
+{
+  "phase": "PRE_TOOLING",
+  "build_id": "12_PRODUCTION_CONSUMERS",
+  "b2": "LOCKED",
+  "source": [
+    {
+      "path": "MQL5/Experts/KingEA/FOKInfrastructureConformance.mq5",
+      "size": 11321,
+      "sha256": "9A991FC7012A40789747DC44F18B8425C887B7C9822D69C26C91F8C6116175B4"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegration.mqh",
+      "size": 3741,
+      "sha256": "50FED059947798309ED56A73E7651AB82F990C984AB851EC1639D69A82A53921"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegrationTests.mqh",
+      "size": 3310,
+      "sha256": "CEB6C823BE704F30C92DA7439DD8CA4A29402FCDEC82E9E7F9356AB0F9216307"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "size": 12155,
+      "sha256": "C637E5C1FEBCBBEE5DD4A4F2F4E4D2CA9E7D0F8746ECCC5E5F915CD829D6FB08"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "size": 3561,
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostContractTests.mqh",
+      "size": 7555,
+      "sha256": "9A693C258AFE091E651FD4E79701AAEF3DEBCC9F70D8524287157F53385D22A5"
+    },
+    {
+      "path": "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh",
+      "size": 8677,
+      "sha256": "94A803E39C54040DCFB4921CAB6F3DE6A44242CEA7032DC6029C950EA7EE7C7E"
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "size": 73523,
+      "sha256": "75C1140C19F05EEDA1246E75FA35A563A5925F3F39A832660D7FB18AF4D9CD6D"
+    },
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "size": 8730,
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+    },
+    {
+      "path": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+      "size": 6588,
+      "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83"
+    },
+    {
+      "path": "research_pipeline/native_cost_conformance_run.py",
+      "size": 10839,
+      "sha256": "E3C8D378BD0832736701EABF119B1B9C6D4C308FDD29461B28C3E6D01209F92F"
+    },
+    {
+      "path": "research_pipeline/native_cost_archive.py",
+      "size": 8022,
+      "sha256": "255BFC6D33FCA313B15296773B065FC784DC4520D190BD4CE88CF1C5E3249B5D"
+    },
+    {
+      "path": "research_pipeline/gate1_finalization.py",
+      "size": 70058,
+      "sha256": "8F10C3982902CF38D5DD8CFC918B8941CF5F13E659EB7FA00D651CB270307699"
+    },
+    {
+      "path": "research_pipeline/stage14.py",
+      "size": 76004,
+      "sha256": "E0FFB71C41B2B53BD475A52C3491ED46D9AE6C27E17AC77C4D4E5C7E454B3068"
+    },
+    {
+      "path": "tests/test_native_cost_archive.py",
+      "size": 3227,
+      "sha256": "17C983E72F1CC020877C28BFD8A3873B90A42C82F92E5DCDB2AF876342E95910"
+    }
+  ],
+  "governance_hashes": [
+    "CDFE801225C54C622A566CB125FE37B0759A3E47320D988571B796629CF984D9",
+    "909C23E3B14BB64A62BC371890B2FFFB1964D24FC24879971DB614FB078E92C6"
+  ]
+}

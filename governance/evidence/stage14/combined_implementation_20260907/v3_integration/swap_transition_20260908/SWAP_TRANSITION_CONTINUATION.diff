@@ -1,0 +1,1615 @@
+--- amendment-before/MQL5/Experts/KingEA/GuardedResearchTester.mq5
++++ after/MQL5/Experts/KingEA/GuardedResearchTester.mq5
+@@ -12,13 +12,15 @@
+ #include <KingEA/AccountingEvents.mqh>
+ #include <KingEA/NativeCostMetadataAdapter.mqh>
+ #include <KingEA/ZeroEntryDiagnostic.mqh>
++#include <KingEA/DecisionADealAdapter.mqh>
++#include <KingEA/DecisionAStaticStop.mqh>
+ 
+ input string InpRunManifest="";
+ input string InpManifestSha256="";
+ input string InpManifestFileSha256="";
+ input string InpDetachedAuthorizationToken="";
+ input string InpRootSha256="";
+-input int    InpGate=0;
++input string InpGate="0";
+ input string InpPurpose="DEVELOPMENT";
+ input string InpPartition="";
+ input string InpBranch="RECORDED";
+@@ -77,6 +79,17 @@
+ datetime g_evaluation_end_exclusive=0;
+ bool g_evaluation_end_reached=false;
+ bool g_evaluation_end_unresolved=false;
++DecisionALifecycle g_da;
++DANativeCaptureRing g_da_capture;
++DAObservationRing g_da_observations;
++DAPosition g_da_sealed={};
++DANativeCapture g_da_terminals[64];int g_da_terminal_count=0;
++string g_da_records[],g_da_record_roles[];
++string g_da_candidate="",g_da_configuration="",g_da_profile="";
++string g_da_close_reason="STRATEGY_CLOSE";
++bool g_da_close_attempted=false,g_da_reduction_attempted=false;
++bool g_da_context=false,g_da_loss_reported=false,g_da_fallback_due=false;
++double g_da_base=0;
+ KingEANativeCostEvidence *g_native_cost=NULL;
+ MqlTradeResult g_native_receipt={};
+ KingEANativeDealFact g_native_close_fact={};
+@@ -160,6 +173,18 @@
+                           const double stop,const int direction,
+                           KingEASafetyFacts &facts);
+ bool ResearchUsesVirtual();
++bool ResearchNativeContext();
++bool ResearchNativeCompletion();
++void ResearchNativePoll(const MqlTick &tick);
++void ResearchNativeSafetyObserve(const MqlTick &tick);
++bool ResearchNativeRequest(MqlTradeRequest &request,DAIntent intent);
++bool ResearchNativeProject(bool boundary);
++bool ResearchNativeBegin(const string group,const int side,const double volume,const long now,const double stop,const double equity,const double risk);
++void ResearchNativeReceipt(const MqlTradeResult &receipt);
++void ResearchNativeSeal(const MqlTick &tick);
++bool ResearchNativeBoundaryFinalize();
++bool ResearchNativeNormalCloseReady();
++void ResearchNativeNormalCloseCommitted();
+ datetime ResearchParseEvaluationTime(const string value);
+ bool ResearchEvaluationWindowValid();
+ bool ResearchEvaluationEligible(const datetime evaluation_time);
+@@ -325,8 +350,8 @@
+    event.utc_time_msc=server_time_msc;
+    event.account_fingerprint=g_account_fingerprint;
+    event.deployment_id="KINGEA-TESTER-STAGE13";
+-   event.candidate_id="CAND-ETH-ST-001";
+-   event.configuration_hash="A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE";
++   event.candidate_id=ResearchUsesVirtual()?"CAND-ETH-ST-001":g_da_candidate;
++   event.configuration_hash=ResearchUsesVirtual()?"A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE":g_da_configuration;
+    event.sleeve_id="SLEEVE-1";
+    event.trade_group_id=g_trade_group_id;
+    event.symbol=_Symbol;
+@@ -400,18 +425,20 @@
+    return true;
+   }
+ 
++int ResearchGateNumber(){if(InpGate=="GATE1"||InpGate=="1")return 1;if(InpGate=="GATE2"||InpGate=="2")return 2;if(InpGate=="3")return 3;return 0;}
++
+ bool ResearchPartitionAuthorized()
+   {
+    if(InpPurpose=="DEVELOPMENT")
+-      return InpGate==1 &&
++      return ResearchGateNumber()==1 &&
+              ((StringFind(InpPartition,"FOLD_")==0 &&
+                StringFind(InpPartition,"_TRAIN")>0) ||
+               InpPartition=="FINAL_SELECTION");
+    if(InpPurpose=="FORWARD")
+-      return InpGate==2 && StringFind(InpPartition,"FOLD_")==0 &&
++      return ResearchGateNumber()==2 && StringFind(InpPartition,"FOLD_")==0 &&
+              StringFind(InpPartition,"_FORWARD")>0;
+    if(InpPurpose=="OOS")
+-      return InpGate==3 && InpPartition=="FORMAL_OOS" &&
++      return ResearchGateNumber()==3 && InpPartition=="FORMAL_OOS" &&
+              ResearchHash(InpSelectionSha256) && ResearchHash(InpSurfaceSha256);
+    if(InpPurpose=="HOLDOUT")
+       return InpPartition=="HOLDOUT" &&
+@@ -440,7 +467,7 @@
+       InpMaintenanceCleanMinutes!=15)
+       return false;
+    // A normal B2 Gate 1 candidate execution has one permitted seam only.
+-   if(InpGate==1 && InpPurpose=="DEVELOPMENT" &&
++   if(ResearchGateNumber()==1 && InpPurpose=="DEVELOPMENT" &&
+       (InpZeroEntryDiagnostic || InpWorkloadDryRun ||
+        InpExecutionAdapter!="NATIVE" || InpScenario!="BASELINE_20MS" ||
+        InpDelayMs!=20 || InpSpreadMultiplier!=1.0 ||
+@@ -505,7 +532,8 @@
+ // consequently the independent, final authority for unresolved exposure.
+ bool ResearchTerminalEndHasUnresolvedExposure()
+   {
+-   if(g_native_boundary_projected && g_hard_failures==0 && g_native_cost!=NULL && g_native_cost.Healthy()) return false;
++   if(!ResearchUsesVirtual())return g_da.invalid||g_da.pending||(!g_da.projected&&g_da.started&&g_da.exposure!=DA_FLAT);
++   if(g_native_boundary_projected && g_hard_failures==0) return false;
+    return ResearchHasPosition() || g_position.has_position ||
+           g_virtual_pending || g_trade_group_id!="";
+   }
+@@ -516,7 +544,7 @@
+       !MQLInfoInteger(MQL_TESTER) || InpTesterModel!=4 ||
+       !InpLocalAgentsOnly || !InpRemoteAgentsDisabled ||
+       !InpCloudAgentsDisabled || InpPurpose!="GATE1_ZERO_ENTRY_DIAGNOSTIC" ||
+-      InpGate!=1 || InpPartition!="FOLD_1_TRAIN" ||
++      ResearchGateNumber()!=1 || InpPartition!="FOLD_1_TRAIN" ||
+       (InpBranch!="RECORDED" && InpBranch!="RSB3") ||
+       InpExecutionAdapter!="VIRTUAL" || InpConfigurationId!=7168 ||
+       InpRootSha256!=KINGEA_ZERO_ENTRY_DIAGNOSTIC_ROOT ||
+@@ -581,14 +609,19 @@
+ double ResearchEquity()
+   {
+    if(g_native_boundary_projected) return g_native_boundary_equity;
+-   return ResearchUsesVirtual() ? g_virtual_position.equity :
+-                                  AccountInfoDouble(ACCOUNT_EQUITY);
++   if(ResearchUsesVirtual())return g_virtual_position.equity;
++   double live=AccountInfoDouble(ACCOUNT_EQUITY),contribution=0;
++   if(g_da_base<=0)return live;
++   if(!g_da.started||g_da.projected)return MathMin(live,g_da_base);
++   if(!g_da.OperationalContribution(contribution))return live; // Independent conservative account guard only; never group P&L.
++   return MathMin(live,g_da_base+contribution);
+   }
+ 
+ bool ResearchHasPosition()
+   {
+-   return ResearchUsesVirtual() ? g_virtual_position.has_position :
+-                                  PositionSelect(_Symbol);
++   if(ResearchUsesVirtual())return g_virtual_position.has_position;
++   if(g_da.started)return !g_da.projected && (g_da.pending||g_da.exposure!=DA_FLAT);
++   return PositionSelect(_Symbol); // Only initial foreign-exposure detection, never flat authority.
+   }
+ 
+ bool ResearchLoadMarketIntervals()
+@@ -816,11 +849,13 @@
+       return false;
+      }
+    // Every tester order path revalidates the complete immutable guard.
+-   if(!g_initialized || !ResearchAuthorizationValid())
++   if(!g_initialized || !ResearchAuthorizationValid() ||
++      (!ResearchUsesVirtual() && !DAStaticSendAllowed(request,g_da.intent,g_da,ResearchNativeContext())))
+      {
+       g_hard_failures++;
+       return false;
+      }
++   if(!ResearchUsesVirtual() && g_da.intent!=DA_CONTAINMENT && !ResearchEvaluationEligible(TimeCurrent()))return false;
+    return OrderSend(request,result);
+   }
+ 
+@@ -889,9 +924,12 @@
+ 
+ void ResearchFinalizeClosedTrade()
+   {
+-   if(!g_position.has_position || ResearchHasPosition())
++   if(!ResearchUsesVirtual())
++     {
++      if(ResearchNativeNormalCloseReady())ResearchNativeProject(false);
+       return;
+-   if(!ResearchUsesVirtual() && !ResearchNativeNormalCloseReady()) return;
++     }
++   if(!g_position.has_position || ResearchHasPosition())return;
+    double equity=ResearchEquity();
+    double profit=equity-g_entry_equity;
+    int count=ArraySize(g_trade_returns);
+@@ -1182,14 +1220,13 @@
+       order.deviation=0;
+       order.magic=12001;
+       order.comment="KINGEA|CAND-ETH-ST-001|"+intent.signal_identity;
+-      order.type_filling=ORDER_FILLING_IOC;
+-      if(!ResearchNativeBegin(intent.signal_identity,intent.direction,safety.permitted_volume,(long)tick.time_msc))
++      order.type_filling=ORDER_FILLING_FOK;
++      if(!ResearchNativeBegin(intent.signal_identity,intent.direction,safety.permitted_volume,(long)tick.time_msc,safety.required_stop,equity_before,safety.permitted_risk_money))
+          return false;
+-      if(!ResearchOrderSend(order,result) ||
+-         (result.retcode!=TRADE_RETCODE_DONE &&
+-          result.retcode!=TRADE_RETCODE_PLACED))
+-         return false;
++      bool sent=ResearchOrderSend(order,result);
+       ResearchNativeReceipt(result);
++      // Monitoring must survive rejection, ambiguity, and unsupported execution.
++      if(!sent || result.retcode!=TRADE_RETCODE_DONE)return false;
+       KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_NATIVE,routed_stress,
+                                intent.signal_identity,tick.bid,tick.ask,
+                                intent.direction,safety.required_stop,
+@@ -1210,9 +1247,7 @@
+    g_trade_group_id=intent.signal_identity;
+    g_open_order_ticket=(ResearchUsesVirtual() ? 0 : result.order);
+    g_open_deal_ticket=(ResearchUsesVirtual() ? 0 : result.deal);
+-   g_position_ticket=(ResearchUsesVirtual() ? 0 :
+-                      (PositionSelect(_Symbol) ?
+-                       (ulong)PositionGetInteger(POSITION_TICKET) : result.order));
++   g_position_ticket=ResearchUsesVirtual()?0:g_da.position_ticket; // Native callback supplies exact ticket mapping.
+    g_trade_volume=safety.permitted_volume;
+    g_spread_reduced=false;
+    KingEAAccountingEvent accounting=ResearchAccountingBase(
+@@ -1268,8 +1303,10 @@
+       ResearchFinalizeClosedTrade();
+       return true;
+      }
+-   ulong ticket=(ulong)PositionGetInteger(POSITION_TICKET);
+-   double volume=PositionGetDouble(POSITION_VOLUME);
++   ResearchNativePoll(tick);
++   if(g_da.invalid||g_da.pending||!g_da.residual.valid)return false;
++   ulong ticket=g_da.position_ticket;
++   double volume=g_da.residual.volume;
+    MqlTradeRequest request={};
+    MqlTradeResult result={};
+    request.action=TRADE_ACTION_DEAL;
+@@ -1281,12 +1318,12 @@
+    request.deviation=0;
+    request.magic=12001;
+    request.comment="KINGEA|CAND-ETH-ST-001|EXIT";
+-   request.type_filling=ORDER_FILLING_IOC;
+-   if(!ResearchOrderSend(request,result) || result.retcode!=TRADE_RETCODE_DONE)
+-      return false;
++   request.type_filling=ORDER_FILLING_FOK;
++   if(!ResearchNativeRequest(request,DA_CLOSE))return false;
++   bool sent=ResearchOrderSend(request,result);ResearchNativeReceipt(result);
++   if(!sent || result.retcode!=TRADE_RETCODE_DONE)return false;
+    g_close_order_ticket=result.order;
+    g_close_deal_ticket=result.deal;
+-   g_exits++;
+    ResearchFinalizeClosedTrade();
+    return true;
+   }
+@@ -1295,19 +1332,21 @@
+   {
+    if(!ResearchHasPosition() || g_spread_reduced)
+       return true;
+-   double current=(ResearchUsesVirtual() ? g_virtual_position.volume :
+-                   PositionGetDouble(POSITION_VOLUME));
++   if(!ResearchUsesVirtual()){
++      ResearchNativePoll(tick);if(g_da.invalid||g_da.pending||!g_da.residual.valid)return false;
++   }
++   double current=(ResearchUsesVirtual() ? g_virtual_position.volume :g_da.residual.volume);
+    double step=SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_STEP);
+    double minimum=SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MIN);
+    if(current<=0.0 || step<=0.0 || minimum<=0.0)
+-      return ResearchClose(g_position.direction,tick);
++      {g_da_close_reason="BROKER_VOLUME_FALLBACK";bool closed=ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";return closed;}
+    double remaining=MathFloor((current*0.5+1e-12)/step)*step;
+    remaining=NormalizeDouble(remaining,8);
+    if(remaining<minimum)
+-      return ResearchClose(g_position.direction,tick);
++      {g_da_close_reason="BROKER_VOLUME_FALLBACK";bool closed=ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";return closed;}
+    double reduction=NormalizeDouble(current-remaining,8);
+    if(reduction<minimum)
+-      return ResearchClose(g_position.direction,tick);
++      {g_da_close_reason="BROKER_VOLUME_FALLBACK";bool closed=ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";return closed;}
+    if(ResearchUsesVirtual())
+      {
+       double raw=(g_position.direction==KINGEA_DIRECTION_LONG ? tick.bid : tick.ask);
+@@ -1334,7 +1373,7 @@
+       MqlTradeRequest request={};
+       MqlTradeResult result={};
+       request.action=TRADE_ACTION_DEAL;
+-      request.position=(ulong)PositionGetInteger(POSITION_TICKET);
++      request.position=g_da.position_ticket;
+       request.symbol=_Symbol;
+       request.volume=reduction;
+       request.type=(g_position.direction==KINGEA_DIRECTION_LONG ?
+@@ -1342,9 +1381,12 @@
+       request.price=(g_position.direction==KINGEA_DIRECTION_LONG ? tick.bid : tick.ask);
+       request.magic=12001;
+       request.comment="KINGEA|EMERGENCY_SPREAD_REDUCTION";
+-      request.type_filling=ORDER_FILLING_IOC;
+-      if(!ResearchOrderSend(request,result) || result.retcode!=TRADE_RETCODE_DONE)
+-         return ResearchClose(g_position.direction,tick);
++      request.type_filling=ORDER_FILLING_FOK;
++      if(!ResearchNativeRequest(request,DA_REDUCTION))return false;
++      bool sent=ResearchOrderSend(request,result);ResearchNativeReceipt(result);
++      // Only an authenticated terminal no-fill can schedule the existing fallback.
++      // A return code or a missing callback alone cannot do so.
++      if(!sent || result.retcode!=TRADE_RETCODE_DONE)return false;
+      }
+    g_trade_volume=remaining;
+    g_spread_reduced=true;
+@@ -1617,6 +1659,12 @@
+       return INIT_FAILED;
+    if(ResearchUsesVirtual())
+       g_virtual_position.equity=AccountInfoDouble(ACCOUNT_EQUITY);
++   if(!ResearchUsesVirtual() && !InpZeroEntryDiagnostic){
++      g_da.Reset();g_da_capture.Reset();g_da_observations.Reset();
++      g_da_context=ResearchNativeContext();if(!g_da_context)return INIT_FAILED;
++      if(PositionSelect(_Symbol))return INIT_FAILED;
++      g_da_base=AccountInfoDouble(ACCOUNT_EQUITY);
++   }
+    g_initial_equity=ResearchEquity();
+    if(g_initial_equity<=0.0)
+       return INIT_FAILED;
+@@ -1638,6 +1686,12 @@
+    MqlTick tick={};
+    if(!SymbolInfoTick(_Symbol,tick) || tick.bid<=0.0)
+       return;
++   if(!ResearchUsesVirtual() && !InpZeroEntryDiagnostic){
++      ResearchNativePoll(tick);
++      if(g_da.invalid){ResearchUpdateSpreadState(tick);ResearchUpdatePeriodsFast(tick.time);ResearchNativeSafetyObserve(tick);return;}
++      ResearchFinalizeClosedTrade();
++      if(g_da_fallback_due&&!g_da.pending){g_da_fallback_due=false;g_da_close_reason="BROKER_VOLUME_FALLBACK";ResearchClose(g_position.direction,tick);}
++   }
+    if(!InpZeroEntryDiagnostic && !InpWorkloadDryRun &&
+       ResearchEvaluationEndReached(tick.time))
+      {
+@@ -1657,14 +1711,15 @@
+       ResearchReduceHalf(tick);
+    if(ResearchHasPosition() && g_above_three_count>=3 &&
+       (long)tick.time_msc-g_above_three_start_msc>=10000)
+-      ResearchClose(g_position.direction,tick);
++     {g_da_close_reason="SEVERE_SPREAD_FLATTEN";ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";}
+    ResearchProcessVirtualPending(tick);
+    string market_kind="";
+    bool market_blocked=ResearchMarketBlocked((long)tick.time_msc,market_kind);
+    if(ResearchHasPosition() && market_blocked &&
+       (market_kind=="MAINTENANCE_FORCE_FLAT" ||
+        (market_kind=="NEWS_BLOCK" && !ResearchProtectedForNews())))
+-      ResearchClose(g_position.direction,tick);
++     {g_da_close_reason=market_kind=="MAINTENANCE_FORCE_FLAT"?"MAINTENANCE_CLOSE":"NEWS_CLOSE";
++      ResearchClose(g_position.direction,tick);g_da_close_reason="STRATEGY_CLOSE";}
+    if(ResearchUsesVirtual() && g_virtual_position.has_position)
+      {
+       bool stopped=(g_virtual_position.direction==KINGEA_DIRECTION_LONG ?
+@@ -1754,6 +1809,9 @@
+    // ending on the last eligible tick must not silently complete an open or
+    // pending trade group merely because no later tick called the end gate.
+    g_native_in_tester_end=true;
++   MqlTick terminal_tick={};if(SymbolInfoTick(_Symbol,terminal_tick))ResearchNativePoll(terminal_tick);
++   if(!ResearchUsesVirtual() && g_da.invalid)return -1.0;
++   ResearchFinalizeClosedTrade();
+    ResearchNativeBoundaryFinalize();
+    if(ResearchTerminalEndHasUnresolvedExposure())
+      {
+@@ -1786,6 +1844,7 @@
+                                accounting_frame))
+          g_hard_failures++;
+      }
++   if(g_hard_failures!=0 || (!ResearchUsesVirtual()&&g_da.invalid))return -1.0;
+    string accounting_complete=StringFormat(
+       "schema=1|event_count=%d|close_count=%d|trade_return_count=%d|legacy_net=%.12f|ledger_net=%.12f|root=%s|complete=1",
+       ArraySize(g_accounting_payloads),g_accounting_close_count,
+@@ -1800,12 +1859,14 @@
+       !FrameAdd("KINGEA_STAGE13_ACCOUNTING_COMPLETE",InpConfigurationId,
+                 0.0,accounting_summary))
+       g_hard_failures++;
++   if(g_hard_failures!=0 || (!ResearchUsesVirtual()&&g_da.invalid))return -1.0;
++   if(!ResearchUsesVirtual() && !ResearchNativeCompletion())return -1.0;
+    string payload=StringFormat("config=%d|branch=%s|partition=%s|entries=%d|exits=%d|missed=%d|delay_expiry=%d|gate_reject_after_delay=%d|virtual_execution_failure=%d|hard_failures=%d|complete=1",
+                                InpConfigurationId,InpBranch,InpPartition,
+                                g_entries,g_exits,g_missed,g_delay_expired,
+                                g_gate_rejected_after_delay,
+                                g_virtual_execution_failed,g_hard_failures);
+-   payload+="|native_cost_contract=NATIVE_COST_BOUNDARY_V2|boundary_finalization_count="+(string)g_boundary_finalization_count;
++   payload+="|native_cost_contract="+(ResearchUsesVirtual()?"NATIVE_COST_BOUNDARY_V2":"NATIVE_GROUP_LIFECYCLE_CONTRACT_V3")+"|boundary_finalization_count="+(string)g_boundary_finalization_count;
+    payload+="|trade_returns=";
+    for(int i=0;i<ArraySize(g_trade_returns);i++)
+       payload+=(i>0 ? ";" : "")+DoubleToString(g_trade_returns[i],12);
+--- amendment-before/MQL5/Include/KingEA/DecisionADealAdapter.mqh
++++ after/MQL5/Include/KingEA/DecisionADealAdapter.mqh
+@@ -1,43 +1,70 @@
+-#ifndef KINGEA_DECISION_A_DEAL_ADAPTER_MQH
+-#define KINGEA_DECISION_A_DEAL_ADAPTER_MQH
+-#include "DecisionALifecycle.mqh"
+-// Exact-ticket authority: invoke only within current run DEAL_ADD callback.
+-bool DAReadDeal(const MqlTradeTransaction &trans,DADeal &d){
+- ZeroMemory(d);if(!MQLInfoInteger(MQL_TESTER)||trans.type!=TRADE_TRANSACTION_DEAL_ADD||trans.deal==0)return false;
+- if(!HistoryDealSelect(trans.deal))return false;
+- d.ticket=trans.deal;long order=0,position=0;
+- if(HistoryDealGetInteger(d.ticket,DEAL_ORDER,order))d.reads|=1;
+- if(HistoryDealGetInteger(d.ticket,DEAL_POSITION_ID,position))d.reads|=2;
+- if(HistoryDealGetInteger(d.ticket,DEAL_TIME_MSC,d.time_msc))d.reads|=4;
+- if(HistoryDealGetInteger(d.ticket,DEAL_ENTRY,d.entry))d.reads|=8;
+- if(HistoryDealGetInteger(d.ticket,DEAL_TYPE,d.type))d.reads|=16;
+- if(HistoryDealGetInteger(d.ticket,DEAL_REASON,d.reason))d.reads|=32;
+- if(HistoryDealGetInteger(d.ticket,DEAL_MAGIC,d.magic))d.reads|=64;
+- if(HistoryDealGetString(d.ticket,DEAL_SYMBOL,d.symbol))d.reads|=128;
+- if(HistoryDealGetDouble(d.ticket,DEAL_VOLUME,d.volume))d.reads|=256;
+- if(HistoryDealGetDouble(d.ticket,DEAL_PRICE,d.price))d.reads|=512;
+- if(HistoryDealGetDouble(d.ticket,DEAL_PROFIT,d.profit))d.reads|=1024;
+- if(HistoryDealGetDouble(d.ticket,DEAL_COMMISSION,d.commission))d.reads|=2048;
+- if(HistoryDealGetDouble(d.ticket,DEAL_FEE,d.fee))d.reads|=4096;
+- if(HistoryDealGetDouble(d.ticket,DEAL_SWAP,d.swap))d.reads|=8192;
+- if(HistoryDealGetDouble(d.ticket,DEAL_SL,d.sl))d.reads|=16384;
+- if(trans.order==(ulong)order && trans.symbol==d.symbol)d.reads|=32768;
+- d.order=(ulong)order;d.position=(ulong)position;
+- d.valid=d.reads==65535&&order>0&&position>0&&d.time_msc>0&&d.volume>0&&d.price>0&&
+- MathIsValidNumber(d.volume)&&MathIsValidNumber(d.price)&&MathIsValidNumber(d.profit)&&MathIsValidNumber(d.commission)&&MathIsValidNumber(d.fee)&&MathIsValidNumber(d.swap)&&MathIsValidNumber(d.sl);
+- return d.valid;
+-}
+-bool DAReadPosition(ulong ticket,ulong stable,string symbol,const MqlTick &tick,DAPosition &p){
+- ZeroMemory(p);if(ticket==0||!PositionSelectByTicket(ticket))return false;
+- long id=0,t=0;bool ok=PositionGetInteger(POSITION_IDENTIFIER,id);
+- ok=PositionGetInteger(POSITION_TICKET,t)&&ok;ok=PositionGetInteger(POSITION_TYPE,p.side)&&ok;
+- ok=PositionGetInteger(POSITION_MAGIC,p.magic)&&ok;ok=PositionGetString(POSITION_SYMBOL,p.symbol)&&ok;
+- ok=PositionGetDouble(POSITION_VOLUME,p.volume)&&ok;ok=PositionGetDouble(POSITION_PRICE_OPEN,p.basis)&&ok;
+- ok=PositionGetDouble(POSITION_SL,p.sl)&&ok;ok=PositionGetDouble(POSITION_SWAP,p.swap)&&ok;
+- p.id=(ulong)id;p.ticket=(ulong)t;p.time_msc=tick.time_msc;
+- ok=ok&&id>0&&t>0&&(stable==0||p.id==stable)&&p.symbol==symbol&&p.magic==12001&&p.volume>0&&p.basis>0&&p.sl>0;
+- ok=ok&&(p.side==POSITION_TYPE_BUY||p.side==POSITION_TYPE_SELL)&&tick.bid>0&&tick.ask>=tick.bid;
+- if(ok)ok=OrderCalcProfit(p.side==POSITION_TYPE_BUY?ORDER_TYPE_BUY:ORDER_TYPE_SELL,symbol,p.volume,p.basis,p.side==POSITION_TYPE_BUY?tick.bid:tick.ask,p.mark);
+- p.valid=ok&&MathIsValidNumber(p.mark)&&MathIsValidNumber(p.swap);return p.valid;
+-}
+-#endif
++#ifndef KINGEA_DECISION_A_DEAL_ADAPTER_MQH
++#define KINGEA_DECISION_A_DEAL_ADAPTER_MQH
++#include "DecisionALifecycle.mqh"
++// Exact-ticket authority: invoke only within current run DEAL_ADD callback.
++bool DAReadDeal(const MqlTradeTransaction &trans,DADeal &d){
++ ZeroMemory(d);if(!MQLInfoInteger(MQL_TESTER)||trans.type!=TRADE_TRANSACTION_DEAL_ADD||trans.deal==0)return false;
++ if(!HistoryDealSelect(trans.deal))return false;
++ d.ticket=trans.deal;long order=0,position=0;
++ if(HistoryDealGetInteger(d.ticket,DEAL_ORDER,order))d.reads|=1;
++ if(HistoryDealGetInteger(d.ticket,DEAL_POSITION_ID,position))d.reads|=2;
++ if(HistoryDealGetInteger(d.ticket,DEAL_TIME_MSC,d.time_msc))d.reads|=4;
++ if(HistoryDealGetInteger(d.ticket,DEAL_ENTRY,d.entry))d.reads|=8;
++ if(HistoryDealGetInteger(d.ticket,DEAL_TYPE,d.type))d.reads|=16;
++ if(HistoryDealGetInteger(d.ticket,DEAL_REASON,d.reason))d.reads|=32;
++ if(HistoryDealGetInteger(d.ticket,DEAL_MAGIC,d.magic))d.reads|=64;
++ if(HistoryDealGetString(d.ticket,DEAL_SYMBOL,d.symbol))d.reads|=128;
++ if(HistoryDealGetDouble(d.ticket,DEAL_VOLUME,d.volume))d.reads|=256;
++ if(HistoryDealGetDouble(d.ticket,DEAL_PRICE,d.price))d.reads|=512;
++ if(HistoryDealGetDouble(d.ticket,DEAL_PROFIT,d.profit))d.reads|=1024;
++ if(HistoryDealGetDouble(d.ticket,DEAL_COMMISSION,d.commission))d.reads|=2048;
++ if(HistoryDealGetDouble(d.ticket,DEAL_FEE,d.fee))d.reads|=4096;
++ if(HistoryDealGetDouble(d.ticket,DEAL_SWAP,d.swap))d.reads|=8192;
++ if(HistoryDealGetDouble(d.ticket,DEAL_SL,d.sl))d.reads|=16384;
++ if(trans.order==(ulong)order && trans.symbol==d.symbol)d.reads|=32768;
++ d.order=(ulong)order;d.position=(ulong)position;
++ d.valid=d.reads==65535&&order>0&&position>0&&d.time_msc>0&&d.volume>0&&d.price>0&&
++ MathIsValidNumber(d.volume)&&MathIsValidNumber(d.price)&&MathIsValidNumber(d.profit)&&MathIsValidNumber(d.commission)&&MathIsValidNumber(d.fee)&&MathIsValidNumber(d.swap)&&MathIsValidNumber(d.sl);
++ return d.valid;
++}
++bool DAReadPosition(ulong ticket,ulong stable,string symbol,const MqlTick &tick,DAPosition &p){
++ ZeroMemory(p);if(ticket==0||!PositionSelectByTicket(ticket))return false;
++ long id=0,t=0;
++ if(PositionGetInteger(POSITION_IDENTIFIER,id))p.reads|=1;
++ if(PositionGetInteger(POSITION_TICKET,t))p.reads|=2;
++ if(PositionGetInteger(POSITION_TYPE,p.side))p.reads|=4;
++ if(PositionGetInteger(POSITION_MAGIC,p.magic))p.reads|=8;
++ if(PositionGetString(POSITION_SYMBOL,p.symbol))p.reads|=16;
++ if(PositionGetDouble(POSITION_VOLUME,p.volume))p.reads|=32;
++ if(PositionGetDouble(POSITION_PRICE_OPEN,p.basis))p.reads|=64;
++ if(PositionGetDouble(POSITION_SL,p.sl))p.reads|=128;
++ if(PositionGetDouble(POSITION_SWAP,p.swap))p.reads|=256;
++ p.id=(ulong)id;p.ticket=(ulong)t;p.time_msc=tick.time_msc;p.bid=tick.bid;p.ask=tick.ask;
++ bool ok=p.reads==511&&id>0&&t>0&&p.ticket==ticket&&(stable==0||p.id==stable)&&p.symbol==symbol&&p.magic==12001&&p.volume>0&&p.basis>0&&p.sl>0;
++ ok=ok&&(p.side==POSITION_TYPE_BUY||p.side==POSITION_TYPE_SELL);
++ if(tick.bid>0&&tick.ask>=tick.bid&&MathIsValidNumber(tick.bid)&&MathIsValidNumber(tick.ask))p.reads|=512;
++ if(ok&&(p.reads&512)!=0&&OrderCalcProfit(p.side==POSITION_TYPE_BUY?ORDER_TYPE_BUY:ORDER_TYPE_SELL,symbol,p.volume,p.basis,p.side==POSITION_TYPE_BUY?tick.bid:tick.ask,p.mark))p.reads|=1024;
++ p.valid=ok&&p.reads==2047&&MathIsValidNumber(p.mark)&&MathIsValidNumber(p.swap)&&MathIsValidNumber(p.volume)&&MathIsValidNumber(p.basis)&&MathIsValidNumber(p.sl);return p.valid;
++}
++// Bounded capture only. No history enumeration and no financial projection in
++// OnTradeTransaction. ORDER terminal volume is unfilled volume, never residual.
++struct DANativeCapture {
++ long type; ulong position,order; long order_state,order_type;
++ double unfilled; string symbol; DADeal deal;
++};
++class DANativeCaptureRing {
++public:
++ DANativeCapture rows[256]; int head,tail,size; bool overflow;
++ void Reset(){head=0;tail=0;size=0;overflow=false;}
++ bool Capture(const MqlTradeTransaction &t){
++  if(t.type!=TRADE_TRANSACTION_DEAL_ADD && t.type!=TRADE_TRANSACTION_ORDER_DELETE && t.type!=TRADE_TRANSACTION_HISTORY_ADD)return true;
++  if(size==256){overflow=true;return false;}
++  ZeroMemory(rows[tail]);rows[tail].type=t.type;rows[tail].position=t.position;
++  rows[tail].order=t.order;rows[tail].order_state=t.order_state;
++  rows[tail].order_type=t.order_type;rows[tail].unfilled=t.volume;rows[tail].symbol=t.symbol;
++  if(t.type==TRADE_TRANSACTION_DEAL_ADD)DAReadDeal(t,rows[tail].deal);
++  tail=(tail+1)%256;size++;return true;
++ }
++ bool Pop(DANativeCapture &r){if(size==0)return false;r=rows[head];head=(head+1)%256;size--;return true;}
++};
++#endif
+--- amendment-before/MQL5/Include/KingEA/DecisionALifecycle.mqh
++++ after/MQL5/Include/KingEA/DecisionALifecycle.mqh
+@@ -10,7 +10,7 @@
+ };
+ struct DAPosition {
+  ulong id,ticket; long side,magic; string symbol;
+- double volume,basis,sl,swap,mark; long time_msc; bool valid;
++ double volume,basis,sl,swap,mark,bid,ask; long time_msc; uint reads; bool valid;
+ };
+ string DADealCanonical(const DADeal &d) {
+  return (string)d.ticket+"|"+(string)d.order+"|"+(string)d.position+"|"+(string)d.time_msc+"|"+
+@@ -24,16 +24,16 @@
+ public:
+  bool invalid,projected,pending,terminal,contained,reduced,started,projection_prepared,no_fill,execution_volume_authenticated;
+  string failure,group,symbol; DAExposure exposure; DAIntent intent;
+- double v0,p0,e0,r0,s0,gross,commission,fee,swap,requested,before_swap,executed_target;
++ double v0,p0,e0,r0,s0,gross,commission,fee,swap,requested,before_swap,executed_target,before_volume;
+  ulong position,position_ticket,order; int digits,side,count; long end_msc;
+  DAPosition residual; DADeal facts[64]; bool applied[64];
+  void Reset(){executed_target=0;execution_volume_authenticated=false;projection_prepared=false;no_fill=false;invalid=false;projected=false;pending=false;terminal=false;contained=false;reduced=false;started=false;
+  failure="";group="";symbol="";v0=0;p0=0;e0=0;r0=0;s0=0;gross=0;commission=0;fee=0;swap=0;requested=0;before_swap=0;
+- position=0;position_ticket=0;order=0;digits=0;side=0;count=0;end_msc=0;exposure=DA_FULL;intent=DA_ENTRY;ZeroMemory(residual);
++ before_volume=0;position=0;position_ticket=0;order=0;digits=0;side=0;count=0;end_msc=0;exposure=DA_FULL;intent=DA_ENTRY;ZeroMemory(residual);
+  for(int i=0;i<64;i++)applied[i]=false;}
+  void Invalidate(string why){if(!invalid)failure=why;invalid=true;if(exposure!=DA_FLAT)exposure=DA_QUARANTINED;}
+  bool Begin(string g,string sym,int direction,double volume,double stop,double equity,double risk,int precision,long end){
+- if(started && (invalid||!projected))return false;
++ if(invalid || (started && !projected))return false;
+  Reset();if(g==""||sym==""||volume<=0||stop<=0||equity<=0||risk<=0||precision<0||precision>8||(direction!=1&&direction!=-1)||!MathIsValidNumber(volume)||!MathIsValidNumber(stop)||!MathIsValidNumber(equity)||!MathIsValidNumber(risk))return false;
+  group=g;symbol=sym;side=direction;v0=volume;s0=NormalizeDouble(stop,precision);e0=equity;r0=risk;digits=precision;end_msc=end;started=true;return true;}
+  bool Prepare(DAIntent what,double volume){
+@@ -42,8 +42,9 @@
+  else if(invalid)return false;
+  if(what==DA_ENTRY && (position!=0||count!=0))return false;
+  if(what==DA_CLOSE && (!residual.valid||!DAVolumeEqual(volume,residual.volume)))return false;
+- if(what==DA_REDUCTION && (reduced||!residual.valid||volume>=residual.volume))return false;
+- no_fill=false;executed_target=0;execution_volume_authenticated=false;projection_prepared=false;intent=what;requested=volume;order=0;terminal=false;pending=true;before_swap=residual.swap;exposure=(what==DA_CLOSE||what==DA_CONTAINMENT)?DA_CLOSE_PENDING:DA_REQUEST_PENDING;return true;}
++ if(what==DA_REDUCTION && (reduced||!residual.valid||volume>=residual.volume||
++ !DAVolumeEqual(volume,v0-NormalizeDouble(MathFloor((v0*0.5+1e-12)/0.01)*0.01,8))))return false;
++ no_fill=false;executed_target=0;execution_volume_authenticated=false;projection_prepared=false;intent=what;requested=volume;order=0;terminal=false;pending=true;before_swap=residual.swap;before_volume=residual.volume;exposure=(what==DA_CLOSE||what==DA_CONTAINMENT)?DA_CLOSE_PENDING:DA_REQUEST_PENDING;return true;}
+  // Terminality and actual executed volume must come from native receipt/order authority.
+  // Neither position disappearance nor a temporarily incomplete callback list supplies them.
+  void Receipt(ulong ticket,bool completed,double actual_executed,bool volume_read_ok,bool rejected_without_fill=false){
+@@ -69,7 +70,7 @@
+  if(filled>executed_target && !DAVolumeEqual(filled,executed_target)){
+  Invalidate("EXECUTION_RECEIPT_CALLBACK_CONFLICT");residual.valid=false;exposure=DA_AMBIGUOUS;return false;}
+  // A terminal rejection plus an authenticated unchanged position is the only no-fill outcome.
+- if(n==0){if(no_fill&&now.valid&&now.id==position&&DAVolumeEqual(now.volume,residual.volume)){pending=false;residual=now;exposure=invalid?DA_QUARANTINED:(reduced?DA_REDUCED:DA_FULL);}return false;}
++ if(n==0){if(no_fill && intent==DA_ENTRY && position==0){pending=false;started=false;exposure=DA_FLAT;return false;}if(no_fill&&now.valid&&now.id==position&&DAVolumeEqual(now.volume,residual.volume)){pending=false;residual=now;exposure=invalid?DA_QUARANTINED:(reduced?DA_REDUCED:DA_FULL);}return false;}
+  ulong bound=position;
+  for(int i=0;i<count;i++)if(facts[i].order==order){
+  if(bound==0)bound=facts[i].position;
+@@ -77,22 +78,23 @@
+  if(filled>requested&&!DAVolumeEqual(filled,requested)){Invalidate("EXECUTED_VOLUME_EXCEEDS_REQUEST");residual.valid=false;exposure=DA_AMBIGUOUS;return false;}
+  if(!DAVolumeEqual(filled,requested)||n>1){
+  Invalidate(DAVolumeEqual(filled,requested)?"FOK_FULL_MULTI_DEAL_UNSUPPORTED_LEDGER_CARDINALITY":"PARTIAL_ORDER_EXECUTION");
+- pending=false;if(now.valid && now.id==bound && now.symbol==symbol && now.magic==12001){position=bound;position_ticket=now.ticket;residual=now;exposure=DA_QUARANTINED;}else{residual.valid=false;exposure=DA_AMBIGUOUS;}return false;}
++ pending=false;if(flat_authenticated && intent!=DA_ENTRY && DAVolumeEqual(filled,before_volume)){position=bound;ZeroMemory(residual);residual.valid=true;exposure=DA_FLAT;}else if(now.valid && now.id==bound && now.symbol==symbol && now.magic==12001){position=bound;position_ticket=now.ticket;if(intent==DA_ENTRY)p0=now.basis;residual=now;exposure=DA_QUARANTINED;}else{residual.valid=false;exposure=DA_AMBIGUOUS;}return false;}
+  DADeal d=facts[index];
+  if(!d.valid||(position!=0&&d.position!=position)||(intent!=DA_CONTAINMENT&&d.time_msc>=end_msc)){Invalidate("DEAL_BINDING_OR_TIME_INVALID");return false;}
+- if(intent==DA_CONTAINMENT){pending=false;residual=now;if(flat_authenticated)exposure=DA_FLAT;else exposure=now.valid?DA_QUARANTINED:DA_AMBIGUOUS;return false;}
++ if(intent==DA_CONTAINMENT){pending=false;residual=now;if(flat_authenticated){ZeroMemory(residual);residual.valid=true;exposure=DA_FLAT;}else exposure=now.valid?DA_QUARANTINED:DA_AMBIGUOUS;return false;}
+  if(invalid)return false;
+  if(intent==DA_ENTRY){
+- if(d.entry!=DEAL_ENTRY_IN||d.type!=(side==1?DEAL_TYPE_BUY:DEAL_TYPE_SELL)||d.profit!=0||d.swap!=0||!now.valid||now.id!=d.position||!DAVolumeEqual(now.volume,v0)||NormalizeDouble(now.sl,digits)!=s0){Invalidate("ENTRY_RECONCILIATION_FAILED");return false;}
++ if(d.entry!=DEAL_ENTRY_IN||d.type!=(side==1?DEAL_TYPE_BUY:DEAL_TYPE_SELL)||d.profit!=0||d.swap!=0||!now.valid||now.reads!=2047||now.id!=d.position||!DAVolumeEqual(now.volume,v0)||NormalizeDouble(now.sl,digits)!=s0){Invalidate("ENTRY_RECONCILIATION_FAILED");return false;}
+  position=d.position;position_ticket=now.ticket;p0=now.basis;commission=d.commission;fee=d.fee;residual=now;pending=false;exposure=DA_FULL;applied[index]=true;return true;}
+  if(d.entry!=DEAL_ENTRY_OUT||d.type!=(side==1?DEAL_TYPE_SELL:DEAL_TYPE_BUY)){Invalidate("UNSUPPORTED_EXIT_TYPE");return false;}
+  if(d.reason!=DEAL_REASON_EXPERT && d.reason!=DEAL_REASON_SL){Invalidate("MANUAL_OR_UNSUPPORTED_EXIT");return false;}
+  if(d.reason==DEAL_REASON_SL && NormalizeDouble(d.sl,digits)!=s0){Invalidate("EXIT_STOP_MISMATCH");return false;}
+  if(intent==DA_REDUCTION){
+- if(!now.valid||now.id!=position||now.basis!=p0||NormalizeDouble(now.sl,digits)!=s0||!DAVolumeEqual(now.volume,v0-requested)||NormalizeDouble(before_swap-d.swap-now.swap,8)!=0){Invalidate("RESIDUAL_RECONCILIATION_FAILED");return false;}
++ if(!now.valid||now.reads!=2047||now.id!=position||now.basis!=p0||NormalizeDouble(now.sl,digits)!=s0||!DAVolumeEqual(now.volume,v0-requested)){Invalidate("RESIDUAL_RECONCILIATION_FAILED");return false;}
++ if(DoubleToString(before_swap,8)!=DoubleToString(d.swap+now.swap,8)){Invalidate("SWAP_TRANSITION_CONSERVATION_FAIL");return false;}
+  reduced=true;residual=now;exposure=DA_REDUCED;
+  }else{
+- if(!flat_authenticated||NormalizeDouble(before_swap-d.swap,8)!=0){Invalidate("FINAL_SWAP_OR_FLAT_UNAUTHENTICATED");return false;}
++ if(!flat_authenticated){Invalidate("FINAL_FLAT_UNAUTHENTICATED");return false;}
+  ZeroMemory(residual);residual.valid=true;exposure=DA_FLAT;
+  }
+  if(applied[index]){Invalidate("DUPLICATE_COMPONENT_APPLICATION");return false;}
+--- amendment-before/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh
++++ after/MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh
+@@ -1,149 +1,273 @@
+-// Included only by GuardedResearchTester after its existing implementation.
+-// No extra order seam, no new Candidate rule, and no history enumeration.
+-#include "NativeCostIntegration.mqh"
+-bool ResearchNativePersist(const string name,const string value)
+-  {
+-   string file="KingEA\\stage14_spool\\"+InpManifestSha256+"\\NATIVE_COST_"+
+-      (string)InpConfigurationId+"_"+name+".evidence";
+-   if(FileIsExist(file,FILE_COMMON))
+-     {
+-      int r=FileOpen(file,FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
+-      if(r==INVALID_HANDLE) return false;
+-      string old=FileReadString(r); FileClose(r); return old==value;
+-     }
+-   int h=FileOpen(file,FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
+-   if(h==INVALID_HANDLE) return false;
+-   bool ok=FileWriteString(h,value)==StringLen(value); FileClose(h); return ok;
+-  }
+-bool ResearchNativePersistLedger()
+-  {
+-   if(g_native_cost==NULL) return false;
+-   string prefix=StringSubstr(g_native_cost.BindingHash(),0,24);
+-   for(int i=0;i<g_native_cost.RecordCount();i++)
+-      if(!ResearchNativePersist(prefix+"_"+(string)i,g_native_cost.Record(i))) return false;
+-   return true;
+-  }
+-bool ResearchNativeBegin(const string group,const int side,const double volume,const long now)
+-  {
+-   if(g_native_cost!=NULL)
+-     {
+-      if(!g_native_cost.NormalClosed() || !ResearchNativePersistLedger()) { g_hard_failures++; return false; }
+-      delete g_native_cost; g_native_cost=NULL;
+-     }
+-   g_native_cost=new KingEANativeCostEvidence;
+-   KingEANativeCostBinding b={}; b.run=InpManifestSha256; b.configuration=InpConfigurationId;
+-   b.branch=InpBranch; b.partition=InpPartition; b.group=group; b.symbol=_Symbol;
+-   b.magic=12001; b.side=side; b.volume=volume;
+-   b.start_msc=(long)g_evaluation_start*1000; b.end_msc=(long)g_evaluation_end_exclusive*1000;
+-   g_native_start_msc=now; g_native_entry_captured=false; g_native_receipt_known=false;
+-   g_native_exit_pending=false; ZeroMemory(g_native_close_fact);
+-   if(!g_native_cost.Begin(b)) { g_hard_failures++; return false; }
+-   return true;
+-  }
+-void ResearchNativeReceipt(const MqlTradeResult &receipt)
+-  {
+-   g_native_receipt=receipt; g_native_receipt_known=true;
+-   if(receipt.retcode!=TRADE_RETCODE_DONE || receipt.deal==0 || receipt.order==0 || receipt.price<=0)
+-      g_hard_failures++;
+-  }
+-void OnTradeTransaction(const MqlTradeTransaction &trans,const MqlTradeRequest &request,const MqlTradeResult &result)
+-  {
+-   if(ResearchUsesVirtual() || !g_initialized || !g_manifest_valid || trans.type!=TRADE_TRANSACTION_DEAL_ADD) return;
+-   if(g_native_cost==NULL) { g_hard_failures++; return; }
+-   KingEANativeDealFact d={};
+-   if(!KingEAReadCurrentRunDeal(trans,true,g_native_cost.BindingHash(),d) || d.time_msc<g_native_start_msc)
+-     { g_hard_failures++; return; }
+-   KingEANativeLifecycleFacts lifecycle={}; lifecycle.observation_origin="NATIVE_TRANSACTION";
+-   // No native lifecycle proof is invented here. Ambiguous OUT remains fail-closed.
+-   string outcome; KingEANativeCostBinding context=g_native_cost.Binding();
+-   if(!KingEAHandleNativeCostDeal(g_native_cost,context,d,lifecycle,outcome))
+-     {
+-      g_hard_failures++;
+-      ResearchNativePersist("REJECTED_NATIVE_EVENT_"+(string)d.deal,"FAIL_CLOSED|"+g_native_cost.BindingHash());
+-      return;
+-     }
+-   if(outcome=="ENTRY_METADATA_CAPTURED")
+-     {
+-      g_native_entry_captured=true;
+-      return;
+-     }
+-   if(outcome=="STRATEGY_TESTER_END_OF_TEST_HOUSEKEEPING")
+-     {
+-      ResearchNativePersist("HOUSEKEEPING_"+(string)d.deal,g_native_cost.HousekeepingEvidence());
+-      return;
+-     }
+-   if(outcome!="NORMAL_PRE_END_EXIT_PENDING_PROJECTION" || !g_native_entry_captured || g_native_exit_pending)
+-     { g_hard_failures++; return; }
+-   // Normal native close facts are kept outside the entry-cost ledger.
+-   g_native_close_fact=d; g_native_exit_pending=true;
+-  }
+-void ResearchNativeSeal(const MqlTick &tick)
+-  {
+-   if(ResearchUsesVirtual() || InpZeroEntryDiagnostic || !ResearchEvaluationEligible(tick.time)) return;
+-   g_native_last_eligible_tick=tick.time_msc;
+-   if(!g_position.has_position || g_native_cost==NULL || g_native_exit_pending) return;
+-   if(!g_native_entry_captured || !g_native_receipt_known) return; // Cannot backfill this tick later.
+-   if(!g_native_cost.ReconcileReceipt(g_native_receipt.deal,g_native_receipt.order,
+-                                      g_native_receipt.volume,g_native_receipt.price) ||
+-      !KingEASealNativeEligibleQuote(g_native_cost,tick,_Symbol,(long)g_evaluation_start*1000,
+-         (long)g_evaluation_end_exclusive*1000,InpResearchSpecificationSha256))
+-      g_hard_failures++;
+-  }
+-bool ResearchNativeNormalCloseReady()
+-  {
+-   if(g_native_boundary_projected || g_native_cost==NULL || !g_native_cost.Healthy()) { g_hard_failures++; return false; }
+-   if(!g_native_exit_pending) return false; // Await exact deal event; never infer close from equity.
+-   if(!ResearchEvaluationEligible(TimeCurrent())) { g_hard_failures++; return false; }
+-   g_close_deal_ticket=g_native_close_fact.deal; g_close_order_ticket=g_native_close_fact.order;
+-   return true;
+-  }
+-void ResearchNativeNormalCloseCommitted()
+-  {
+-   if(g_native_cost==NULL || !g_native_cost.MarkNormalClose(g_native_close_fact.position_id,
+-         g_native_close_fact.time_msc,true) || !ResearchNativePersistLedger()) g_hard_failures++;
+-  }
+-bool ResearchNativeBoundaryFinalize()
+-  {
+-   if(ResearchUsesVirtual() || InpZeroEntryDiagnostic || InpWorkloadDryRun) return false;
+-   if(g_native_boundary_projected) return g_hard_failures==0;
+-   if(!g_position.has_position && g_trade_group_id=="") return false;
+-   if(g_hard_failures!=0 || g_native_cost==NULL || !g_native_cost.Healthy() ||
+-      g_native_exit_pending || g_virtual_pending || OrdersTotal()!=0 ||
+-      g_native_cost.SealedTime()!=g_native_last_eligible_tick)
+-      return false;
+-   // At a post-end tick, still-open identity must reconcile. At OnTester, a no-callback
+-   // terminal close can only use the full snapshot from the last processed eligible tick.
+-   if(!g_native_in_tester_end && (!PositionSelect(_Symbol) ||
+-       (ulong)PositionGetInteger(POSITION_IDENTIFIER)!=g_native_cost.PositionId())) return false;
+-   KingEAAccountingEvent base={}; base.schema_version=1;
+-   base.event_id="BOUNDARY-"+KingEAAccountingSha256(g_trade_group_id); base.trade_group_id=g_trade_group_id; base.symbol=_Symbol;
+-   base.server_time_msc=g_native_cost.SealedTime(); base.utc_time_msc=base.server_time_msc;
+-   base.account_fingerprint=g_account_fingerprint; base.deployment_id="KINGEA-TESTER-STAGE13";
+-   base.candidate_id="CAND-ETH-ST-001"; base.sleeve_id="SLEEVE-1";
+-   base.configuration_hash="A60CA57CA68648F14A0486A2F9F40E4C0E968D1B87E54AB78E494D457FB084EE";
+-   base.mae_r=g_trade_mae_r; base.mfe_r=g_trade_mfe_r; base.bars_held=g_trade_bars_held;
+-   base.protective_stop=g_position.original_confirmed_stop;
+-   KingEAAccountingEvent event={}; KingEAAccountingDecision decision={};
+-   if(!g_native_cost.Finalize(base,g_accounting_checkpoint,g_entry_equity,g_entry_risk_money,false,
+-                             event,decision,g_native_sidecar)) { g_hard_failures++; return false; }
+-   if(!ResearchNativePersistLedger() || !ResearchNativePersist("BOUNDARY_"+StringSubstr(g_native_cost.BindingHash(),0,24),g_native_sidecar))
+-      { g_hard_failures++; return false; }
+-   string package=KingEANativeBoundaryPackage(g_native_cost,event,decision,
+-                                             g_accounting_checkpoint.ledger_root_sha256,g_native_sidecar);
+-   if(package=="" || !ResearchNativePersist("PACKAGE_"+StringSubstr(g_native_cost.BindingHash(),0,24),package))
+-      { g_hard_failures++; return false; }
+-   uchar package_frame[]; int package_bytes=StringToCharArray(package,package_frame,0,WHOLE_ARRAY,CP_UTF8);
+-   if(package_bytes>0) ArrayResize(package_frame,package_bytes-1);
+-   if(package_bytes<=0 || !FrameAdd("KINGEA_NATIVE_COST_PACKAGE",InpConfigurationId,0.0,package_frame))
+-      { g_hard_failures++; return false; }
+-   int n=ArraySize(g_accounting_payloads); ArrayResize(g_accounting_payloads,n+1);
+-   g_accounting_payloads[n]=KingEAAccountingFramePayload(event,decision);
+-   g_accounting_checkpoint=decision.next_checkpoint; g_accounting_close_count++;
+-   int count=ArraySize(g_trade_net); ArrayResize(g_trade_net,count+1);
+-   ArrayResize(g_trade_returns,count+1); ArrayResize(g_trade_r,count+1);
+-   g_trade_net[count]=decision.event_net_pnl; g_trade_returns[count]=event.net_return; g_trade_r[count]=event.net_r;
+-   g_native_boundary_equity=event.account_equity; g_native_boundary_projected=true; g_boundary_finalization_count++;
+-   // Candidate exit count is intentionally untouched.
+-   ZeroMemory(g_position); g_trade_group_id="";
+-   return true;
+-  }
++// Prospective controlled-tester lifecycle. Included after the guarded adapter.
++bool ResearchNativePersist(const string name,const string value)
++  {
++   string file="KingEA\\stage14_spool\\"+InpManifestSha256+"\\NATIVE_COST_"+
++      (string)InpConfigurationId+"_"+name+".evidence";
++   if(FileIsExist(file,FILE_COMMON))
++     {
++      int r=FileOpen(file,FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
++      if(r==INVALID_HANDLE) return false;
++      string old=FileReadString(r); FileClose(r); return old==value;
++     }
++   int h=FileOpen(file,FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
++   if(h==INVALID_HANDLE) return false;
++   bool ok=FileWriteString(h,value)==StringLen(value); FileClose(h); return ok;
++  }
++
++string DAQuote(string s){StringReplace(s,"\\","\\\\");StringReplace(s,"\"","\\\"");StringReplace(s,"\r","\\r");StringReplace(s,"\n","\\n");return "\""+s+"\"";}
++string DANumber(double n){return DAQuote(DoubleToString(n,16));}
++string DAFlag(bool v){return v?"true":"false";}
++// Only top-level scalar bindings are consumed from the already captured buffer.
++// The independently pinned renderer/launcher supplies input authority; these
++// copies cannot authorize a root, freeze or execution by themselves.
++string DAManifestString(string key){
++ string raw=CharArrayToString(g_manifest_input_bytes,0,ArraySize(g_manifest_input_bytes),CP_UTF8);
++ int depth=0;string found="";bool seen=false;
++ for(int i=0;i<StringLen(raw);i++){
++  ushort c=StringGetCharacter(raw,i);if(c=='{')depth++;else if(c=='}')depth--;
++  else if(c=='"'){
++   int start=++i;bool escaped=false;
++   while(i<StringLen(raw)){
++    ushort ch=StringGetCharacter(raw,i);if(ch=='\\'){escaped=true;i+=2;continue;}if(ch=='"')break;i++;
++   }
++   string token=StringSubstr(raw,start,i-start);
++   if(depth==1&&!escaped&&token==key){
++    if(seen)return "";seen=true;int j=i+1;
++    while(j<StringLen(raw)&&StringGetCharacter(raw,j)<=32)j++;
++    if(StringGetCharacter(raw,j++)!=':')return "";
++    while(j<StringLen(raw)&&StringGetCharacter(raw,j)<=32)j++;
++    if(StringGetCharacter(raw,j++)!='"')return "";int end=j;
++    while(end<StringLen(raw)&&StringGetCharacter(raw,end)!='"'){if(StringGetCharacter(raw,end)=='\\')return "";end++;}
++    found=StringSubstr(raw,j,end-j);i=end;
++   }
++  }
++ }
++ return found;
++}
++bool ResearchNativeContext(){
++ if(!DABoundNativeProfile()||!ResearchHash(g_manifest_input_hash)||g_manifest_input_hash!=InpManifestFileSha256)return false;
++ if(DAManifestString("candidate_id")!="CAND-ETH-ST-002"||
++    DAManifestString("native_cost_contract")!="NATIVE_GROUP_LIFECYCLE_CONTRACT_V3"||
++    DAManifestString("package_schema")!="NATIVE_GROUP_LIFECYCLE_PACKAGE_V3"||
++    DAManifestString("evidence_semantics")!="PARTIAL_POSITION_COMPONENTS_V1"||
++    DAManifestString("filling")!="ORDER_FILLING_FOK"||
++    DAManifestString("swap_transition_rule")!="SWAP_TRANSITION_CONSERVATION_V1"||
++    DAManifestString("swap_transition_rule_sha256")!="BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772"||
++    DAManifestString("inventory_protocol_sha256")!="42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6")return false;
++ g_da_candidate=DAManifestString("candidate_id");g_da_configuration=DAManifestString("configuration_sha256");
++ g_da_profile=DAManifestString("tester_profile_sha256");
++ return ResearchHash(g_da_configuration)&&ResearchHash(g_da_profile)&&ResearchHash(DAManifestString("source_sha256"));
++}
++bool ResearchNativeRecord(string role,string payload){
++ int n=ArraySize(g_da_records);if(n>=256){g_da.Invalidate("NATIVE_EVIDENCE_OVERFLOW");return false;}
++ string hash=ResearchSha256String(payload);
++ if(!ResearchNativePersist(StringSubstr(ResearchSha256String(g_da.group),0,24)+"_"+(string)n+"_"+hash,payload)){
++  g_da.Invalidate("NATIVE_EVIDENCE_PERSIST_FAILED");return false;
++ }
++ ArrayResize(g_da_records,n+1);ArrayResize(g_da_record_roles,n+1);g_da_records[n]=payload;g_da_record_roles[n]=role;return true;
++}
++string DAPositionEvidence(const DAPosition &p){
++ return "{\"position_id\":"+(string)p.id+",\"position_ticket\":"+(string)p.ticket+",\"side\":"+(string)p.side+
++ ",\"magic\":"+(string)p.magic+",\"symbol\":"+DAQuote(p.symbol)+",\"volume\":"+DANumber(p.volume)+
++ ",\"basis\":"+DANumber(p.basis)+",\"sl\":"+DANumber(p.sl)+",\"swap\":"+DANumber(p.swap)+
++ ",\"bid\":"+DANumber(p.bid)+",\"ask\":"+DANumber(p.ask)+",\"mark\":"+DANumber(p.mark)+",\"time_msc\":"+(string)p.time_msc+",\"reads\":"+(string)p.reads+",\"valid\":"+DAFlag(p.valid)+"}";
++}
++bool ResearchNativeBegin(const string group,const int side,const double volume,const long now,const double stop,const double equity,const double risk){
++ if(!ResearchNativeContext()||side!=1){g_da.Invalidate("SWAP_PROFILE_NOT_AUTHORIZED");return false;}
++ if(!g_da.Begin(group,_Symbol,side,volume,stop,g_da_base,risk,_Digits,(long)g_evaluation_end_exclusive*1000))return false;
++ ArrayResize(g_da_records,0);ArrayResize(g_da_record_roles,0);g_da_terminal_count=0;g_da_loss_reported=false;g_da_close_attempted=false;g_da_reduction_attempted=false;
++ g_native_start_msc=now;g_native_exit_pending=false;g_native_boundary_projected=false;ZeroMemory(g_da_sealed);
++ if(!ResearchNativeRecord("ORIGINAL","{\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(group)+
++  ",\"configuration_id\":"+(string)InpConfigurationId+",\"V0\":"+DANumber(volume)+",\"S0\":"+DANumber(stop)+",\"E0\":"+DANumber(g_da_base)+",\"R0\":"+DANumber(risk)+
++  ",\"profile_hash\":"+DAQuote(g_da_profile)+"}"))return false;
++ return g_da.Prepare(DA_ENTRY,volume);
++}
++bool ResearchNativeRequest(MqlTradeRequest &request,DAIntent intent){
++ if(!ResearchNativeContext()) {g_da.Invalidate("TESTER_PROFILE_INVALID");return false;}
++ MqlTick tick={};DAPosition now={};
++ if(!SymbolInfoTick(_Symbol,tick)||!DAReadPosition(g_da.position_ticket,g_da.position,_Symbol,tick,now))return false;
++ if(now.side!=(g_da.side==1?POSITION_TYPE_BUY:POSITION_TYPE_SELL)||now.basis!=g_da.p0||NormalizeDouble(now.sl,_Digits)!=g_da.s0||!DAVolumeEqual(now.volume,g_da.residual.volume)){
++  g_da.Invalidate("UNEXPLAINED_POSITION_MODIFICATION");return false;
++ }
++ g_da.residual=now;
++ string role=intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"BEFORE_REQUEST";
++ if(!ResearchNativeRecord(role,DAPositionEvidence(now)))return false;
++ if(intent==DA_CLOSE&&g_da_close_attempted)return false;
++ if(intent==DA_REDUCTION&&g_da_reduction_attempted)return false;
++ if(!g_da.Prepare(intent,request.volume))return false;
++ if(intent==DA_CLOSE)g_da_close_attempted=true;
++ if(intent==DA_REDUCTION)g_da_reduction_attempted=true;
++ return ResearchNativeRecord(role+"_INTENT","{\"intent\":"+(string)intent+",\"volume\":"+DANumber(request.volume)+
++  ",\"reason\":"+DAQuote(intent==DA_REDUCTION?"SPREAD_ABOVE_2_5X_REDUCE_50_PERCENT":g_da_close_reason)+",\"position\":"+(string)request.position+",\"FOK\":true,\"attempt_consumed\":"+DAFlag(g_da.contained)+"}");
++}
++void ResearchNativeReceipt(const MqlTradeResult &receipt){
++ g_native_receipt=receipt;g_native_receipt_known=true;g_da.order=receipt.order;
++ // A broker result.deal volume is not an aggregate-order terminality oracle.
++ ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"REQUEST_RESULT",
++  "{\"order\":"+(string)receipt.order+",\"deal\":"+(string)receipt.deal+",\"retcode\":"+(string)receipt.retcode+
++  ",\"volume\":"+DANumber(receipt.volume)+",\"price\":"+DANumber(receipt.price)+"}");
++}
++void OnTradeTransaction(const MqlTradeTransaction &trans,const MqlTradeRequest &request,const MqlTradeResult &result){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||!g_initialized)return;
++ // Capture remains active after invalidity. All processing/persistence is deferred.
++ g_da_observations.Capture(trans,request,result);g_da_capture.Capture(trans);
++}
++void ResearchNativePoll(const MqlTick &tick){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||!g_initialized)return;
++ if(!ResearchNativeContext())g_da.Invalidate("TESTER_PROFILE_INVALID");
++ if(g_da_capture.overflow||g_da_observations.overflow)g_da.Invalidate("TRANSACTION_CAPTURE_OVERFLOW");
++ DANativeCapture row={};
++ while(g_da_capture.Pop(row)){
++  if(row.type==TRADE_TRANSACTION_DEAL_ADD){
++   DADeal d=row.deal;
++   if(d.type==DEAL_TYPE_BALANCE){ResearchNativeRecord("EXTERNAL_CASH_EVIDENCE",DADealCanonical(d));continue;}
++   if(d.type!=DEAL_TYPE_BUY&&d.type!=DEAL_TYPE_SELL){
++    g_da.Invalidate("SWAP_PROFILE_OUTSIDE_SUPPORTED_SEMANTICS");
++    ResearchNativeRecord("INVALID_NATIVE_FINANCIAL_EVENT",DADealCanonical(d));continue;
++   }
++   if(!g_da.started){g_da.Invalidate("FOREIGN_DEAL_WITHOUT_GROUP");continue;}
++   if(!g_da.pending&&d.position==g_da.position&&d.entry==DEAL_ENTRY_OUT){
++    if(d.reason==DEAL_REASON_SL&&NormalizeDouble(d.sl,_Digits)==g_da.s0&&!g_da.projected){
++     if(!g_da.Prepare(DA_CLOSE,g_da.residual.volume))g_da.Invalidate("STOP_EXIT_RECONCILIATION_FAILED");
++     g_da.order=d.order;
++     ResearchNativeRecord("STATIC_PROTECTIVE_STOP_INTENT",DAQuote(g_da.group));
++    }else g_da.Invalidate("MANUAL_INTERVENTION_RESEARCH_INVALID");
++   }
++   g_da.Capture(d);
++   if(d.position==g_da.position||g_da.position==0){if(row.position>0)g_da.position_ticket=row.position;}
++   ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"DEAL_ADD",DADealCanonical(d));
++  }else{
++   if(row.symbol!=_Symbol)continue;
++   if(g_da_terminal_count==64){g_da.Invalidate("ORDER_CAPTURE_OVERFLOW");continue;}
++   g_da_terminals[g_da_terminal_count++]=row;
++   ResearchNativeRecord(g_da.intent==DA_CONTAINMENT?"INVALID_RUN_CONTAINMENT_EVIDENCE":"ORDER_TERMINAL_OBSERVATION",
++    "{\"order\":"+(string)row.order+",\"position\":"+(string)row.position+",\"state\":"+(string)row.order_state+
++    ",\"type\":"+(string)row.order_type+",\"unfilled\":"+DANumber(row.unfilled)+",\"symbol\":"+DAQuote(row.symbol)+"}");
++  }
++ }
++ DAObservation observation={};
++ while(g_da_observations.Pop(observation)){
++  if(observation.type==TRADE_TRANSACTION_POSITION&&g_da.started&&observation.position==g_da.position_ticket)
++   g_da.Invalidate("UNEXPLAINED_POSITION_MODIFICATION");
++  if(observation.type==TRADE_TRANSACTION_REQUEST&&observation.position==g_da.position_ticket&&observation.action==TRADE_ACTION_SLTP)
++   g_da.Invalidate("MANUAL_INTERVENTION_RESEARCH_INVALID");
++ }
++ if(g_da.pending&&g_da.order>0){
++  for(int i=0;i<g_da_terminal_count;i++){
++   DANativeCapture t=g_da_terminals[i];if(t.order!=g_da.order)continue;
++   bool ended=t.order_state==ORDER_STATE_FILLED||t.order_state==ORDER_STATE_CANCELED||t.order_state==ORDER_STATE_REJECTED||t.order_state==ORDER_STATE_EXPIRED;
++   if(!ended)continue;
++   long expected_type=g_da.intent==DA_ENTRY?(g_da.side==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL):(g_da.side==1?ORDER_TYPE_SELL:ORDER_TYPE_BUY);
++   bool valid=MathIsValidNumber(t.unfilled)&&t.unfilled>=0&&t.unfilled<=g_da.requested&&t.order_type==expected_type&&(t.order_state!=ORDER_STATE_FILLED||t.unfilled==0);
++   double actual=valid?g_da.requested-t.unfilled:0;
++   if(g_da.terminal&&(!valid||!DAVolumeEqual(actual,g_da.executed_target)))g_da.Invalidate("CONFLICTING_ORDER_TERMINALITY");
++   else g_da.Receipt(t.order,true,actual,valid,actual==0&&t.order_state!=ORDER_STATE_FILLED);
++  }
++ }
++ DAPosition now={};bool observed=DAReadPosition(g_da.position_ticket,g_da.position,_Symbol,tick,now);
++ if(g_da.pending){
++  double out=0;bool complete=g_da.terminal&&g_da.execution_volume_authenticated;
++  for(int i=0;i<g_da.count;i++){DADeal d=g_da.facts[i];if(d.order!=g_da.order)continue;
++   if(!d.valid||d.entry!=DEAL_ENTRY_OUT||d.position!=g_da.position)complete=false;out+=d.volume;
++  }
++  // Exact terminal OUT set exhausting the prior authenticated volume is flat
++  // authority. Failed position selection alone is never used as that authority.
++  bool flat=complete&&!observed&&DAVolumeEqual(out,g_da.executed_target)&&DAVolumeEqual(out,g_da.before_volume)&&out>0;
++  DAIntent prior=g_da.intent;bool accepted=g_da.Reconcile(now,flat);
++  if(accepted){
++   ResearchNativeRecord("RECONCILED_POSITION",DAPositionEvidence(g_da.residual));
++   if(prior==DA_ENTRY){g_native_entry_captured=true;g_position_ticket=g_da.position_ticket;g_position.entry_price=g_da.p0;g_position.original_confirmed_stop=g_da.s0;}
++   if(prior==DA_REDUCTION)g_spread_reduced=true;
++   if(prior==DA_CLOSE){g_exits++;g_native_exit_pending=true;g_close_order_ticket=g_da.order;
++    for(int i=0;i<g_da.count;i++)if(g_da.facts[i].order==g_da.order)g_close_deal_ticket=g_da.facts[i].ticket;}
++  }
++  if(!g_da.pending&&g_da.no_fill&&prior==DA_REDUCTION)g_da_fallback_due=true;
++ }else if(observed&&g_da.started&&!g_da.projected){
++  if(now.id!=g_da.position||now.basis!=g_da.p0||NormalizeDouble(now.sl,_Digits)!=g_da.s0||!DAVolumeEqual(now.volume,g_da.residual.volume))
++   g_da.Invalidate("UNEXPLAINED_POSITION_MODIFICATION");
++  else g_da.residual=now; // Replace current residual mark/swap; never accumulate snapshots.
++ }
++ if(g_da.invalid&&!g_da_loss_reported){g_hard_failures++;g_da_loss_reported=true;ResearchNativeRecord("INVALID_LATCHED",DAQuote(g_da.failure));}
++ if(g_da.invalid&&!g_da.pending&&!g_da.contained&&g_da.terminal&&g_da.residual.valid&&g_da.residual.volume>0&&ResearchNativeContext()&&
++    (g_da.failure=="PARTIAL_ORDER_EXECUTION"||g_da.failure=="FOK_FULL_MULTI_DEAL_UNSUPPORTED_LEDGER_CARDINALITY")){
++  MqlTradeRequest r={};MqlTradeResult result={};r.action=TRADE_ACTION_DEAL;r.symbol=_Symbol;r.magic=12001;r.position=g_da.position_ticket;
++  r.volume=g_da.residual.volume;r.type=g_da.side==1?ORDER_TYPE_SELL:ORDER_TYPE_BUY;r.price=g_da.side==1?tick.bid:tick.ask;r.type_filling=ORDER_FILLING_FOK;
++  if(ResearchNativeRequest(r,DA_CONTAINMENT)){ResearchOrderSend(r,result);ResearchNativeReceipt(result);}
++ }
++}
++void ResearchNativeSeal(const MqlTick &tick){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||!g_da.started||g_da.invalid||g_da.pending||g_da.projected||!ResearchEvaluationEligible(tick.time))return;
++ if(g_da.residual.valid&&g_da.residual.volume>0){g_da_sealed=g_da.residual;g_native_last_eligible_tick=tick.time_msc;}
++}
++bool ResearchNativeNormalCloseReady(){return g_da.started&&!g_da.invalid&&!g_da.pending&&!g_da.projected&&g_da.exposure==DA_FLAT&&g_native_exit_pending;}
++void ResearchNativeNormalCloseCommitted(){if(!g_da.Commit())g_hard_failures++;}
++bool ResearchNativeProject(bool boundary){
++ if(g_da.invalid||g_hard_failures!=0||g_da.pending||g_da.projected)return false;
++ if(boundary){if(g_native_exit_pending||!g_da_sealed.valid||g_da_sealed.time_msc!=g_native_last_eligible_tick)return false;g_da.residual=g_da_sealed;}
++ long time=g_da.residual.time_msc;
++ if(!boundary){time=0;for(int i=0;i<g_da.count;i++)if(g_da.facts[i].order==g_da.order)time=g_da.facts[i].time_msc;}
++ KingEAAccountingEvent event=ResearchAccountingBase(KINGEA_ACCOUNTING_EVENT_TRADE_GROUP_CLOSE,"V3-CLOSE-"+ResearchSha256String(g_da.group),time);
++ event.trade_group_id=g_da.group;event.direction=g_da.side;event.volume=g_da.v0;event.protective_stop=g_da.s0;
++ event.order_ticket=boundary?0:g_close_order_ticket;event.deal_ticket=boundary?0:g_close_deal_ticket;event.position_ticket=g_da.position_ticket;
++ event.reason_code=boundary?"EVALUATOR_BOUNDARY":"TRADE_GROUP_CLOSE";event.source_quality="NATIVE_GROUP_LIFECYCLE_V3";
++ if(!g_da.Projection(boundary,event))return false;
++ double net=event.gross_profit+event.commission+event.fee+event.swap;event.account_equity=g_da_base+net;event.sleeve_equity=event.account_equity;
++ KingEAAccountingDecision decision={};KingEAProcessAccountingEvent(event,g_accounting_checkpoint,decision);
++ if(!decision.accepted)return false;
++ string prior=g_accounting_checkpoint.ledger_root_sha256;if(prior=="")StringInit(prior,64,'0');
++ string canonical=KingEAAccountingCanonical(event,decision.sequence,prior);
++ if(!ResearchNativeRecord("TERMINAL_POSITION",DAPositionEvidence(g_da.residual)))return false;
++ if(!ResearchNativeRecord("STAGE13_PREPARED",canonical))return false;
++ // Prepared evidence is durable before the atomic financial handoff. A later
++ // persistence failure invalidates the run and cannot authorize another projection.
++ double base_before=g_da_base;
++ if(!g_da.Commit())return false;
++ g_accounting_checkpoint=decision.next_checkpoint;g_da_base+=net;
++ if(!ResearchNativeRecord("STAGE13_COMMITTED","{\"event_hash\":"+DAQuote(decision.event_sha256)+
++  ",\"prior_root\":"+DAQuote(prior)+",\"base_before\":"+DANumber(base_before)+",\"base_after\":"+DANumber(g_da_base)+
++  ",\"contribution_after\":\"0\",\"financial_projection_count\":1,\"atomic_handoff\":true}"))return false;
++ string records="[";for(int i=0;i<ArraySize(g_da_records);i++){if(i>0)records+=",";records+="{\"role\":"+DAQuote(g_da_record_roles[i])+",\"payload\":"+DAQuote(g_da_records[i])+"}";}records+="]";
++ string capture="{\"kind\":\"NATIVE_LIFECYCLE_CAPTURE_V3\",\"run_id\":"+DAQuote(InpManifestSha256)+",\"group_id\":"+DAQuote(g_da.group)+
++  ",\"outcome\":"+DAQuote(boundary?"EVALUATOR_BOUNDARY":"NORMAL_CLOSE")+",\"records\":"+records+"}";
++ if(!ResearchNativePersist("V3_CAPTURE_"+ResearchSha256String(g_da.group),capture)){g_da.Invalidate("COMMITTED_CAPTURE_PERSIST_FAILED");g_hard_failures++;return false;}
++ int n=ArraySize(g_accounting_payloads);ArrayResize(g_accounting_payloads,n+1);g_accounting_payloads[n]=KingEAAccountingFramePayload(event,decision);
++ int count=ArraySize(g_trade_net);ArrayResize(g_trade_net,count+1);ArrayResize(g_trade_returns,count+1);ArrayResize(g_trade_r,count+1);
++ g_trade_net[count]=net;g_trade_returns[count]=event.net_return;g_trade_r[count]=event.net_r;g_accounting_close_count++;
++ uchar frame[];int bytes=StringToCharArray(capture,frame,0,WHOLE_ARRAY,CP_UTF8);if(bytes>0)ArrayResize(frame,bytes-1);
++ if(bytes<=0||!FrameAdd("KINGEA_V3_NATIVE_CAPTURE",InpConfigurationId,0.0,frame)){g_da.Invalidate("CAPTURE_FRAME_FAILED");g_hard_failures++;return false;}
++ if(boundary){g_native_boundary_projected=true;g_native_boundary_equity=g_da_base;g_boundary_finalization_count++;}
++ KingEASafetyFacts facts={};ResearchHealthyFacts(TimeCurrent(),g_da.p0,g_da.s0,g_da.side,facts);
++ KingEASafetyRequest closed={};closed.event=KINGEA_EVENT_CLOSED_TRADE_GROUP;closed.scope=KINGEA_SCOPE_SLEEVE;
++ closed.closed_group_full_loss=event.net_r<=-0.80;KingEASafetyDecision safety={};KingEAEvaluateSafety(closed,facts,g_safety_state,safety);
++ g_safety_state=safety.next_state;if(safety.action==KINGEA_ACTION_QUARANTINE){g_hard_failures++;g_da.Invalidate("SAFETY_QUARANTINE");}
++ ZeroMemory(g_position);g_trade_group_id="";g_native_exit_pending=false;return !g_da.invalid;
++}
++bool ResearchNativeBoundaryFinalize(){
++ if(ResearchUsesVirtual()||InpZeroEntryDiagnostic||InpWorkloadDryRun||g_da.invalid)return false;
++ if(g_da.projected)return g_native_boundary_projected;
++ if(ResearchNativeNormalCloseReady())return ResearchNativeProject(false);
++ return ResearchNativeProject(true);
++}
++
++void ResearchNativeSafetyObserve(const MqlTick &tick){
++ // Observations continue after invalidity. Decisions do not create any new
++ // order authority or retry; only the adopted containment seam may submit.
++ if(!g_da.residual.valid||g_da.pending||g_da.position==0)return;
++ double contribution=0;if(!g_da.OperationalContribution(contribution))return;
++ KingEASafetyFacts facts={};ResearchHealthyFacts(tick.time,g_da.p0,g_da.s0,g_da.side,facts);
++ facts.exposure_reconciled=true;facts.unknown_exposure=false;
++ KingEASafetyRequest request={};request.event=KINGEA_EVENT_POSITION_REVIEW;request.scope=KINGEA_SCOPE_SLEEVE;
++ request.position_present=g_da.residual.volume>0;request.position_volume=g_da.residual.volume;
++ KingEASafetyDecision decision={};KingEAEvaluateSafety(request,facts,g_safety_state,decision);g_safety_state=decision.next_state;
++}
++
++bool ResearchNativeCompletion(){
++ if(g_da.invalid||g_da.pending||g_hard_failures!=0||!ResearchNativeContext())return false;
++ string value="{\"kind\":\"NATIVE_V3_COMPLETION\",\"run_id\":"+DAQuote(InpManifestSha256)+
++  ",\"configuration_id\":"+(string)InpConfigurationId+",\"profile_hash\":"+DAQuote(g_da_profile)+
++  ",\"group_count\":"+(string)g_accounting_close_count+",\"boundary_count\":"+(string)g_boundary_finalization_count+
++  ",\"research_invalid\":false,\"containment_attempted\":false,\"unsupported_financial_events\":[],\"complete\":1}";
++ if(!ResearchNativePersist("V3_COMPLETION",value))return false;
++ uchar frame[];int n=StringToCharArray(value,frame,0,WHOLE_ARRAY,CP_UTF8);if(n>0)ArrayResize(frame,n-1);
++ return n>0&&FrameAdd("KINGEA_V3_NATIVE_COMPLETE",InpConfigurationId,0.0,frame);
++}
+--- amendment-before/MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5
++++ after/MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5
+@@ -24,7 +24,7 @@
+  entry.entry=DEAL_ENTRY_IN;entry.type=DEAL_TYPE_BUY;entry.reason=DEAL_REASON_EXPERT;entry.magic=12001;
+  entry.symbol="ETHUSD.s";entry.volume=1;entry.price=100;entry.commission=-2;entry.fee=-1;entry.reads=65535;entry.valid=true;
+  DAPosition live;ZeroMemory(live);live.id=77;live.ticket=77;live.side=POSITION_TYPE_BUY;live.magic=12001;
+- live.symbol="ETHUSD.s";live.volume=1;live.basis=100;live.sl=90;live.valid=true;live.time_msc=100;
++ live.symbol="ETHUSD.s";live.volume=1;live.basis=100;live.sl=90;live.reads=2047;live.valid=true;live.time_msc=100;
+  Check(ledger.Capture(entry)&&ledger.Reconcile(live,false),"authenticated entry");
+  Check(ledger.Capture(entry)&&ledger.commission==-2,"duplicate entry idempotent");
+  Check(ledger.Prepare(DA_REDUCTION,0.5),"governed reduction prepare");
+--- amendment-before/research_pipeline/decision_a_evidence.py
++++ after/research_pipeline/decision_a_evidence.py
+@@ -144,6 +144,7 @@
+     require(profile.get('local') is True and profile.get('visual') is False and
+             profile.get('dll') is False and profile.get('command_bridge') is False and
+             profile.get('shared_trading_input') is False, 'TESTER_PROFILE_INVALID')
++    require(profile.get('swap_transition_rule_hash')==SWAP_TRANSITION_ADOPTION, 'SWAP_TRANSITION_RULE_NOT_AUTHORIZED')
+     facts = profile.get('facts', {})
+     for key, expected in SWAP_FACTS.items():
+         require(key in facts and number(facts[key]) == number(expected), 'SWAP_PROFILE_NOT_AUTHORIZED')
+@@ -213,6 +214,201 @@
+         self.exposure = ('FLAT_CONFIRMED' if flat_authenticated else
+                          'QUARANTINED_MONITORED_POSITION' if residual and residual.get('read_ok') is True else
+                          'AMBIGUOUS_EXPOSURE_FAIL_CLOSED')
++
++SWAP_TRANSITION_RULE = 'SWAP_TRANSITION_CONSERVATION_V1'
++SWAP_TRANSITION_ADOPTION = 'BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772'
++TRANSITION_FIELDS = {'kind','adopted_rule_hash','native_swap_profile_hash','run_id','group_id',
++    'position_id','position_ticket','symbol','magic','side','request_intent_hash','request_receipt_hash',
++    'order_id','deal_id','deal_fact_hash','before_snapshot_hash','after_snapshot_hash',
++    'Ub','Ds','Ua','Vb','q','Vr','P0','S0','read_flags','precision_rule',
++    'causal_interval_accrual_claim','transition_conservation'}
++
++
++def validate_swap_transition(receipt, before, deal, after, *, binding, original, precision, profile):
++    """Authenticate linked B/D/A facts before checking the adopted invariant.
++
++    Call only after independently controlled package/profile verification and
++    exact native fact/reference validation. No hidden-event absence is claimed.
++    """
++    require(type(receipt) is dict and set(receipt)==TRANSITION_FIELDS, 'SWAP_TRANSITION_RECEIPT_FIELDS')
++    require(receipt['kind']==SWAP_TRANSITION_RULE+'_RECEIPT' and
++            receipt['adopted_rule_hash']==SWAP_TRANSITION_ADOPTION==profile.get('swap_transition_rule_hash'),
++            'SWAP_TRANSITION_RULE_NOT_AUTHORIZED')
++    require(receipt['causal_interval_accrual_claim']=='NOT_MADE' and
++            receipt['transition_conservation']=='RECONCILED', 'SWAP_TRANSITION_CLAIM_INVALID')
++    require(receipt['native_swap_profile_hash']==profile['native_swap_profile_hash'], 'SWAP_PROFILE_NOT_AUTHORIZED')
++    require(receipt['run_id']==binding['run_id'] and receipt['group_id']==binding['group_id'] and
++            receipt['position_id']==before['position_id']==after['position_id']==deal['position_id']==original['position_id'] and
++            receipt['position_ticket']==before['position_ticket']==after['position_ticket'] and
++            receipt['symbol']==binding['symbol'] and receipt['magic']==12001 and receipt['side']==original['side'],
++            'SWAP_TRANSITION_IDENTITY_INVALID')
++    require(receipt['order_id']==deal['order_id'] and receipt['deal_id']==deal['deal_id'] and
++            receipt['request_intent_hash']==deal['request_intent_hash'] and receipt['request_receipt_hash']==deal['request_receipt_hash'] and
++            receipt['deal_fact_hash']==deal['fact_hash'] and receipt['before_snapshot_hash']==before['snapshot_hash'] and
++            receipt['after_snapshot_hash']==after['snapshot_hash'] and after['predecessor_deal_id']==deal['deal_id'],
++            'SWAP_TRANSITION_LINK_INVALID')
++    require(deal['role']=='SAFETY_REDUCTION' and before['predecessor_deal_id']!=deal['deal_id'] and
++            before['native_or_observation_time']<=deal['native_time_msc']<=after['native_or_observation_time'],
++            'SWAP_TRANSITION_SEQUENCE_INVALID')
++    require(receipt['read_flags']=={'POSITION_SWAP_BEFORE':True,'DEAL_SWAP':True,'POSITION_SWAP_AFTER':True} and
++            before['read_flags']['swap'] is True and after['read_flags']['swap'] is True and deal['read_flags']['swap'] is True,
++            'SWAP_TRANSITION_READ_FAILED')
++    require(receipt['precision_rule']==precision and precision['currency_precision']==8,
++            'SWAP_TRANSITION_PRECISION_INVALID')
++    pairs=[('Ub',before['position_swap']),('Ds',deal['swap']),('Ua',after['position_swap']),
++           ('Vb',before['Vr']),('q',deal['executed_volume']),('Vr',after['Vr']),('P0',original['P0']),('S0',original['S0'])]
++    require(all(number(receipt[k])==number(v) for k,v in pairs) and
++            number(before['Vr'])==number(deal['executed_volume'])+number(after['Vr']) and
++            number(deal['requested_volume'])==number(deal['executed_volume']), 'SWAP_TRANSITION_VALUES_UNBOUND')
++    # Exact equality at Stage13 signed component serialization precision.
++    q=Decimal('0.00000001')
++    require(number(before['position_swap']).quantize(q)==
++            (number(deal['swap'])+number(after['position_swap'])).quantize(q), 'SWAP_TRANSITION_CONSERVATION_FAIL')
++
++
++def assemble_native_archive(raw, binding, profile, authority_artifacts, *, expected_capture_hash, expected_configuration):
++    """Build unsealed R/S/A from an independently pinned native capture.
++
++    Pure bytes in/out. No seal, approval, root, result acceptance or file write.
++    The control adapter, never the captured payload, supplies all expectations.
++    Native-runtime conformance of the producer remains a separate requirement.
++    """
++    require(digest(raw)==expected_capture_hash, 'NATIVE_CAPTURE_PIN_MISMATCH')
++    capture=parse_json(raw)
++    require(set(capture)=={'kind','run_id','group_id','outcome','records'} and
++            capture['kind']=='NATIVE_LIFECYCLE_CAPTURE_V3' and
++            capture['run_id']==binding['run_id'] and capture['group_id']==binding['group_id'], 'NATIVE_CAPTURE_BINDING')
++    validate_profile(profile)
++    rows=capture['records'];require(type(rows) is list and 1<=len(rows)<=256,'NATIVE_CAPTURE_CARDINALITY')
++    support={}
++    def add(role,value,serialized=False):
++        data=value if serialized else json_bytes(value)
++        path='support/'+role.replace(':','_').lower()+('.bin' if serialized else '.json')
++        require(path not in support or support[path]==(role,data),'NATIVE_SUPPORT_CONFLICT')
++        support[path]=(role,data);return digest(data)
++    def scoped(**kw):return dict(run_id=binding['run_id'],group_id=binding['group_id'],**kw)
++    originals=[];native_deals={};native_positions=[];requests=[];terminals={};prepared=[];committed=[]
++    pending_before=None;pending_intent=None;passive_stop=False
++    for seq,row in enumerate(rows,1):
++        require(type(row) is dict and set(row)=={'role','payload'} and type(row['payload']) is str,'NATIVE_ROW_FIELDS')
++        role=row['role'];payload=row['payload']
++        require(not role.startswith('INVALID') and role!='INVALID_LATCHED','INVALID_RUN_CONTAINMENT_EVIDENCE')
++        if role=='DEAL_ADD':
++            fields=payload.split('|');require(len(fields)==18,'NATIVE_DEAL_FORMAT')
++            d=dict(zip(('ticket','order','position','time','entry','type','reason','magic','symbol','volume','price','profit','commission','fee','swap','sl','reads','valid'),fields))
++            for k in ('ticket','order','position','time','entry','type','reason','magic','reads'):d[k]=int(d[k])
++            require(d['reads']==65535 and d['valid']=='true' and d['magic']==12001 and d['symbol']==binding['symbol'],'NATIVE_DEAL_READ_FAILED')
++            require(d['type'] in (0,1) and d['entry'] in (0,1),'SWAP_PROFILE_OUTSIDE_SUPPORTED_SEMANTICS')
++            if d['ticket'] in native_deals:require(native_deals[d['ticket']][0]==d,'CONFLICTING_DUPLICATE_DEAL')
++            else:native_deals[d['ticket']]=(d,seq)
++        elif role=='ORIGINAL': originals.append(parse_json(payload.encode()))
++        elif role in ('BEFORE_REQUEST','RECONCILED_POSITION','TERMINAL_POSITION'):
++            position=parse_json(payload.encode());require(position.get('valid') is True and (number(position['volume'])==0 or position.get('reads')==2047),'NATIVE_POSITION_READ_FAILED')
++            native_positions.append((role,position,seq))
++            if role=='BEFORE_REQUEST':pending_before=position
++        elif role=='BEFORE_REQUEST_INTENT':pending_intent=parse_json(payload.encode())
++        elif role=='REQUEST_RESULT':
++            result=parse_json(payload.encode());requests.append((result,pending_intent,pending_before,seq));pending_intent=None;pending_before=None
++        elif role=='STATIC_PROTECTIVE_STOP_INTENT':passive_stop=True
++        elif role=='ORDER_TERMINAL_OBSERVATION':
++            t=parse_json(payload.encode())
++            if t['state'] not in (2,4,5,6):continue
++            if t['order'] in terminals:require(terminals[t['order']]==t,'CONFLICTING_ORDER_TERMINALITY')
++            terminals[t['order']]=t
++        elif role=='STAGE13_PREPARED':prepared.append(payload)
++        elif role=='STAGE13_COMMITTED':committed.append(parse_json(payload.encode()))
++        elif role=='EXTERNAL_CASH_EVIDENCE':
++            cash=payload.split('|')
++            require(len(cash)==18 and int(cash[0])>0 and int(cash[3])>0 and int(cash[5])==2 and int(cash[16])&16 and int(cash[1])==int(cash[2])==0,'EXTERNAL_CASH_CLASSIFICATION_INVALID')
++            require(all(number(cash[i])==0 for i in (12,13,14)),'SWAP_PROFILE_OUTSIDE_SUPPORTED_SEMANTICS')
++            # Retained in the independently pinned raw capture, excluded from group P&L.
++            continue
++        else:raise ValueError('UNSUPPORTED_NATIVE_CAPTURE_ROLE:'+str(role))
++    require(len(originals)==1 and len(prepared)==1 and len(committed)==1 and 1<=len(native_deals)<=3,'NATIVE_LIFECYCLE_CARDINALITY')
++    original=originals[0];require(type(expected_configuration) is int and original.get('configuration_id')==expected_configuration,'NATIVE_CONFIGURATION_MISMATCH')
++    require(original['run_id']==binding['run_id'] and original['group_id']==binding['group_id'] and original['profile_hash']==binding['tester_profile_hash'],'NATIVE_ORIGINAL_BINDING')
++    native=list(native_deals.values());native.sort(key=lambda pair:(pair[0]['time'],pair[1]))
++    entry=native[0][0];require(entry['entry']==0 and entry['type']==0,'NATIVE_ENTRY_OR_SIDE_UNSUPPORTED')
++    live=[(role,p,seq) for role,p,seq in native_positions if number(p['volume'])>0]
++    require(live,'EFFECTIVE_ENTRY_STOP_MISSING');entry_pos=next((p for role,p,seq in live if role=='RECONCILED_POSITION'),None)
++    require(entry_pos is not None and entry_pos['position_id']==entry['position'] and number(entry_pos['volume'])==number(original['V0']),'EFFECTIVE_ENTRY_STOP_MISSING')
++    o={k:original[k] for k in ('V0','S0','E0','R0')};o.update(P0=entry_pos['basis'],side='LONG',position_id=entry['position'],entry_intent_hash='',entry_effective_stop_hash='')
++    roles={'configuration_hash':'CONFIGURATION_SPECIFICATION','source_manifest_hash':'SOURCE_MANIFEST','executable_hash':'EXECUTABLE','specification_hash':'COMBINED_SPECIFICATION','decision_a_hash':'DECISION_A_SPECIFICATION','decision_s_hash':'DECISION_S_SPECIFICATION','freeze_receipt_hash':'FREEZE_RECEIPT','execution_receipt_hash':'EXECUTION_RECEIPT','tester_profile_hash':'TESTER_PROFILE'}
++    for key,role in roles.items():require(add(role,authority_artifacts[role],True)==binding[key],'INDEPENDENT_AUTHORITY_ARTIFACT_MISMATCH:'+role)
++    pr=dict(volume_step=profile['facts']['SYMBOL_VOLUME_STEP'],volume_digits=8,currency='USD',currency_precision=8,
++            price_convention_hash=add('PRICE_CONVENTION',authority_artifacts['PRICE_CONVENTION'],True),arithmetic_contract_hash=add('ARITHMETIC_CONTRACT',authority_artifacts['ARITHMETIC_CONTRACT'],True))
++    native_hash=add('NATIVE_CAPTURE',raw,True)
++    swap_profile=add('NATIVE_SWAP_PROFILE',authority_artifacts['NATIVE_SWAP_PROFILE'],True)
++    require(swap_profile==profile['native_swap_profile_hash'],'SWAP_PROFILE_NOT_AUTHORIZED')
++    snapshots=[];deals=[];swaps=[];previous='0'*64
++    def snapshot(pos,predecessor,sid):
++        require(pos['position_id']==o['position_id'] and pos['symbol']==binding['symbol'] and pos['magic']==12001 and pos['side']==0,'NATIVE_POSITION_IDENTITY')
++        snap=dict(snapshot_id=sid,predecessor_deal_id=predecessor,position_id=pos['position_id'],position_ticket=pos['position_ticket'],native_or_observation_time=pos['time_msc'],time_source='CALLBACK_OR_TICK_OBSERVATION_MSC',Vr=pos['volume'],P0=pos['basis'],S0=pos['sl'],bid=pos['bid'],ask=pos['ask'],mark=pos['mark'],position_swap=pos['swap'],read_flags={k:True for k in ('position_id','ticket','volume','basis','sl','swap','quote','mark','symbol','magic','side')})
++        snap['snapshot_hash']=add('POSITION_SNAPSHOT:'+sid,snap);snapshots.append(snap);return snap
++    entry_snapshot=snapshot(entry_pos,entry['ticket'],'entry')
++    o['entry_effective_stop_hash']=add('ENTRY_EFFECTIVE_STOP',scoped(position_id=o['position_id'],read_ok=True,S0=o['S0'],V0=o['V0'],P0=o['P0'],profile_hash=binding['tester_profile_hash'],post_entry_mutation_authorized=False,context_integrity=True,unexplained_modification=False,observation_overflow=False,observation_time_msc=entry_pos['time_msc'],native_capture_hash=native_hash))
++    remaining=number(o['V0'])
++    for i,(nd,seq) in enumerate(native):
++        require(nd['position']==o['position_id'],'FOREIGN_NATIVE_POSITION')
++        matching=[r for r in requests if r[0]['order']==nd['order']]
++        passive=i>0 and nd['reason']==4 and passive_stop and not matching
++        require(len(matching)==1 or passive,'NATIVE_REQUEST_BINDING_MISSING')
++        req=matching[0] if matching else None
++        role='ENTRY' if i==0 else 'SAFETY_REDUCTION' if req and req[1] and req[1]['intent']==1 else 'FINAL_CLOSE'
++        q=o['V0'] if i==0 else req[1]['volume'] if req and req[1] else str(remaining)
++        t=terminals.get(nd['order']);require(t is not None and t['symbol']==binding['symbol'] and t['state']==4 and t['type']==nd['type'] and number(t['unfilled'])==0 and number(nd['volume'])==number(q),'NATIVE_TERMINALITY_OR_CARDINALITY')
++        reason='STATIC_PROTECTIVE_STOP' if passive else 'ENTRY' if i==0 else req[1]['reason']
++        intent=scoped(order_id=nd['order'],role=role,requested_volume=q,filling='ORDER_FILLING_FOK',context_integrity=True,governed_reason=reason)
++        receipt=scoped(order_id=nd['order'],terminal=True,read_ok=True,deal_ids=[nd['ticket']],executed_volume=nd['volume'],position_id=o['position_id'],classification='FOK_FULL_SINGLE_DEAL')
++        before=None;after=None
++        if i==0:intent.update({k:o[k] for k in ('V0','E0','R0','S0')})
++        if passive:intent['entry_intent_hash']=o['entry_intent_hash']
++        if role=='SAFETY_REDUCTION':
++            require(req[2] is not None,'IMMEDIATE_BEFORE_NATIVE_SNAPSHOT_MISSING')
++            before=snapshot(req[2],deals[-1]['deal_id'],'before-reduction')
++            after_pos=next((p for typ,p,idx in live if typ=='RECONCILED_POSITION' and idx>seq and number(p['volume'])==remaining-number(q)),None)
++            require(after_pos is not None,'RESIDUAL_NATIVE_SNAPSHOT_MISSING')
++            after=snapshot(after_pos,nd['ticket'],'after-reduction')
++            intent['immediate_before_snapshot_hash']=before['snapshot_hash'];receipt['reconciled_after_snapshot_hash']=after['snapshot_hash']
++        if role=='FINAL_CLOSE':
++            require(number(q)==remaining,'FINAL_NATIVE_VOLUME_MISMATCH')
++            receipt['flat_state_hash']=add('FLAT_STATE:'+str(nd['ticket']),scoped(position_id=o['position_id'],order_id=nd['order'],terminal=True,flat_authenticated=True))
++        ih=add('REQUEST_INTENT:'+str(nd['order']),intent);rh=add('REQUEST_RECEIPT:'+str(nd['order']),receipt)
++        d=dict(deal_id=nd['ticket'],order_id=nd['order'],position_id=nd['position'],request_intent_hash=ih,request_receipt_hash=rh,role=role,requested_volume=q,executed_volume=nd['volume'],native_time_msc=nd['time'],capture_sequence=seq,price=nd['price'],profit=nd['profit'],commission=nd['commission'],fee=nd['fee'],swap=nd['swap'],reason={3:'DEAL_REASON_EXPERT',4:'DEAL_REASON_SL'}.get(nd['reason'],'UNSUPPORTED'),exit_sl=None if i==0 else nd['sl'],read_flags={k:True for k in ('volume','price','profit','commission','fee','swap','reason','identity','time')},previous_fact_hash=previous)
++        d['read_flags']['exit_sl']='NOT_APPLICABLE' if i==0 else True
++        d['fact_hash']=add('DEAL:'+str(d['deal_id']),d);previous=d['fact_hash'];deals.append(d)
++        if i==0:o['entry_intent_hash']=ih
++        else:remaining-=number(q)
++        if role=='SAFETY_REDUCTION':
++            transition=scoped(kind=SWAP_TRANSITION_RULE+'_RECEIPT',adopted_rule_hash=SWAP_TRANSITION_ADOPTION,native_swap_profile_hash=swap_profile,position_id=o['position_id'],position_ticket=before['position_ticket'],symbol=binding['symbol'],magic=12001,side=o['side'],request_intent_hash=ih,request_receipt_hash=rh,order_id=d['order_id'],deal_id=d['deal_id'],deal_fact_hash=d['fact_hash'],before_snapshot_hash=before['snapshot_hash'],after_snapshot_hash=after['snapshot_hash'],Ub=before['position_swap'],Ds=d['swap'],Ua=after['position_swap'],Vb=before['Vr'],q=q,Vr=after['Vr'],P0=o['P0'],S0=o['S0'],read_flags={'POSITION_SWAP_BEFORE':True,'DEAL_SWAP':True,'POSITION_SWAP_AFTER':True},precision_rule=pr,causal_interval_accrual_claim='NOT_MADE',transition_conservation='RECONCILED')
++            validate_swap_transition(transition,before,d,after,binding=binding,original=o,precision=pr,profile=profile)
++            th=add('SWAP_INTERVAL:'+str(d['deal_id']),transition)
++            swaps.append(dict(deal_id=d['deal_id'],before_snapshot_hash=before['snapshot_hash'],after_snapshot_hash=after['snapshot_hash'],before_swap=before['position_swap'],realized_swap=d['swap'],after_swap=after['position_swap'],interval_accrual='0',interval_authority_hash=th,native_swap_profile_hash=swap_profile,status='RECONCILED'))
++    boundary=capture['outcome']=='EVALUATOR_BOUNDARY';require(boundary or capture['outcome']=='NORMAL_CLOSE','NATIVE_OUTCOME_INVALID')
++    sealed=None
++    if boundary:
++        terminal_positions=[p for role,p,seq in native_positions if role=='TERMINAL_POSITION'];require(len(terminal_positions)==1,'SEALED_NATIVE_POSITION_MISSING')
++        sealed=snapshot(terminal_positions[0],deals[-1]['deal_id'],'sealed-boundary')
++    else:
++        require(remaining==0 and any(role=='TERMINAL_POSITION' and number(p['volume'])==0 for role,p,seq in native_positions),'NATIVE_FULL_CLOSE_UNAUTHENTICATED')
++    canonical_event=prepared[0];c=canonical_event.split('|');require(len(c)==39,'NATIVE_STAGE13_CANONICAL_INVALID')
++    event_hash=add('STAGE13_EVENT',canonical_event.encode(),True)
++    gross=sum(number(d['profit']) for d in deals)+(number(sealed['mark']) if boundary else 0)
++    commission=sum(number(d['commission']) for d in deals);fee=sum(number(d['fee']) for d in deals)
++    swap=sum(number(d['swap']) for d in deals)+(number(sealed['position_swap']) if boundary else 0);net=gross+commission+fee+swap
++    prior=add('PRIOR_CHECKPOINT',scoped(ledger_root=c[38],base=o['E0']));following=add('NEW_CHECKPOINT',scoped(ledger_root=event_hash,base=str(number(o['E0'])+net)))
++    native_commit=committed[0]
++    require(native_commit.get('event_hash')==event_hash and native_commit.get('prior_root')==c[38] and native_commit.get('atomic_handoff') is True and native_commit.get('financial_projection_count')==1 and number(native_commit['base_before'])==number(o['E0']) and number(native_commit['base_after'])==number(o['E0'])+net and number(native_commit['contribution_after'])==0,'NATIVE_COMMIT_UNAUTHENTICATED')
++    closeid=c[1];commit=add('STAGE13_COMMIT',scoped(lifecycle_close_id=closeid,stage13_event_hash=event_hash,financial_projection_count=1,atomic_handoff=True,research_valid=True))
++    terminal=dict(outcome=capture['outcome'],time_msc=int(c[3]),aggregate_gross=str(gross),aggregate_commission=str(commission),aggregate_fee=str(fee),aggregate_swap=str(swap),group_net=str(net),net_return=str(net/number(o['E0'])),net_R=str(net/number(o['R0'])),stage13_event_id=c[1],stage13_sequence=int(c[37]),stage13_root=event_hash,financial_projection_count=1,boundary_snapshot_hash=sealed['snapshot_hash'] if boundary else None)
++    sidecar=dict(contract_id=CONTRACT,package_id=PACKAGE,semantic_id=SEMANTICS,binding=binding,precision=pr,original=o,entry=deals[0],exit_portions=deals[1:],residual_snapshots=snapshots,swap_reconciliations=swaps,safety_handoff=dict(lifecycle_close_id=closeid,base_before=o['E0'],contribution_before=str(net),base_after=str(number(o['E0'])+net),contribution_after='0',prior_checkpoint_hash=prior,new_checkpoint_hash=following,stage13_event_hash=event_hash,commit_receipt_hash=commit),terminal=terminal,integrity=dict(lifecycle_root=previous,archive_inventory_hash='',sidecar_hash_algorithm='SHA256'))
++    scope=dict(binding,contract_id=CONTRACT,package_id=PACKAGE,semantic_id=SEMANTICS,inventory_protocol_hash=INVENTORY_ADOPTION)
++    files=construct_archive(support,sidecar,scope)
++    # Construction-time conformance only: no seal and no acceptance transition.
++    r=parse_json(files['references.json'])
++    view=VerifiedReferences(scope,tuple(r['entries']),files,digest(files['references.json']))
++    validate_package(files['sidecar.evidence'],binding,profile,view)
++    return files
+ 
+ TOP = {'contract_id','package_id','semantic_id','binding','precision','original','entry',
+        'exit_portions','residual_snapshots','swap_reconciliations','safety_handoff','terminal','integrity'}
+@@ -286,12 +482,12 @@
+                 number(s['Vr'])==number(original['V0'])-exited and number(s['P0'])==number(original['P0']) and number(s['S0'])==number(original['S0']), 'RESIDUAL_BINDING_MISMATCH')
+         require(all(v is True for v in s['read_flags'].values()) and s['read_flags'], 'RESIDUAL_READ_FAILED')
+         gross+=number(s['mark']);swap+=number(s['position_swap'])
+-    require(len(p['swap_reconciliations'])==len(p['exit_portions']), 'SWAP_RECONCILIATION_MISSING')
+-    for r,d in zip(p['swap_reconciliations'],p['exit_portions']):
++    reduction_deals=[d for d in p['exit_portions'] if d['role']=='SAFETY_REDUCTION']
++    require(len(p['swap_reconciliations'])==len(reduction_deals), 'SWAP_RECONCILIATION_MISSING')
++    for r,d in zip(p['swap_reconciliations'],reduction_deals):
+         require(r['deal_id']==d['deal_id'] and r['status']=='RECONCILED' and hash_value(r['interval_authority_hash']) and
+                 r['native_swap_profile_hash']==profile['native_swap_profile_hash'], 'SWAP_AUTHORITY_INVALID')
+-        require(number(r['interval_accrual'])==0 and number(r['realized_swap'])==number(d['swap']) and
+-                number(r['before_swap'])==number(r['realized_swap'])+number(r['after_swap']), 'SWAP_RECONCILIATION_FAILED')
++        require(number(r['interval_accrual'])==0 and number(r['realized_swap'])==number(d['swap']), 'SWAP_TRANSITION_VALUES_UNBOUND')
+     net=gross+commission+fee+swap
+     for k,v in dict(aggregate_gross=gross,aggregate_commission=commission,aggregate_fee=fee,aggregate_swap=swap,group_net=net,
+                     net_return=net/number(original['E0']),net_R=net/number(original['R0'])).items():
+@@ -550,6 +746,8 @@
+     require(stop.get('profile_hash')==b['tester_profile_hash'] and stop.get('post_entry_mutation_authorized') is False and
+             stop.get('context_integrity') is True and stop.get('unexplained_modification') is False and
+             stop.get('observation_overflow') is False,'STATIC_STOP_CONTEXT_INVALID')
++    ref(stop.get('native_capture_hash'),'NATIVE_CAPTURE',json_record=False)
++    ref(profile['native_swap_profile_hash'],'NATIVE_SWAP_PROFILE',json_record=False)
+     integer(stop['observation_time_msc'])
+     start,end=profile['evaluation_start_msc'],profile['evaluation_end_msc'];integer(start);integer(end)
+     require(start<end,'EVALUATION_WINDOW_INVALID')
+@@ -605,24 +803,27 @@
+         final=[s for s in snapshots.values() if s['snapshot_hash']==t['boundary_snapshot_hash']]
+         require(len(final)==1 and t['time_msc']==final[0]['native_or_observation_time'] and
+                 number(final[0]['Vr'])==remaining and final[0]['predecessor_deal_id']==deals[-1]['deal_id'], 'SEALED_BOUNDARY_INVALID')
+-    for r,d in zip(p['swap_reconciliations'],p['exit_portions']):
++    for r,d in zip(p['swap_reconciliations'],[d for d in p['exit_portions'] if d['role']=='SAFETY_REDUCTION']):
+         fields(r,SWAP_FIELDS,'SWAP_FIELDS')
+         before=next((s for s in snapshots.values() if s['snapshot_hash']==r['before_snapshot_hash']),None)
+-        require(before is not None and number(before['position_swap'])==number(r['before_swap']) and
+-                before['native_or_observation_time']<=d['native_time_msc'],'SWAP_BEFORE_SNAPSHOT_MISSING')
++        after=next((s for s in snapshots.values() if s['snapshot_hash']==r['after_snapshot_hash']),None)
++        require(before is not None and after is not None,'SWAP_TRANSITION_SNAPSHOTS_MISSING')
++        require(number(before['position_swap'])==number(r['before_swap']) and
++                number(after['position_swap'])==number(r['after_swap']), 'SWAP_TRANSITION_VALUES_UNBOUND')
++        transition=ref(r['interval_authority_hash'],'SWAP_INTERVAL:'+str(d['deal_id']));bound(transition)
++        validate_swap_transition(transition,before,d,after,binding=b,original=o,precision=pr,profile=profile)
++        intent=ref(d['request_intent_hash'],'REQUEST_INTENT:'+str(d['order_id']))
++        receipt=ref(d['request_receipt_hash'],'REQUEST_RECEIPT:'+str(d['order_id']))
++        require(intent.get('immediate_before_snapshot_hash')==before['snapshot_hash'] and
++                receipt.get('reconciled_after_snapshot_hash')==after['snapshot_hash'], 'SWAP_TRANSITION_REQUEST_SNAPSHOT_LINK')
++        ref(r['native_swap_profile_hash'],'NATIVE_SWAP_PROFILE',json_record=False)
++    for d in p['exit_portions']:
+         if d['role']=='FINAL_CLOSE':
+-            after=ref(r['after_snapshot_hash'],'FLAT_STATE:'+str(d['deal_id']));bound(after)
+-            require(after.get('position_id')==o['position_id'] and after.get('order_id')==d['order_id'] and
+-                    after.get('terminal') is True and after.get('flat_authenticated') is True and number(r['after_swap'])==0,'FLAT_STATE_UNAUTHENTICATED')
+-        else:
+-            after=next((s for s in snapshots.values() if s['snapshot_hash']==r['after_snapshot_hash']),None)
+-            require(after is not None and after['predecessor_deal_id']==d['deal_id'] and
+-                    number(after['position_swap'])==number(r['after_swap']) and after['native_or_observation_time']>=d['native_time_msc'], 'SWAP_AFTER_SNAPSHOT_MISSING')
+-        interval=ref(r['interval_authority_hash'],'SWAP_INTERVAL:'+str(d['deal_id']));bound(interval)
+-        require(interval.get('deal_id')==d['deal_id'] and interval.get('no_accrual_authenticated') is True and
+-                interval.get('native_swap_profile_hash')==r['native_swap_profile_hash'] and
+-                interval.get('before_snapshot_hash')==r['before_snapshot_hash'] and interval.get('after_snapshot_hash')==r['after_snapshot_hash'], 'SWAP_INTERVAL_UNAUTHENTICATED')
+-        ref(r['native_swap_profile_hash'],'NATIVE_SWAP_PROFILE',json_record=False)
++            receipt=ref(d['request_receipt_hash'],'REQUEST_RECEIPT:'+str(d['order_id']))
++            flat=ref(receipt.get('flat_state_hash'),'FLAT_STATE:'+str(d['deal_id']));bound(flat)
++            require(flat.get('position_id')==o['position_id'] and flat.get('order_id')==d['order_id'] and
++                    flat.get('terminal') is True and flat.get('flat_authenticated') is True,'FLAT_STATE_UNAUTHENTICATED')
++            ref(profile['native_swap_profile_hash'],'NATIVE_SWAP_PROFILE',json_record=False)
+     canonical_event=ref(t['stage13_root'],'STAGE13_EVENT',json_record=False).decode('utf-8')
+     c=canonical_event.split('|');require(len(c)==39 and c[0]=='1' and c[2]=='9','STAGE13_SCHEMA_INVALID')
+     require(c[1]==t['stage13_event_id'] and c[7]==b['candidate_id'] and c[8]==b['configuration_hash'] and c[10]==b['group_id'] and
+--- amendment-before/research_pipeline/successor_evidence.py
++++ after/research_pipeline/successor_evidence.py
+@@ -13,7 +13,7 @@
+ 
+ from .decision_a_evidence import (CONTRACT, PACKAGE, SEMANTICS, ADOPTION, INVENTORY_PROTOCOL,
+     INVENTORY_ADOPTION, DECISION_A_ADOPTION, DECISION_S_ADOPTION, unique, validate_profile,
+-    decode_archive, verify_archive, validate_package, hash_value)
++    decode_archive, verify_archive, validate_package, hash_value, SWAP_TRANSITION_RULE, SWAP_TRANSITION_ADOPTION, assemble_native_archive, digest, json_bytes, parse_json)
+ 
+ REJECTION = 'SUCCESSOR_EVIDENCE_CONTRACT_UNSATISFIED'
+ 
+@@ -39,7 +39,7 @@
+     directory: Path
+     control_sha256: str
+ 
+-    def _read(self, reference):
++    def _read_bytes(self, reference):
+         require(isinstance(reference, dict) and set(reference) == {'path', 'sha256'}, 'INVALID_CONTROL_REFERENCE')
+         name = reference['path']
+         require(isinstance(name, str) and name not in ('', '.', '..') and
+@@ -50,9 +50,71 @@
+         require(path.stat().st_size <= 1024 * 1024, 'CONTROL_RECORD_TOO_LARGE')
+         raw = path.read_bytes()
+         require(hashlib.sha256(raw).hexdigest().upper() == reference['sha256'], 'PINNED_CONTROL_HASH_MISMATCH')
++        return raw
++
++    def _read(self, reference):
++        raw = self._read_bytes(reference)
+         value = json.loads(raw.decode('utf-8'), object_pairs_hook=unique)
+         require(isinstance(value, dict), 'CONTROL_OBJECT_REQUIRED')
+         return value
++
++    def build_native_archive(self, manifest, configuration, group):
++        """Prepare unsealed bytes from independent control references, without writes.
++
++        The final seal remains a separate externally retained control artifact.
++        This operation creates neither an accepted result nor execution authority.
++        """
++        stage='native_archive_preparation'
++        try:
++            expected=validate(self,manifest,stage)
++            require(type(configuration) is int and manifest['configuration_start']<=configuration<=manifest['configuration_end'], 'CONFIGURATION_SCOPE_MISMATCH')
++            key=manifest['manifest_sha256']+':'+str(configuration)
++            reference=expected['control']['native_captures'][key+':'+group]
++            raw=self._read_bytes(reference)
++            authorities={role:self._read_bytes(ref) for role,ref in expected['control']['native_artifacts'][key].items()}
++            b=expected['binding'];control=expected['control'];profile=expected['profile']
++            binding=dict(run_id=manifest['manifest_sha256'],root_hash=manifest['root_sha256'],candidate_id=b['candidate_id'],
++                configuration_hash=b['configuration_sha256'],branch=manifest['branch'],partition=manifest['partition'],group_id=group,
++                symbol=profile['symbol'],source_manifest_hash=b['source_sha256'],executable_hash=profile['executable_hash'],
++                specification_hash=ADOPTION,decision_a_hash=DECISION_A_ADOPTION,decision_s_hash=DECISION_S_ADOPTION,
++                freeze_receipt_hash=control['freeze']['sha256'],execution_receipt_hash=control['execution']['sha256'],tester_profile_hash=b['tester_profile_sha256'])
++            return assemble_native_archive(raw,binding,profile,authorities,expected_capture_hash=reference['sha256'],expected_configuration=configuration)
++        except SuccessorEvidenceError:raise
++        except (ArithmeticError, ValueError,KeyError,TypeError,OSError,AttributeError,UnicodeError) as exc:
++            raise SuccessorEvidenceError(stage,str(exc)) from exc
++
++    def prepare_result_frame(self, manifest, configuration):
++        """Read independently retained native completion and seals; no writes.
++
++        Produces a verified ingestion payload, never acceptance or eligibility.
++        The caller must explicitly submit it to the existing ingestion hook.
++        """
++        from .decision_a_evidence import encode_archive, read_package
++        stage='native_frame_preparation'
++        try:
++            expected=validate(self,manifest,stage);key=manifest['manifest_sha256']+':'+str(configuration)
++            completion=self._read(expected['control']['native_completions'][key])
++            require(completion.get('kind')=='NATIVE_V3_COMPLETION' and completion.get('run_id')==manifest['manifest_sha256'] and
++                completion.get('configuration_id')==configuration and completion.get('profile_hash')==expected['binding']['tester_profile_sha256'] and
++                completion.get('research_invalid') is False and completion.get('containment_attempted') is False and
++                completion.get('unsupported_financial_events')==[] and completion.get('complete')==1,'NATIVE_COMPLETION_INVALID')
++            seals=expected['control']['completed_archives'][key]
++            require(type(seals) is list and completion['group_count']==len(seals),'NATIVE_COMPLETION_CARDINALITY')
++            packages=[];closes=[]
++            for reference in seals:
++                seal=self._read(reference);group=seal['binding']['group_id']
++                files=self.build_native_archive(manifest,configuration,group)
++                s,refs=verify_archive(files,seal,seal['binding'])
++                packages.append(encode_archive(files));closes.append(refs.resolve(s['terminal']['stage13_root'],'STAGE13_EVENT').decode())
++            frame=dict(complete=1,configuration_id=configuration,evidence_binding=expected['binding'],
++                authorization_binding=dict(owner_approved=True,gate='GATE1',root_sha256=expected['execution']['root_sha256'],
++                    child_sha256=expected['execution']['child_sha256'],freeze_receipt_sha256=expected['control']['freeze']['sha256'],execution_receipt_sha256=expected['control']['execution']['sha256']),
++                native_cost_packages=packages,stage13_close_frames=closes,boundary_finalization_count=completion['boundary_count'],unsupported_native_financial_events=[])
++            validate_frame(self,manifest,frame,stage)
++            return frame
++        except SuccessorEvidenceError:raise
++        except (ArithmeticError, ValueError,KeyError,TypeError,OSError,AttributeError,UnicodeError) as exc:
++            raise SuccessorEvidenceError(stage,str(exc)) from exc
+ 
+     def capture_render_inputs(self, expected, manifest):
+         """Read-only capture under externally pinned, run-scoped agent Files root.
+@@ -115,7 +177,7 @@
+                     for name, value in captures.items()}
+         except SuccessorEvidenceError as exc:
+             raise SuccessorEvidenceError('rendering', exc.detail) from exc
+-        except (ValueError, KeyError, TypeError, OSError, AttributeError, UnicodeError) as exc:
++        except (ArithmeticError, ValueError, KeyError, TypeError, OSError, AttributeError, UnicodeError) as exc:
+             raise SuccessorEvidenceError('rendering', str(exc)) from exc
+ 
+     def resolve(self, stage, *, design_only=False):
+@@ -133,6 +195,8 @@
+             require(binding.get('native_cost_contract') == CONTRACT and
+                     binding.get('package_schema') == PACKAGE and binding.get('evidence_semantics') == SEMANTICS and
+                     binding.get('filling') == 'ORDER_FILLING_FOK' and
++                    binding.get('swap_transition_rule') == SWAP_TRANSITION_RULE and
++                    binding.get('swap_transition_rule_sha256') == SWAP_TRANSITION_ADOPTION and
+                     binding.get('inventory_protocol') == INVENTORY_PROTOCOL and binding.get('inventory_protocol_sha256') == INVENTORY_ADOPTION and
+                     binding.get('combined_specification_sha256') == ADOPTION and
+                     binding.get('decision_a_sha256') == DECISION_A_ADOPTION and binding.get('decision_s_sha256') == DECISION_S_ADOPTION,
+@@ -161,7 +225,7 @@
+                     execution.get('specification_sha256') == control['specification']['sha256'] and
+                     execution.get('freeze_receipt_sha256') == control['freeze']['sha256'], 'EXECUTION_RECEIPT_MISMATCH')
+             return dict(binding=binding, control=control, execution=execution, profile=profile)
+-        except (ValueError, KeyError, TypeError, OSError, AttributeError) as exc:
++        except (ArithmeticError, ValueError, KeyError, TypeError, OSError, AttributeError) as exc:
+             raise SuccessorEvidenceError(stage, str(exc)) from exc
+ 
+ 
+@@ -190,7 +254,7 @@
+         return expected
+     except SuccessorEvidenceError:
+         raise
+-    except (ValueError, KeyError, TypeError, AttributeError) as exc:
++    except (ArithmeticError, ValueError, KeyError, TypeError, AttributeError) as exc:
+         raise SuccessorEvidenceError(stage, str(exc)) from exc
+ 
+ 
+@@ -206,18 +270,28 @@
+                 'CONFIGURATION_SCOPE_MISMATCH')
+         require(type(frame['boundary_finalization_count']) is int and frame['boundary_finalization_count'] >= 0,
+                 'BOUNDARY_COUNT_INVALID')
++        require(frame.get('unsupported_native_financial_events') == [], 'SWAP_PROFILE_OUTSIDE_SUPPORTED_SEMANTICS')
+         packages = frame['native_cost_packages']
+         require(isinstance(packages, list) and isinstance(frame['stage13_close_frames'], list), 'EVIDENCE_COLLECTION_REQUIRED')
+         references = expected['control'].get('completed_archives', {}).get(
+             manifest['manifest_sha256'] + ':' + str(configuration))
+         require(type(references) is list and len(references) == len(packages), 'INDEPENDENT_COMPLETED_ARCHIVES_REQUIRED')
+         require(len(frame['stage13_close_frames']) == len(packages), 'V3_CLOSE_CARDINALITY_MISMATCH')
++        completion=context._read(expected['control'].get('native_completions',{}).get(manifest['manifest_sha256']+':'+str(configuration)))
++        require(set(completion)=={'kind','run_id','configuration_id','profile_hash','group_count','boundary_count','research_invalid','containment_attempted','unsupported_financial_events','complete'} and
++            completion['kind']=='NATIVE_V3_COMPLETION' and completion['run_id']==manifest['manifest_sha256'] and
++            type(completion['configuration_id']) is int and completion['configuration_id']==configuration and
++            completion['profile_hash']==expected['binding']['tester_profile_sha256'] and completion['research_invalid'] is False and
++            completion['containment_attempted'] is False and completion['unsupported_financial_events']==[] and type(completion['complete']) is int and completion['complete']==1,
++            'NATIVE_COMPLETION_INVALID')
++        require(type(completion['group_count']) is int and completion['group_count']==len(packages) and
++            type(completion['boundary_count']) is int and completion['boundary_count']==frame['boundary_finalization_count'], 'NATIVE_COMPLETION_CARDINALITY')
+         groups=set();roots=set();boundaries=0
+         for raw,reference,close_frame in zip(packages,references,frame['stage13_close_frames']):
+             seal = context._read(reference)
+             scope = dict(run_id=manifest['manifest_sha256'],root_hash=manifest['root_sha256'],candidate_id=expected['binding']['candidate_id'],
+                 configuration_hash=expected['binding']['configuration_sha256'],branch=manifest['branch'],partition=manifest['partition'],
+-                source_manifest_hash=expected['binding']['source_sha256'],tester_profile_hash=expected['binding']['tester_profile_sha256'],
++                symbol=expected['profile']['symbol'],source_manifest_hash=expected['binding']['source_sha256'],tester_profile_hash=expected['binding']['tester_profile_sha256'],
+                 executable_hash=expected['profile']['executable_hash'],freeze_receipt_hash=expected['control']['freeze']['sha256'],
+                 execution_receipt_hash=expected['control']['execution']['sha256'],specification_hash=ADOPTION,
+                 decision_a_hash=DECISION_A_ADOPTION,decision_s_hash=DECISION_S_ADOPTION,
+@@ -228,6 +302,13 @@
+             financial_scope['group_id']=seal['binding']['group_id']
+             validate_package(files['sidecar.evidence'],financial_scope,expected['profile'],verified)
+             group=sidecar['binding']['group_id'];root=sidecar['terminal']['stage13_root']
++            capture_reference=expected['control'].get('native_captures',{}).get(manifest['manifest_sha256']+':'+str(configuration)+':'+group)
++            capture=context._read(capture_reference)
++            raw_capture=verified.resolve(capture_reference['sha256'],'NATIVE_CAPTURE')
++            require(parse_json(raw_capture)==capture,'NATIVE_CAPTURE_BYTES_MISMATCH')
++            authorities={entry['role']:verified.resolve(entry['sha256'],entry['role']) for entry in verified.entries}
++            rebuilt=assemble_native_archive(raw_capture,financial_scope,expected['profile'],authorities,expected_capture_hash=capture_reference['sha256'],expected_configuration=configuration)
++            require(rebuilt==files,'NATIVE_CAPTURE_PACKAGE_MISMATCH')
+             require(group not in groups and root not in roots,'DUPLICATE_V3_TERMINAL_PROJECTION')
+             require(type(close_frame) is str and close_frame==verified.resolve(root,'STAGE13_EVENT').decode('utf-8'), 'V3_STAGE13_CLOSE_MISMATCH')
+             groups.add(group);roots.add(root)
+@@ -236,5 +317,5 @@
+         return expected
+     except SuccessorEvidenceError:
+         raise
+-    except (ValueError, KeyError, TypeError, AttributeError, IndexError, UnicodeError, OSError) as exc:
++    except (ArithmeticError, ValueError, KeyError, TypeError, AttributeError, IndexError, UnicodeError, OSError) as exc:
+         raise SuccessorEvidenceError(stage, str(exc)) from exc
+--- amendment-before/tests/test_b2_date_gate.py
++++ after/tests/test_b2_date_gate.py
+@@ -144,8 +144,15 @@
+         self.assertIn("if(g_evaluation_end_unresolved)\n      return -1.0;", source)
+         self.assertIn("ResearchTerminalEndHasUnresolvedExposure", source)
+         on_tester = source[source.index("double OnTester()") :]
+-        self.assertLess(on_tester.index("ResearchTerminalEndHasUnresolvedExposure()"),
+-                        on_tester.index("ResearchFinalizeClosedTrade();"))
++        # Adopted normal-pre-end precedence: reconcile authenticated normal close
++        # before considering a boundary. The unresolved gate still precedes any
++        # Candidate completion, and the normal-ready predicate must fail closed.
++        self.assertLess(on_tester.index("ResearchFinalizeClosedTrade();"),
++                        on_tester.index("ResearchNativeBoundaryFinalize();"))
++        native = (Path(__file__).parents[1] / "MQL5" / "Include" / "KingEA" /
++                  "GuardedNativeCostIntegration.mqh").read_text(encoding="utf-8")
++        self.assertIn("!g_da.invalid&&!g_da.pending&&!g_da.projected", native)
++        self.assertIn("g_da.exposure==DA_FLAT&&g_native_exit_pending", native)
+         self.assertLess(on_tester.index("ResearchTerminalEndHasUnresolvedExposure()"),
+                         on_tester.index("KINGEA_STAGE13_ACCOUNTING_COMPLETE"))
+ 
+--- amendment-before/tests/test_combined_foundations.py
++++ after/tests/test_combined_foundations.py
+@@ -5,7 +5,7 @@
+ from pathlib import Path
+ from research_pipeline.decision_a_evidence import (
+     ImmutableInput, ExposureControl, classify_execution, validate_profile,
+-    digest, number, unique, SWAP_FACTS, NATIVE_PROOF,
++    digest, number, unique, SWAP_FACTS, NATIVE_PROOF, SWAP_TRANSITION_ADOPTION,
+ )
+ 
+ class ImmutableCaptureTests(unittest.TestCase):
+@@ -93,7 +93,7 @@
+ 
+ class ProfileTests(unittest.TestCase):
+     def profile(self):
+-        return dict(accepted_proof_sha256=NATIVE_PROOF,server='JustMarkets-Demo2',symbol='ETHUSD.s',terminal_build=6140,compiler_build=6140,agent_build=6140,local=True,visual=False,dll=False,command_bridge=False,shared_trading_input=False,facts=copy.deepcopy(SWAP_FACTS))
++        return dict(swap_transition_rule_hash=SWAP_TRANSITION_ADOPTION,accepted_proof_sha256=NATIVE_PROOF,server='JustMarkets-Demo2',symbol='ETHUSD.s',terminal_build=6140,compiler_build=6140,agent_build=6140,local=True,visual=False,dll=False,command_bridge=False,shared_trading_input=False,facts=copy.deepcopy(SWAP_FACTS))
+     def test_exact_long_profile(self):validate_profile(self.profile())
+     def test_long_proof_cannot_authorize_short(self):
+         with self.assertRaisesRegex(ValueError,'NATIVE_CONFORMANCE_REQUIRED'):validate_profile(self.profile(),'SHORT')
+--- amendment-before/tests/test_successor_evidence.py
++++ after/tests/test_successor_evidence.py
+@@ -252,13 +252,14 @@
+         self.directory = directory
+         from v3_fixture import profile, CONFIG, SOURCE
+         from research_pipeline.decision_a_evidence import (digest, CONTRACT, PACKAGE, SEMANTICS, ADOPTION,
+-            INVENTORY_PROTOCOL, INVENTORY_ADOPTION, DECISION_A_ADOPTION, DECISION_S_ADOPTION)
++            INVENTORY_PROTOCOL, INVENTORY_ADOPTION, DECISION_A_ADOPTION, DECISION_S_ADOPTION, SWAP_TRANSITION_RULE, SWAP_TRANSITION_ADOPTION)
+         self.profile = profile()
+         profile_ref = self.store('profile.json', self.profile)
+         self.binding = dict(candidate_id='CAND-ETH-ST-002', configuration_sha256=digest(CONFIG),
+             source_sha256=digest(SOURCE), successor_evidence_sha256='E'*64,
+             native_cost_contract=CONTRACT, package_schema=PACKAGE, evidence_semantics=SEMANTICS, filling='ORDER_FILLING_FOK',
+             inventory_protocol=INVENTORY_PROTOCOL, inventory_protocol_sha256=INVENTORY_ADOPTION,
++            swap_transition_rule=SWAP_TRANSITION_RULE, swap_transition_rule_sha256=SWAP_TRANSITION_ADOPTION,
+             combined_specification_sha256=ADOPTION, decision_a_sha256=DECISION_A_ADOPTION,
+             decision_s_sha256=DECISION_S_ADOPTION, tester_profile_sha256=profile_ref['sha256'])
+         spec = dict(kind='REVIEWED_SUCCESSOR_SPECIFICATION', binding=self.binding, tester_profile=profile_ref)
+@@ -296,11 +297,13 @@
+             manifest=dict(path='manifest.json',sha256=hashlib.sha256(manifest_bytes).hexdigest().upper()),
+             calendar=dict(path='fixture.csv',sha256=hashlib.sha256(calendar_bytes).hexdigest().upper()))
+         self.control['completed_archives'] = {self.manifest['manifest_sha256']+':0':[]}
++        completion=dict(kind='NATIVE_V3_COMPLETION',run_id=self.manifest['manifest_sha256'],configuration_id=0,profile_hash=self.binding['tester_profile_sha256'],group_count=0,boundary_count=0,research_invalid=False,containment_attempted=False,unsupported_financial_events=[],complete=1)
++        self.control['native_completions']={self.manifest['manifest_sha256']+':0':self.store('native-completion.json',completion)}
+         self.pin = self.store('control.json', self.control)['sha256']
+         self.authorization = dict(owner_approved=True,gate='GATE1',root_sha256='F'*64,
+             child_sha256=self.manifest['manifest_sha256'],freeze_receipt_sha256=freeze_ref['sha256'],
+             execution_receipt_sha256=execution_ref['sha256'])
+-        self.frame = dict(complete=1,configuration_id=0,evidence_binding=copy.deepcopy(self.binding),
++        self.frame = dict(unsupported_native_financial_events=[],complete=1,configuration_id=0,evidence_binding=copy.deepcopy(self.binding),
+             authorization_binding=self.authorization,native_cost_packages=[],boundary_finalization_count=0,stage13_close_frames=[])
+ 
+     def store(self, name, value):
+--- amendment-before/tests/v3_fixture.py
++++ after/tests/v3_fixture.py
+@@ -19,11 +19,11 @@
+   local=True,visual=False,dll=False,command_bridge=False,shared_trading_input=False,mql_tester=True,
+   post_entry_sl_mutation=False,alternate_order_sink=False,facts=dict(SWAP_FACTS),
+   native_swap_profile_hash=digest((ROOT/DOCS['NATIVE_SWAP_PROFILE']).read_bytes()),
+-  source_manifest_hash=digest(SOURCE),executable_hash=digest(EXE),configuration_hash=digest(CONFIG),
++  swap_transition_rule_hash=SWAP_TRANSITION_ADOPTION,source_manifest_hash=digest(SOURCE),executable_hash=digest(EXE),configuration_hash=digest(CONFIG),
+   price_convention_hash=digest(PRICE),arithmetic_contract_hash=digest(ARITH),
+   evaluation_start_msc=100,evaluation_end_msc=100000)
+ 
+-def package(f,boundary=False,reduction=False,signed_swap=False,stop_exit=False):
++def package(f,boundary=False,reduction=False,signed_swap=False,stop_exit=False,final_swap=None):
+  pprofile=f.profile; group='SYNTHETIC-GROUP-1';run=f.manifest['manifest_sha256'];support={}
+  def add(role,value,raw=False):
+   data=value if raw else json_bytes(value)
+@@ -58,6 +58,7 @@
+    role=role,requested_volume=vol,executed_volume=vol,native_time_msc=time,capture_sequence=i+1,price=price,
+    profit=profit,commission=commission,fee=fee,swap=('-2' if reduction else '-4') if signed_swap and role!='ENTRY' else '0',reason='DEAL_REASON_SL' if stop_exit and role=='FINAL_CLOSE' else 'DEAL_REASON_EXPERT',exit_sl=None if role=='ENTRY' else '90',
+    read_flags={k:True for k in ('volume','price','profit','commission','fee','swap','reason','identity','time')},previous_fact_hash=previous)
++  if role=='FINAL_CLOSE' and final_swap is not None:d['swap']=final_swap
+   d['read_flags']['exit_sl']='NOT_APPLICABLE' if role=='ENTRY' else True
+   d['fact_hash']=add('DEAL:'+str(ticket),d);previous=d['fact_hash'];deals.append(d);return d
+  def snapshot(sid,predecessor,time,vol,mark):
+@@ -84,6 +85,38 @@
+   d=deal(len(deals),'FINAL_CLOSE','1' if reduction else '2','105','5' if reduction else '10','-.5','-.25')
+   flat=add('FLAT_STATE:'+str(d['deal_id']),scoped(position_id=700,order_id=d['order_id'],terminal=True,flat_authenticated=True))
+   reconcile(d,current,flat)
++ # Upgrade exact native reference links before serializing immutable S/R/A.
++ for d in deals[1:]:
++  r=next(r for r in swaps if r['deal_id']==d['deal_id'])
++  rp='support/request_receipt_'+str(d['order_id'])+'.json'
++  receipt=parse_json(support[rp][1])
++  if d['role']=='SAFETY_REDUCTION':
++   ip='support/request_intent_'+str(d['order_id'])+'.json'
++   intent=parse_json(support[ip][1]);intent['immediate_before_snapshot_hash']=r['before_snapshot_hash']
++   d['request_intent_hash']=add('REQUEST_INTENT:'+str(d['order_id']),intent)
++   receipt['reconciled_after_snapshot_hash']=r['after_snapshot_hash']
++  else:
++   receipt['flat_state_hash']=r['after_snapshot_hash']
++   del support['support/swap_interval_'+str(d['deal_id'])+'.json']
++  d['request_receipt_hash']=add('REQUEST_RECEIPT:'+str(d['order_id']),receipt)
++ previous='0'*64
++ for d in deals:
++  d['previous_fact_hash']=previous
++  d['fact_hash']=add('DEAL:'+str(d['deal_id']),{k:v for k,v in d.items() if k!='fact_hash'})
++  previous=d['fact_hash']
++ swaps=[r for r in swaps if next(d for d in deals if d['deal_id']==r['deal_id'])['role']=='SAFETY_REDUCTION']
++ for r in swaps:
++  d=next(d for d in deals if d['deal_id']==r['deal_id'])
++  before=next(x for x in snaps if x['snapshot_hash']==r['before_snapshot_hash'])
++  after=next(x for x in snaps if x['snapshot_hash']==r['after_snapshot_hash'])
++  receipt=scoped(kind=SWAP_TRANSITION_RULE+'_RECEIPT',adopted_rule_hash=SWAP_TRANSITION_ADOPTION,
++   native_swap_profile_hash=r['native_swap_profile_hash'],position_id=700,position_ticket=701,symbol=b['symbol'],magic=12001,side='LONG',
++   order_id=d['order_id'],deal_id=d['deal_id'],request_intent_hash=d['request_intent_hash'],request_receipt_hash=d['request_receipt_hash'],
++   deal_fact_hash=d['fact_hash'],before_snapshot_hash=r['before_snapshot_hash'],after_snapshot_hash=r['after_snapshot_hash'],
++   Ub=r['before_swap'],Ds=d['swap'],Ua=r['after_swap'],Vb=before['Vr'],q=d['executed_volume'],Vr=after['Vr'],P0=o['P0'],S0=o['S0'],
++   read_flags={'POSITION_SWAP_BEFORE':True,'DEAL_SWAP':True,'POSITION_SWAP_AFTER':True},precision_rule=pr,
++   causal_interval_accrual_claim='NOT_MADE',transition_conservation='RECONCILED')
++  r['interval_authority_hash']=add('SWAP_INTERVAL:'+str(d['deal_id']),receipt)
+  gross=sum(number(d['profit']) for d in deals)+(number(current['mark']) if boundary else 0)
+  commission=sum(number(d['commission']) for d in deals);fee=sum(number(d['fee']) for d in deals)
+  swap=sum(number(d['swap']) for d in deals)+(number(current['position_swap']) if boundary else 0);net=gross+commission+fee+swap
+@@ -104,5 +137,21 @@
+   integrity=dict(lifecycle_root=previous,archive_inventory_hash='',sidecar_hash_algorithm='SHA256'))
+  binding=dict(b,contract_id=CONTRACT,package_id=PACKAGE,semantic_id=SEMANTICS,inventory_protocol_hash=INVENTORY_ADOPTION)
+  files=construct_archive(support,s,binding)
++ from native_capture_fixture import native_capture
++ raw=native_capture(read_package(files['sidecar.evidence']),files)
++ authority={role:data for role,data in support.values()}
++ # Include the pinned profile artifact even when there is no realized exit.
++ authority['NATIVE_SWAP_PROFILE']=(ROOT/DOCS['NATIVE_SWAP_PROFILE']).read_bytes()
++ files=assemble_native_archive(raw,b,pprofile,authority,expected_capture_hash=digest(raw),expected_configuration=0)
++ capture_ref=f.store('native-capture.json',parse_json(raw))
++ key=run+':0:'+group
++ f.control.setdefault('native_captures',{})[key]=capture_ref
++ refs={}
++ for role,data in authority.items():
++  name='authority_'+role.replace(':','_')+'.evidence';(f.directory/name).write_bytes(data);refs[role]=dict(path=name,sha256=digest(data))
++ f.control.setdefault('native_artifacts',{})[run+':0']=refs
++ completion=dict(kind='NATIVE_V3_COMPLETION',run_id=run,configuration_id=0,profile_hash=b['tester_profile_hash'],group_count=1,boundary_count=int(boundary),research_invalid=False,containment_attempted=False,unsupported_financial_events=[],complete=1)
++ f.control.setdefault('native_completions',{})[run+':0']=f.store('native-completion.json',completion)
++ f.pin=f.store('control.json',f.control)['sha256']
+  seal=dict(kind='INDEPENDENT_FINAL_ARCHIVE_SEAL',authority='COMPLETED_PACKAGE_INTEGRITY_ONLY',binding=binding,archive_sha256=digest(files['archive.json']))
+  return files,seal,b,pprofile

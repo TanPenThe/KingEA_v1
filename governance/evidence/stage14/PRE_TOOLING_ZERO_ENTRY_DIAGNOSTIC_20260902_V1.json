@@ -1,0 +1,25 @@
+{
+  "build_id": "STAGE14_GATE1_ZERO_ENTRY_DIAGNOSTIC_20260902_V1",
+  "candidate_id": "CAND-ETH-ST-001",
+  "frozen_dependency_hashes": {
+    "diagnostic_root_sha256": "B17EA4E5AA3A6D823B522252D5997F63BC8C0A6CD620C0DDDBA26851E194185D",
+    "gate1_finalization_root": "QUARANTINED_PENDING_DIAGNOSTIC"
+  },
+  "kind": "PRE_TOOLING_SOURCE_MANIFEST",
+  "sources": [
+    {"path": "MQL5/Include/KingEA/ZeroEntryDiagnostic.mqh", "sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8", "size": 5740},
+    {"path": "MQL5/Scripts/KingEA/TestZeroEntryDiagnostic.mq5", "sha256": "73B2674E419EFAB31947BAF7768EF82F08172F15D90D70EB321BD3BA3F630CEA", "size": 2505},
+    {"path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5", "sha256": "2A304F74E25DEA22EE48FEB8C4C2A6A836704E66ECE1187B7FE263F84F95F8B7", "size": 66775},
+    {"path": "research_pipeline/gate1_zero_entry_diagnostic.py", "sha256": "4912D0CA547AB916ABF25B2DE719801AEB1C3E278529958DE5E1B1AC146DBA1E", "size": 8648},
+    {"path": "research_pipeline/gate1_zero_entry_diagnostic_cli.py", "sha256": "4A652B41D3EE714FA02C1473B6F390F2F11E2B4D5B78A0AAE38ED959D8AD293F", "size": 1319},
+    {"path": "operations/Prepare-Gate1ZeroEntryDiagnostic.ps1", "sha256": "A2434E58BC6C51BE04CED3010F85C5BD19C5FB50F4436805FD76F8277C19E431", "size": 668},
+    {"path": "governance/stage14_gate1_zero_entry_diagnostic_contract.json", "sha256": "09D075EE1F44984E81999694C7A926E3B9EB925A06766E184B287D291B37629E", "size": 969},
+    {"path": "tests/test_gate1_zero_entry_diagnostic.py", "sha256": "409C7F16E06A40872B73A467F1E61F6D734C160265BE2D701C53FFB0D3A7FB2D", "size": 5140},
+    {"path": "tests/Test-Gate1ZeroEntryDiagnosticPolicy.ps1", "sha256": "8F0B6844269CC3441B6DF459286EBF3059F40908922E79B3E8F3C4693FAF2995", "size": 4429},
+    {"path": "tests/Test-Stage14ResearchReadinessPolicy.ps1", "sha256": "FAAC5281D2C2A2C7F04078C89ACBB462B7EF8E376CD095BBCE0F859D66F98C44", "size": 25438}
+  ],
+  "stage": 14,
+  "status": "PRE_TOOLING",
+  "tester_execution": "NOT_RUN",
+  "timestamp_utc": "2026-09-02T00:00:00Z"
+}

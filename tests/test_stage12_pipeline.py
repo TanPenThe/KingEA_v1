@@ -59,6 +59,10 @@ class Stage12PipelineTests(unittest.TestCase):
         self.assertAlmostEqual(middle["branch_scores"]["RECORDED"], expected)
         self.assertAlmostEqual(middle["branch_scores"]["RSB3"], expected)
         self.assertAlmostEqual(middle["governing_score"], expected)
+        self.assertEqual(
+            {"mar", "sortino", "profit_factor", "expectancy_lcb"},
+            set(middle["branch_metric_percentiles"]["RECORDED"]),
+        )
 
     def test_neighborhood_includes_interactions_and_trade_floor_is_per_branch(self):
         pipeline = Stage12Pipeline()
@@ -284,11 +288,23 @@ class Stage12PipelineTests(unittest.TestCase):
                 {"configuration_id": default_id, "governing_score": 0.7, "worse_branch_drawdown_percent": 10.0},
             ],
             {
-                0: {"qualifying_fraction": 0.9},
-                default_id: {"qualifying_fraction": 0.9},
+                0: {"passed": True, "qualifying_fraction": 0.9},
+                default_id: {"passed": True, "qualifying_fraction": 0.9},
             },
         )
         self.assertEqual(selected["configuration_id"], default_id)
+
+        eligible = pipeline.select_configuration(
+            [
+                {"configuration_id": 0, "governing_score": 0.9, "worse_branch_drawdown_percent": 5.0},
+                {"configuration_id": default_id, "governing_score": 0.7, "worse_branch_drawdown_percent": 10.0},
+            ],
+            {
+                0: {"passed": False, "qualifying_fraction": 0.99},
+                default_id: {"passed": True, "qualifying_fraction": 0.80},
+            },
+        )
+        self.assertEqual(default_id, eligible["configuration_id"])
 
     def test_surface_evidence_is_complete_and_hashes_all_parameter_pairs(self):
         pipeline = Stage12Pipeline()
@@ -302,6 +318,11 @@ class Stage12PipelineTests(unittest.TestCase):
         self.assertEqual(evidence["configuration_count"], 2)
         self.assertEqual(len(evidence["surface_sha256"]), 64)
         self.assertEqual(len(evidence["pairwise_heatmap_sha256"]), 28)
+        self.assertEqual(2, len(evidence["surface"]))
+        self.assertEqual(28, len(evidence["pairwise_heatmaps"]))
+        self.assertTrue(
+            all("cells" in heatmap for heatmap in evidence["pairwise_heatmaps"].values())
+        )
         with self.assertRaises(ValueError):
             pipeline.build_surface_evidence(
                 [{"configuration_id": 0, "governing_score": 0.1}],

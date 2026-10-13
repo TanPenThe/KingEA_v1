@@ -1,0 +1,47 @@
+{
+  "kind": "PRE_TOOLING",
+  "build_id": "NATIVE_COST_MTM_20260905_04_RUNTIME",
+  "created_at": "2026-09-05T06:22:50.733Z",
+  "b2": "LOCKED",
+  "adopted_hashes": [
+    "CDFE801225C54C622A566CB125FE37B0759A3E47320D988571B796629CF984D9",
+    "909C23E3B14BB64A62BC371890B2FFFB1964D24FC24879971DB614FB078E92C6"
+  ],
+  "sources": [
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "size": 10991,
+      "sha256": "91CF038FC45AD520030946B0E9FDA0C19B5C89A3232BB60F34FEBD855C0B9CF5"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "size": 3561,
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779"
+    },
+    {
+      "path": "MQL5/Experts/KingEA/NativeCostConformance.mq5",
+      "size": 7094,
+      "sha256": "F8F56093527C344D275CBF7AAF101FB0FB0A8DA8C6C577C1426D1F1F25366502"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostContractTests.mqh",
+      "size": 7555,
+      "sha256": "9A693C258AFE091E651FD4E79701AAEF3DEBCC9F70D8524287157F53385D22A5"
+    },
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "size": 8730,
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "size": 72166,
+      "sha256": "1AE8A6BB77FA04CCE9D25CBC3BC96264B3CB63087B777092DD92653463BFB95C"
+    },
+    {
+      "path": "governance/evidence/stage14/GOVERNANCE_ADOPTION_NATIVE_COST_V2_BOUNDARY_MTM_V4_20260905.json",
+      "size": 1052,
+      "sha256": "3A2DE74C7E185891CD63FDB6335136C8C2B82AEA9B89DB4245C72F65F3F1FF4C"
+    }
+  ]
+}

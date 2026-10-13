@@ -1,0 +1,68 @@
+{
+  "kind": "OWNER_BUILD6140_CURRENT_HOST_ISOLATION_PATH_CLOSURE",
+  "recorded_utc": "2026-09-13T10:26:54.319215+00:00",
+  "authority": "OWNER_DIRECTIVE_CURRENT_CONVERSATION_20260913",
+  "BUILD6140_CURRENT_HOST_ISOLATION_PATH": "CLOSED_BLOCKED",
+  "reason": "ISOLATED_WINDOWS_RUNTIME_UNAVAILABLE",
+  "retained_build6140_installation": "PROVENANCE_EVIDENCE_ONLY",
+  "prohibited_current_host_actions": [
+    "delete or modify LiveUpdate state",
+    "kill or block update processes as a launch technique",
+    "alter ACLs",
+    "patch terminal binaries",
+    "enable Hyper-V or Sandbox within conformance",
+    "change BIOS or UEFI virtualization within conformance",
+    "implicitly install VirtualBox, VMware, QEMU or Docker",
+    "launch LONG again on current 6140 installation"
+  ],
+  "path_a": {
+    "status": "EXTERNALLY_PROVISIONED_ENVIRONMENT_REQUIRED",
+    "provisioning": "SEPARATE_INFRASTRUCTURE_ACTION",
+    "capability_review_requirements": [
+      "OS-level isolation",
+      "outbound networking disabled before first MT5 launch",
+      "no inherited 6182 LiveUpdate payload",
+      "terminal build 6140 and exact governed hash",
+      "MetaTester build 6140 and exact governed hash",
+      "retained conformance EX5 unchanged",
+      "sufficient cached tester/history/symbol data",
+      "zero-order probe starts Strategy Tester",
+      "no LiveUpdate handoff",
+      "pre/post executable hashes unchanged"
+    ],
+    "long_lineage": "ONLY_AFTER_INDEPENDENT_CAPABILITY_ACCEPTANCE"
+  },
+  "path_b": {
+    "name": "MT5_BUILD_6182_CONFORMANCE_TRANSITION_V1",
+    "status": "PROPOSED_SEPARATE_DESIGN_REVIEW_PATH",
+    "runtime_authorized": false,
+    "maintenance": "SEPARATE_MAINTENANCE_ACTION_REQUIRED",
+    "requirements": [
+      "retain 6140 historical provenance",
+      "explicitly capture 6182 environment",
+      "independently hash terminal/MetaTester/MetaEditor 6182",
+      "reverify server/symbol/account",
+      "compile accepted MQL source with governed 6182 compiler",
+      "capture new EX5",
+      "regenerate compile-time Layer A resources if required",
+      "fresh runtime profile",
+      "fresh Layer B",
+      "fresh SET/INI",
+      "static/Python/MQL regressions",
+      "tester-file resource equality",
+      "zero-order startup capability before separately authorized LONG"
+    ],
+    "automatic_identity_transfer": false,
+    "relabel_6140_evidence_as_6182": false
+  },
+  "Candidate001": "QUARANTINED",
+  "NATIVE_LONG_CONFORMANCE": "NOT_OBTAINED",
+  "SUCCESSOR_FREEZE": "NOT_AUTHORIZED",
+  "B2": "LOCKED",
+  "actions_this_record": [
+    "append-only governance recording"
+  ],
+  "runtime_launched": false,
+  "source_changes": false,
+  "environment_changes": false
+}

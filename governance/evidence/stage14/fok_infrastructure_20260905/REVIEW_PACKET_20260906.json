@@ -1,0 +1,76 @@
+{
+  "kind": "FOK_INFRASTRUCTURE_REVIEW_PACKET",
+  "date": "2026-09-06",
+  "status": "BOUNDED_CONFORMANCE_COMPLETE_REVIEW_PENDING",
+  "production_capacity": "NOT_READY",
+  "b2": "LOCKED",
+  "successor": "NOT_FROZEN",
+  "new_attempts": 0,
+  "artifacts": [
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\OWNER_CLOSURE_AND_SCOPE.json",
+      "sha256": "E0F04ECBFD487A00F4DE7883A56A7E1632B3CB95B68ACBA90067CFAB1E3368C0",
+      "size": 1453
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\PRE_TOOLING_26_FINAL_VERIFICATION.json",
+      "sha256": "409BA71178F37405A9FAD96560829EE340DF1DCF55A008DA2997165062BD011D",
+      "size": 3116
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\POST_TOOLING_26_FINAL_VERIFICATION.json",
+      "sha256": "DE683225A4380C5EBCC0D34470FDF062ECA6AA472B0A76CD656ECC9C62032F3F",
+      "size": 4385
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\PYTHON_REGRESSIONS_20260906.log",
+      "sha256": "5F8003494398D4373FA9BFCC3FBBCDDCE96F3E4CDBAF5F31901B7C475ED0A6DF",
+      "size": 41642
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\POLICY_REGRESSIONS_20260906.json",
+      "sha256": "43BE00B6CE2EE6A573F94E4E1CF86560E813BB5C765257FCB5DDDD3329D92BE4",
+      "size": 4830
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\FINAL_CONTROLS_20260906.json",
+      "sha256": "ECE8EA8F8B541EBB50ED75A5DA251EE886D03A80BA5BBC205B8F51A1DAFFD9D1",
+      "size": 278
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\REVIEW_CHECKPOINT_20260906.md",
+      "sha256": "B42F684F268FE68166156327BF1BB870D43136A6B702155F92F63D3C123DCDF7",
+      "size": 7961
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\SEALED_09\\SEALED_VERIFICATION.json",
+      "sha256": "363D48EE40CEEB5B743370595D5FB26151DF47CB7541ACAE65AAE3B17C707780",
+      "size": 554
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\CAPACITY_09\\CAPACITY_RESULT.json",
+      "sha256": "2ADDC4AE57A443F93E808AC7B909537AE97BCBE5890A470FBBE22061CE7DAA44",
+      "size": 1164
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-09-FINAL\\SEALED_INVENTORY.json",
+      "sha256": "F0B33779504D3C194822D47B0084E83C3980011EF47CF74DA307532CA65DEDAE",
+      "size": 8037
+    },
+    {
+      "path": "governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-PRODUCTION-COMPILE-03\\BUILD_BINDING.json",
+      "sha256": "4A025141B45157D8682E4C12666CADEECA0F0DA3B6962B9737C14D3DE468E53A",
+      "size": 1155
+    }
+  ],
+  "adopted_governance": [
+    {
+      "path": "governance/review/DRAFT_CURRENT_RUN_NATIVE_EXECUTION_ACCOUNTING_METADATA_ONLY_AMENDMENT_V2_20260905.md",
+      "sha256": "CDFE801225C54C622A566CB125FE37B0759A3E47320D988571B796629CF984D9"
+    },
+    {
+      "path": "governance/review/DRAFT_EVALUATION_BOUNDARY_MARK_TO_MARKET_FINALIZATION_AMENDMENT_V4_20260905.md",
+      "sha256": "909C23E3B14BB64A62BC371890B2FFFB1964D24FC24879971DB614FB078E92C6"
+    }
+  ]
+}

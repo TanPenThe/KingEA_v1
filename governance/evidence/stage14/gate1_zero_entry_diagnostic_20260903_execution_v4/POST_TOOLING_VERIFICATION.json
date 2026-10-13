@@ -1,0 +1,7 @@
+{
+  "kind": "POST_TOOLING_SOURCE_VERIFICATION",
+  "pre_tooling_manifest": "PRE_TOOLING_ZERO_ENTRY_DIAGNOSTIC_20260903_EXECUTION_V6.json",
+  "pre_post_hash_equality": true,
+  "schema": 1,
+  "status": "PASS"
+}

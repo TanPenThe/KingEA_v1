@@ -1,0 +1,39 @@
+{
+  "kind": "CONFORMANCE_TESTER_FILE_PRECOMPILE_BINDING_V1",
+  "created_utc": "2026-09-09T15:43:08.8677420Z",
+  "terminal_root": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075",
+  "resources": [
+    {
+      "fixture_id": "NCV1-LONG-NORMAL-001",
+      "terminal_data_path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\KingEA\\conformance\\NCV1-LONG-NORMAL-001\\manifest.json",
+      "exists": true,
+      "byte_length": 1048,
+      "sha256": "972190C85F1AAB94C004222A6273C5F7D95967380EE916FA44BC2D3A645C405A",
+      "expected_governed_manifest_path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\v3_current_runtime_packages_v2\\NCV1-LONG-NORMAL-001\\manifest.json",
+      "expected_governed_manifest_sha256": "972190C85F1AAB94C004222A6273C5F7D95967380EE916FA44BC2D3A645C405A",
+      "actual_bytes_equal_governed_bytes": true
+    },
+    {
+      "fixture_id": "NCV1-SHORT-NORMAL-001",
+      "terminal_data_path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\KingEA\\conformance\\NCV1-SHORT-NORMAL-001\\manifest.json",
+      "exists": true,
+      "byte_length": 1052,
+      "sha256": "0A389E746D051A899554905FD4090CA565F4466B02BA8E1129DAC789AAD39A00",
+      "expected_governed_manifest_path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\final_runtime_packages\\NCV1-SHORT-NORMAL-001\\manifest.json",
+      "expected_governed_manifest_sha256": "0A389E746D051A899554905FD4090CA565F4466B02BA8E1129DAC789AAD39A00",
+      "actual_bytes_equal_governed_bytes": true
+    },
+    {
+      "fixture_id": "NCV1-LONG-BOUNDARY-001",
+      "terminal_data_path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\KingEA\\conformance\\NCV1-LONG-BOUNDARY-001\\manifest.json",
+      "exists": true,
+      "byte_length": 1046,
+      "sha256": "4B641C248B920696EDBAB9AA997EC3EFE39A72A2CF98BAFE363380CC3A12B81C",
+      "expected_governed_manifest_path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\final_runtime_packages\\NCV1-LONG-BOUNDARY-001\\manifest.json",
+      "expected_governed_manifest_sha256": "4B641C248B920696EDBAB9AA997EC3EFE39A72A2CF98BAFE363380CC3A12B81C",
+      "actual_bytes_equal_governed_bytes": true
+    }
+  ],
+  "status": "PASS",
+  "b2": "LOCKED"
+}

@@ -1,0 +1,10 @@
+{
+  "at": "2026-08-09T04:05:38.668519+00:00",
+  "candidate_budget_consumed": 1,
+  "candidate_id": "CAND-ETH-ST-001",
+  "first_run_id": "G1-0000",
+  "root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+  "schema": 1,
+  "status": "RUNNING",
+  "transition_trigger": "ALREADY_CONSUMED_REPLACEMENT_AFTER_INFRASTRUCTURE_INVALIDATION"
+}

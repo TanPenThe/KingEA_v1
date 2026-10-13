@@ -1,0 +1,42 @@
+[
+  {
+    "path": "C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\GuardedResearchTester.mq5",
+    "byte_length": 85668,
+    "sha256": "89AC0D170665A0DE4C16D5D20A50C2B0BFD01ABF0660FB44FB13EF8A89911EDF"
+  },
+  {
+    "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\GuardedNativeCostIntegration.mqh",
+    "byte_length": 29507,
+    "sha256": "679984A59366245AF949BCE724ED0F18B86E73308B7BA4247C3D0BF38A757AC9"
+  },
+  {
+    "path": "C:\\KingEA_v1\\research_pipeline\\native_conformance_control.py",
+    "byte_length": 31796,
+    "sha256": "B1A11808E16E7F5C9A588C59E130885F5C01B0D6868089E91D8F8F3CCC326439"
+  },
+  {
+    "path": "C:\\KingEA_v1\\research_pipeline\\decision_a_evidence.py",
+    "byte_length": 70013,
+    "sha256": "AEF6A036042427278EBFEDC4EBC60ADF3B8BCD43D1653BB688B8DF83E572FFDE"
+  },
+  {
+    "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\CandidateEthSt001.mqh",
+    "byte_length": 6588,
+    "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83"
+  },
+  {
+    "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\AccountingEvents.mqh",
+    "byte_length": 8730,
+    "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+  },
+  {
+    "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\SafetyKernel.mqh",
+    "byte_length": 36521,
+    "sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767"
+  },
+  {
+    "path": "C:\\KingEA_v1\\accounting_pipeline\\stage13.py",
+    "byte_length": 31867,
+    "sha256": "3C21FB0DD728DDBB92FC10E6AB6B01988813A97792D1AE82D01689E6F0A91640"
+  }
+]

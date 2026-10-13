@@ -1,0 +1,11 @@
+{
+  "batch_id": "BATCH-0106-0107",
+  "completed_at": "2026-08-20T09:32:11.907112+00:00",
+  "elapsed_seconds": 13271.890999999829,
+  "run_ids": [
+    "G1-0106",
+    "G1-0107"
+  ],
+  "schema": 1,
+  "status": "COMPLETE"
+}

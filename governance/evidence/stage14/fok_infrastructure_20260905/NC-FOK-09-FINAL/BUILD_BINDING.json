@@ -1,0 +1,21 @@
+{
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-09-FINAL\\build\\MQL5\\Experts\\KingEA\\FOKInfrastructureConformance.mq5",
+    "/include:C:\\KingEA_v1\\governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-09-FINAL\\build\\MQL5",
+    "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-09-FINAL\\compile.log"
+  ],
+  "compiler": {
+    "build": 6140,
+    "file_version": "5.0.0.6140",
+    "path": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7"
+  },
+  "ended": "2026-09-05T14:53:23.390956+00:00",
+  "log_sha256": "ECBA42D0048E8C00369E67D82BFBEBF7C9868D9F5F5017F33E9EFEE9919410F6",
+  "preexisting_ex5": false,
+  "produced_ex5_sha256": "393105A4A1C7F75CBEFCA31670DA5C50415CB8E78A05A5B10EFEB3CDE46FA7DB",
+  "return_code": 1,
+  "source_manifest_sha256": "C1DC001B30A74C5ECAC3C949E78CF29F2D1C5C211910A68C0BA43EB96FC5C93C",
+  "started": "2026-09-05T14:53:20.922461+00:00"
+}

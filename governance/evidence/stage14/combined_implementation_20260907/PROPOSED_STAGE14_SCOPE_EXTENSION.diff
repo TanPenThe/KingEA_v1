@@ -1,0 +1,35 @@
+--- a/research_pipeline/stage14.py
++++ b/research_pipeline/stage14.py
+@@ -487,7 +487,8 @@
+     def render_bundle(
+         self, manifest: Mapping[str, Any], authorization: Mapping[str, Any]
+     ) -> dict[str, str]:
+-        validate(self._control_context, manifest, 'rendering', authorization)
++        expected = validate(self._control_context, manifest, 'rendering', authorization)
++        inputs = self._control_context.capture_render_inputs(expected, manifest)
+         decision = self.authorize(manifest, authorization)
+         if not decision["allowed"]:
+             raise Stage14Error(str(decision["reason"]))
+@@ -500,9 +501,9 @@
+         ).hexdigest().upper()
+         set_lines = [
+             "; Generated exclusively from an authorized Stage 14 child manifest.",
+-            f"InpRunManifest=KingEA\\runs\\{manifest['manifest_sha256']}.json",
++            f"InpRunManifest={inputs['manifest'].path}",
+             f"InpManifestSha256={manifest['manifest_sha256']}",
+-            "InpManifestFileSha256=SET_AT_EXECUTION",
++            f"InpManifestFileSha256={inputs['manifest'].sha256}",
+             f"InpDetachedAuthorizationToken={token}",
+             f"InpRootSha256={manifest['root_sha256']}",
+             f"InpGate={manifest['gate']}",
+@@ -531,8 +532,8 @@
+             f"InpCalendarSha256={manifest['artifact_hashes']['calendar']}",
+             f"InpCostManifestSha256={manifest['artifact_hashes']['cost']}",
+             f"InpResearchSpecificationSha256={manifest['artifact_hashes']['research_specification']}",
+-            f"InpCalendarIntervalsFile={manifest['operational_facts']['calendar_intervals_file']}",
+-            f"InpCalendarFileSha256={manifest['operational_facts']['calendar_file_sha256']}",
++            f"InpCalendarIntervalsFile={inputs['calendar'].path}",
++            f"InpCalendarFileSha256={inputs['calendar'].sha256}",
+             f"InpCommissionPerLotRoundTurn={manifest['operational_facts']['commission_per_lot_round_turn']}",
+             f"InpSwapPerLotStress={manifest['operational_facts']['swap_per_lot_stress']}",
+             f"InpWeekendRiskMultiplier={manifest['operational_facts']['weekend_risk_multiplier']}",

@@ -1,0 +1,15 @@
+{
+  "branch": "RECORDED",
+  "candidate_budget_increment": 0,
+  "configuration_id": 7168,
+  "diagnostic_root_sha256": "B17EA4E5AA3A6D823B522252D5997F63BC8C0A6CD620C0DDDBA26851E194185D",
+  "evidence_eligible": false,
+  "holdout_authorized": false,
+  "kind": "GATE1_ZERO_ENTRY_DIAGNOSTIC_INFRASTRUCTURE_INVALIDATION",
+  "native_order_authorized": false,
+  "oos_authorized": false,
+  "reason": "PRE_TOOLING_SOURCE_MISMATCH_AFTER_COMPATIBILITY_REPAIR",
+  "result_frames_observed": 0,
+  "status": "INVALIDATED_PRESERVED_NOT_DIAGNOSTIC_ELIGIBLE",
+  "terminal_pid": 11064
+}

@@ -1,0 +1,51 @@
+--- a/MQL5/Include/KingEA/DecisionALifecycle.mqh
++++ b/MQL5/Include/KingEA/DecisionALifecycle.mqh
+@@ -33,6 +33,7 @@
+  for(int i=0;i<64;i++)applied[i]=false;}
+  void Invalidate(string why){if(!invalid)failure=why;invalid=true;if(exposure!=DA_FLAT)exposure=DA_QUARANTINED;}
+  bool Begin(string g,string sym,int direction,double volume,double stop,double equity,double risk,int precision,long end){
++ if(started && (invalid||!projected))return false;
+  Reset();if(g==""||sym==""||volume<=0||stop<=0||equity<=0||risk<=0||precision<0||precision>8||(direction!=1&&direction!=-1)||!MathIsValidNumber(volume)||!MathIsValidNumber(stop)||!MathIsValidNumber(equity)||!MathIsValidNumber(risk))return false;
+  group=g;symbol=sym;side=direction;v0=volume;s0=NormalizeDouble(stop,precision);e0=equity;r0=risk;digits=precision;end_msc=end;started=true;return true;}
+  bool Prepare(DAIntent what,double volume){
+@@ -97,6 +98,22 @@
+  if(applied[index]){Invalidate("DUPLICATE_COMPONENT_APPLICATION");return false;}
+  gross+=d.profit;commission+=d.commission;fee+=d.fee;swap+=d.swap;applied[index]=true;pending=false;return true;
+  }
++ // Non-booking operational truth includes authenticated unsupported/containment deals.
++ // Research acceptance remains independently invalid; no accepted aggregate is manufactured.
++ bool OperationalContribution(double &value){
++ value=0;
++ if(projected)return true;
++ if(!started||position==0||!residual.valid||pending)return false;
++ for(int i=0;i<count;i++){
++ DADeal d=facts[i];
++ if(!d.valid||d.reads!=65535||d.position!=position||d.symbol!=symbol||d.magic!=12001)return false;
++ if(d.entry==DEAL_ENTRY_IN){if(d.profit!=0||d.swap!=0)return false;value+=d.commission+d.fee;}
++ else if(d.entry==DEAL_ENTRY_OUT)value+=d.profit+d.commission+d.fee+d.swap;
++ else return false;
++ }
++ value+=residual.mark+residual.swap;
++ return MathIsValidNumber(value);
++ }
+  double Contribution(){return gross+commission+fee+swap+(residual.valid?residual.mark+residual.swap:0);}
+  bool Projection(bool boundary,KingEAAccountingEvent &event){
+  if(projected){Invalidate("SECOND_FINANCIAL_PROJECTION_ATTEMPT");return false;}
+--- a/MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5
++++ b/MQL5/Scripts/KingEA/TestCombinedLifecycle.mq5
+@@ -35,6 +35,7 @@
+  live.volume=0.5;live.mark=-2.5;live.time_msc=150;
+  Check(ledger.Capture(reduction)&&ledger.Reconcile(live,false),"reduction residual reconciliation");
+  Check(ledger.Contribution()==-8.75,"realized plus residual safety equity");
++ double operational=0;Check(ledger.OperationalContribution(operational)&&operational==-8.75,"non-booking operational components");
+  Check(!ledger.Prepare(DA_REDUCTION,0.25),"second reduction denied");
+  KingEAAccountingEvent boundary;ZeroMemory(boundary);
+  Check(ledger.Projection(true,boundary)&&boundary.gross_profit==-5,"uncommitted residual boundary oracle");
+@@ -47,6 +48,7 @@
+  Check(terminal.gross_profit==2.5&&terminal.commission==-3&&terminal.fee==-1.5&&terminal.net_r==-0.2,"fixed denominator signed oracle");
+  Check(ledger.Commit()&&!ledger.Commit(),"single terminal commit");
+  Check(!ledger.Projection(false,terminal)&&ledger.invalid,"second projection invalidates");
++ Check(!ledger.Begin("new group","ETHUSD.s",1,1,90,1000,10,2,300000),"invalidity cannot reset at new group");
+  DAObservationRing ring;ring.Reset();MqlTradeTransaction trans;MqlTradeResult result;
+  ZeroMemory(trans);ZeroMemory(result);trans.type=TRADE_TRANSACTION_POSITION;
+  for(int i=0;i<256;i++)Check(ring.Capture(trans,request,result),"bounded capture");

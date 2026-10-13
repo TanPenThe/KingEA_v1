@@ -1,0 +1,115 @@
+{
+  "b2": "LOCKED",
+  "files": [
+    {
+      "path": "AUTHORIZATION.json",
+      "sha256": "30FE6BD043D5A7A5AE0777211ECBD15D8ACE6715FA76EC1B32EB05782C0272E1",
+      "size": 384
+    },
+    {
+      "path": "build\\MQL5\\Experts\\KingEA\\IOCExecutionConformance.ex5",
+      "sha256": "8E47535E053AE5B16865A948D6CB5D47167692F977513BE538F257B32FBBA637",
+      "size": 36294
+    },
+    {
+      "path": "build\\MQL5\\Experts\\KingEA\\IOCExecutionConformance.mq5",
+      "sha256": "15C1CF69DCCBB52EA4782CC3A053C8053DC1027F415F4BDFE4945352711F73BD",
+      "size": 7134
+    },
+    {
+      "path": "build\\MQL5\\Include\\KingEA\\AccountingEvents.mqh",
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "size": 8730
+    },
+    {
+      "path": "BUILD_BINDING.json",
+      "sha256": "BC529AC0F27A1D59BC4D0B39B2CA317C072573EB6415CB1B42DFAFB6769C1753",
+      "size": 1091
+    },
+    {
+      "path": "compile.log",
+      "sha256": "A46C25E59A54D8595C56A571DA424D1C8CA604F73DBD39DC5D90597EA8D11D02",
+      "size": 3838
+    },
+    {
+      "path": "IOCExecutionConformance_NC-IOC-01.set",
+      "sha256": "A813D6F52675379B430F79363C757FEEDE29F465DD860BC342BA8DCDEF441311",
+      "size": 180
+    },
+    {
+      "path": "LAUNCH_RECEIPT.json",
+      "sha256": "83DFD3EDE8560DE0A71FB692DF0F7752C8E9D42686E423364FBA5B149326F363",
+      "size": 453
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "6084C1DB81C66681B0A8F839E65A3052197F6E5B0090C020E4256AAF9197D6B8",
+      "size": 1122
+    },
+    {
+      "path": "OWNER_SCOPE.json",
+      "sha256": "F590B27C4C95095E7C10DA0A2D8FFD2DCEFF3F2D3DA636278825FD7A0BABF093",
+      "size": 613
+    },
+    {
+      "path": "PRE_TOOLING.json",
+      "sha256": "D16CA9CCD3496C300B699BCC3590B0430208425B3FB4CE75B34E8FF20E9C5DB2",
+      "size": 615
+    },
+    {
+      "path": "PRODUCTION_REQUEST_REFERENCE.mq5",
+      "sha256": "CBA75170AFC37FE63F12642968B6515302CCF920A53A7CC3D3919B87AA07F4C1",
+      "size": 73395
+    },
+    {
+      "path": "runtime\\harness\\execution.json",
+      "sha256": "72A72D04030F1DF8F93BE65CD5FFBE34159987142EE371C6B24568A5B757F75F",
+      "size": 137
+    },
+    {
+      "path": "runtime\\harness\\order_check.json",
+      "sha256": "4FA5529AC0C3ACEF5BE2DFA5338FA5413F995B2BC952C91B28F6C3A1551001B1",
+      "size": 257
+    },
+    {
+      "path": "runtime\\harness\\request.json",
+      "sha256": "2C6A0CBCD3C9510C6D6D1C65EC3A97EA381680043B5AC659B6B1B898BB44923A",
+      "size": 413
+    },
+    {
+      "path": "runtime\\harness\\result.json",
+      "sha256": "2BF923CC5568EFE04C47D4CB9CE1CB41082592D4EA57BFD31EBC1A8BE544F73F",
+      "size": 220
+    },
+    {
+      "path": "runtime\\harness\\specification.json",
+      "sha256": "8B79C221878A1619E5BAA83EE8AF8C57FCC6C3407DB5A1C6FF0E71A7FBE87466",
+      "size": 885
+    },
+    {
+      "path": "runtime\\journal-0.log",
+      "sha256": "844A511C5A72E0FF724501845AD475F152B21E8970AA034609923BDD3F6BA34D",
+      "size": 16252
+    },
+    {
+      "path": "runtime\\journal-1.log",
+      "sha256": "B055C672BEF1EC4F4EC84DA33DF44A54475B0AC12DA985EB240648F0BD76D799",
+      "size": 48630
+    },
+    {
+      "path": "runtime\\journal-2.log",
+      "sha256": "BE2D3633AB3440DE577BC127CAAD5910146F0C9C1313EF68BB4B179BAE283985",
+      "size": 43930
+    },
+    {
+      "path": "RUNTIME_RECEIPT.json",
+      "sha256": "C1D4D849E08070AFBE7DF1BDE655BB0337DE6B87ED34674696F39860E52677B2",
+      "size": 1293
+    },
+    {
+      "path": "tester.ini",
+      "sha256": "98E4A56BFAB1797B869AF487802448803345A076D245AFA6731370E0A2A35B03",
+      "size": 300
+    }
+  ]
+}

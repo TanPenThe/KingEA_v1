@@ -1,0 +1,23 @@
+{
+  "phase": "PRE_NON_RUNTIME_VERIFICATION",
+  "observed_utc": "2026-09-06T08:19:30.240673+00:00",
+  "sources": [
+    {
+      "path": "research_pipeline/stage14.py",
+      "sha256": "318065DD7B5D9768FFCB28C4126AFAB0BFA9F5A8BC8B7CB7700E5992E006EBAD"
+    },
+    {
+      "path": "research_pipeline/gate1_finalization.py",
+      "sha256": "9E962499029A989B424035EF3AC81D6A2FAD13564EF2E3D495E32DB8DFD0F07E"
+    },
+    {
+      "path": "research_pipeline/successor_evidence.py",
+      "sha256": "C046FC17A3229215314E8C2EC8AC1C900C95FFEA7DE5CD14FB358C7DB4B4730F"
+    },
+    {
+      "path": "tests/test_successor_evidence.py",
+      "sha256": "10646055664E5D2A204589A8B5DD570DE0D34AEF30DC84FDFC2CE450C9A69D9A"
+    }
+  ],
+  "b2": "LOCKED"
+}

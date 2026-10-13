@@ -1,0 +1,31 @@
+{
+  "kind": "ADOPTION_RECORDING_PACKET",
+  "source_files_unchanged": 168,
+  "source_mismatches": 0,
+  "source_changes": 0,
+  "mt5_runs": 0,
+  "final_pre_tooling_captured": false,
+  "artifacts": [
+    {
+      "path": "ADOPTION_RECORD.json",
+      "sha256": "9929360DF2CB659D8A3F1E908113DB3CC6CA9AEC5FDF2AB3E08B62FB8C0CB3C5"
+    },
+    {
+      "path": "CONSOLIDATED_CONTRACT.md",
+      "sha256": "335148375AF80997CCEFF73F883F358EDCB1876419F328D071C7F3E94331EFAF"
+    },
+    {
+      "path": "IMPLEMENTATION_HANDOFF.md",
+      "sha256": "0D133BCD0D61B82567B6A35174862AD76950699F3E63A50BA2C41FD7D3E72567"
+    },
+    {
+      "path": "OWNER_DECISION.txt",
+      "sha256": "270EAE24A8FB500D7B806A418C4A45A29D50CB1A949C91A5ACE4BD144D7D3FD0"
+    },
+    {
+      "path": "RECORDING_BASELINE.json",
+      "sha256": "9FDFFE5AAC21B80BE39136B3B117605281FA83E5CFC2FF43F3EA37ED2F66AC1D"
+    }
+  ],
+  "b2": "LOCKED"
+}

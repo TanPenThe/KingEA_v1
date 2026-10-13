@@ -1,0 +1,12 @@
+{
+  "child_sha256": "39FA044BA26B73C2028CDBB53C97F22D0200980983DA3F23CB0B55659E0D0C66",
+  "derived_from_owner_statement": "I explicitly approve replacement Gate 1 root 04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795 for exhaustive development execution after infrastructure invalidation of the prior root.",
+  "gate": 1,
+  "holdout_authorized": false,
+  "kind": "GATE1_DETACHED_CHILD_AUTHORIZATION",
+  "oos_authorized": false,
+  "owner_approved": true,
+  "root_sha256": "04AB5A4F1F2E078ACAEE0370ED23F22FB3C4FF872309231F69A2BFD5FF8BA795",
+  "run_id": "G1-0092",
+  "schema": 1
+}

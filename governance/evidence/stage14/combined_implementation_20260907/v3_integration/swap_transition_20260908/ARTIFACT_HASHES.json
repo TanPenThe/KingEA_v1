@@ -1,0 +1,88 @@
+{
+  "artifacts": [
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\build_review_packet.py",
+      "size": 5224,
+      "sha256": "4632E211C2B788A55A588D25259B6EA873D45A72F49CABC146C59098BA7D93B6"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\COMPILE_PROVENANCE.json",
+      "size": 11583,
+      "sha256": "D20DA16C9F13E3102A3E7B62910AF3F960861BBD8DD58ECD614FC23595A9CA7F"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\COMPLETE_IMPLEMENTATION.diff",
+      "size": 653275,
+      "sha256": "1682F920B87BB228080E9AC93107DBDFBB22510C916EA9DF777A21013C77FFDE"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\FINAL_PRE_TOOLING.json",
+      "size": 46590,
+      "sha256": "78958D9BE5EA2CE59251CE73DB3DB440DDF73535E5B6433EA5DD359BD93B8B5B"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\OWNER_DECISION.txt",
+      "size": 7851,
+      "sha256": "BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\POST_TOOLING.json",
+      "size": 136504,
+      "sha256": "2C12D5841BEEF6237F84622BF698F0AB2C6773EA840F3EE9567A8C4E87FDE590"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\python_intermediate.log",
+      "size": 46551,
+      "sha256": "D3E9A76A6403EB29108996266569160A3799BD7B9B3143BAFA5405AB2D37C466"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\PYTHON_SUITE_FINAL.log",
+      "size": 90982,
+      "sha256": "214B3D0212FD8EC628FADAA28E8FE14C353AB0B92B2222E6B61441AB1C74D311"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\PYTHON_SUITE_RELEASE.log",
+      "size": 91252,
+      "sha256": "8E75092B0110EB81489CB46026743509526C7106B0D9EF021D5DCCF5FCE2B44E"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\python_suite_v2.log",
+      "size": 90223,
+      "sha256": "F0A14AA3368D0D821471730F6638A2D36FCA0FEB59ECAE9A758A10235439A49D"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\REVIEW.md",
+      "size": 10383,
+      "sha256": "010B469A6A760FCAD221C9B4789B1C8E05DEF963090681C73F181B05E82D8D28"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\SWAP_TRANSITION_CONTINUATION.diff",
+      "size": 122023,
+      "sha256": "089C9EFDCB36FEF5E835B0C295E24B3FC0002DF6208AC089C10E4995B6F2DA09"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\TEST_MAPPING.md",
+      "size": 10370,
+      "sha256": "41C5E0E7DECB4FC8EAD54E14D1083EA44C932758B03EC92D1E80BFF8BFEB0436"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\TEST_RESULTS.json",
+      "size": 61066,
+      "sha256": "BD7535579866EDB9E7B0EFE6C02526B4CB0AC7BD193CF9EE0D9CE7862E82EE35"
+    }
+  ],
+  "adopted_references": [
+    {
+      "path": "C:\\KingEA_v1\\governance\\review\\combined_adoption_20260907\\CONSOLIDATED_CONTRACT.md",
+      "sha256": "335148375AF80997CCEFF73F883F358EDCB1876419F328D071C7F3E94331EFAF"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\inventory_binding_blocker\\PROPOSED_AMENDMENT.md",
+      "sha256": "42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\combined_implementation_20260907\\v3_integration\\swap_transition_20260908\\OWNER_DECISION.txt",
+      "sha256": "BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772"
+    }
+  ]
+}

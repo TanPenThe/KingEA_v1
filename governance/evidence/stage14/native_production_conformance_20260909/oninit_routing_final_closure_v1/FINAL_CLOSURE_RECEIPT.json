@@ -1,0 +1,99 @@
+{
+  "kind": "CONFORMANCE_ONINIT_ROUTING_FINAL_CLOSURE_V1",
+  "status": "IMPLEMENTATION_PENDING_INDEPENDENT_REVIEW",
+  "created_utc": "2026-09-09T15:46:24.9592205Z",
+  "binding": {
+    "method": "ResearchConformanceAuthorizationValidate calls existing ResearchConformanceValid exact-constant validator after captured manifest hash validation",
+    "inventory_protocol_sha256": "42E9BAA5FE03DBE0416BBFFA22B0FDA8820AF51E9E16A4F3C67240D01536A7F6",
+    "swap_transition_rule_sha256": "BEE9D303C1FBC804C9F0993685B8CBD2B9FCF43F226CD7BFBA5D73C972C9E772",
+    "production_source_change_in_this_closure": false
+  },
+  "verification": {
+    "targeted_tests": "9 PASS",
+    "python_full_suite": "349 PASS",
+    "metaeditor": "0 errors, 0 warnings",
+    "tester_file_precompile": "PASS",
+    "tester_file_postcompile": "PASS",
+    "powershell_regression": "NOT CLAIMED FULL PASS",
+    "known_unrelated": "KNOWN_UNRELATED_PREEXISTING_PROVENANCE_ASSERTION"
+  },
+  "files": [
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\GuardedResearchTester.mq5",
+      "byte_length": 85698,
+      "sha256": "D6BE60CE82BD1354C2162820B8E912B2C680867645B21AE5B88280EFA2C4EDCA"
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\GuardedNativeCostIntegration.mqh",
+      "byte_length": 28133,
+      "sha256": "5181E4D65DEAD8C7561E210BED48C9CF1E815E7579AA5624609D93C870B595F0"
+    },
+    {
+      "path": "C:\\KingEA_v1\\tests\\test_conformance_production_control_flow.py",
+      "byte_length": 7852,
+      "sha256": "5728266E456856396D244D38B2C0783A2F9BD9EEFE272A987B5620318FBD9515"
+    },
+    {
+      "path": "C:\\KingEA_v1\\research_pipeline\\native_conformance_control.py",
+      "byte_length": 25764,
+      "sha256": "48066FD4595BA0B7D6457E270BF3DAD61593AD0A1200451BF8E695B2F5C7327C"
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\CandidateEthSt001.mqh",
+      "byte_length": 6588,
+      "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83"
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\AccountingEvents.mqh",
+      "byte_length": 8730,
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+    },
+    {
+      "path": "C:\\KingEA_v1\\MQL5\\Include\\KingEA\\SafetyKernel.mqh",
+      "byte_length": 36521,
+      "sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767"
+    },
+    {
+      "path": "C:\\KingEA_v1\\accounting_pipeline\\stage13.py",
+      "byte_length": 31867,
+      "sha256": "3C21FB0DD728DDBB92FC10E6AB6B01988813A97792D1AE82D01689E6F0A91640"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_routing_final_closure_v1\\COMPILE_PROVENANCE.json",
+      "byte_length": 1380,
+      "sha256": "49658B3173DFFD4AF6D4C040DACFD895275B06F614B05402F30664AACAB05171"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_routing_final_closure_v1\\CONFORMANCE_TESTER_FILE_POSTCOMPILE_EQUALITY_V1.json",
+      "byte_length": 1651,
+      "sha256": "3B23A65E5B9A5C0EBF08AEADA7D7FEF9313FED242AFCF9BFC10E1003DBD5EBC4"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_routing_final_closure_v1\\CONFORMANCE_TESTER_FILE_PRECOMPILE_BINDING_V1.json",
+      "byte_length": 2535,
+      "sha256": "ABCB9DBD1A22D2DA6200C747C9FAC8176B610DE1C67AAF4178A50877EB8E38AA"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_routing_final_closure_v1\\GuardedResearchTester_final_closure_compile.log",
+      "byte_length": 10648,
+      "sha256": "CF1079DDD7EF7D03503A5B43F83419E4FA0D8E812AD6841EDCC7B9B05F202D8A"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_routing_final_closure_v1\\python_full_suite.log",
+      "byte_length": 41832,
+      "sha256": "12C10DD49D3AD954D0F0393BC30F46214B4935938B5612E1BDADE34FA9838C99"
+    },
+    {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260909\\oninit_routing_final_closure_v1\\targeted_conformance_tests.log",
+      "byte_length": 112,
+      "sha256": "B7A68E9BE67C1F40E433FB8AC6355FC8D00ED8CA30FE7BA1B7A47E442465B46D"
+    }
+  ],
+  "runtime": "NOT_LAUNCHED",
+  "long_v3_historical": "BLOCKED_CONFORMANCE_ONINIT_AUTHORITY_ROUTING",
+  "native_set_input_consumption_proof": "PASS",
+  "b2": "LOCKED",
+  "successor_freeze": "NOT_AUTHORIZED"
+}

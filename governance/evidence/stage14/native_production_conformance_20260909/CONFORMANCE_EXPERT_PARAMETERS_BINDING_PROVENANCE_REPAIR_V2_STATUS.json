@@ -1,0 +1,35 @@
+{
+  "kind": "CONFORMANCE_EXPERT_PARAMETERS_BINDING_PROVENANCE_REPAIR_V2_STATUS",
+  "runtime": "NOT_LAUNCHED",
+  "B2": "LOCKED",
+  "successor_freeze": "NOT_AUTHORIZED",
+  "prior_receipt": {
+    "path": "PRE_TOOLING_EXPERT_PARAMETERS_DISCOVERY_BINDING_V1.json",
+    "classification": "POST_EDIT_STATE_MISNAMED_PRE_TOOLING",
+    "not_rewritten": true
+  },
+  "authentic_pre_edit_source": {
+    "classification": "AUTHENTIC_PRE_EDIT_SOURCE_RECOVERED_FROM_PRIOR_CONVERSATION_ATTACHMENT",
+    "sha256": "E12B13873AB7C8E52EBE308923CE7A4C3A9A3B3F8E378872D09007B42F05D2D8",
+    "raw_bytes_materialized_in_workspace": false
+  },
+  "reconstruction": {
+    "RECONSTRUCTED_AFTER_EDIT": true,
+    "status": "NONAUTHORITATIVE_MECHANICAL_ATTEMPT_SUPERSEDED",
+    "mechanical_reverse_candidate_sha256": "205DA68AD1AC6C8CDAD8ABADA701A20D2FDAE46913687712910D9C34F88189F9",
+    "candidate_matches_required_source": false,
+    "searched": [
+      "workspace governance evidence",
+      "Codex temporary retained files",
+      "reachable and unreachable Git blob objects"
+    ],
+    "test_file_exact_prior_bytes": "UNAVAILABLE_RETAINED_STATE_LIMITATION"
+  },
+  "current_source_sha256": "1B79F475E973AF2E0F04BEDEBC30C2293740D7637445595AA04CD65E0AD69C4D",
+  "current_test_sha256": "F65560662B86975CAECB6FCD89CD0884C4BE80B43AB8D010CB8A80EE727A6E87",
+  "full_python_suite": {
+    "count": 343,
+    "status": "PASS",
+    "log": "%TEMP%\\kingea_full_python_provenance_v2.log"
+  }
+}

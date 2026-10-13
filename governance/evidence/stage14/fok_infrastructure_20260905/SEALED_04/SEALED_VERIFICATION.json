@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "run_id": "NC-FOK-04-FINAL",
+  "fok_full_fill": true,
+  "sealed_only": true,
+  "artifacts": 43,
+  "boundary_finalization_count": 1,
+  "candidate_exit_count": 0,
+  "cost_package_sha256": "29948C930E53B6A32363689259B95765CCCE3019761DFAE7907C5C0D7FC5D3CA",
+  "seal_sha256": "7405E945387E92920A21D815762736BFA774B7EE0D5E72FFE42EDDCC37E42EC5",
+  "b2": "LOCKED",
+  "archive_sha256": "F1CB02130AB6821E77567F7CABE3727EB777C647CAB563F1AA885BED58EA3A9F",
+  "archive_bytes": 138636
+}

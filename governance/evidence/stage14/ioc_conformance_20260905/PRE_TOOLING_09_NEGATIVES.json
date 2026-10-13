@@ -1,0 +1,37 @@
+{
+  "phase": "PRE_TOOLING",
+  "build_id": "09_NEGATIVES",
+  "b2": "LOCKED",
+  "source": [
+    {
+      "path": "tests/test_ioc_conformance.py",
+      "size": 5075,
+      "sha256": "B0C12327F8AFD39FA3477F40F6BAF174E87E6300CE9FE077B79AAB4BE6AD6872"
+    },
+    {
+      "path": "research_pipeline/ioc_conformance.py",
+      "size": 7217,
+      "sha256": "6AADA45A2ED719A2CF3EF28DF506EF88CC89D588F1608FFF4E6EB2E288CA07C7"
+    },
+    {
+      "path": "research_pipeline/native_cost_conformance_run.py",
+      "size": 9418,
+      "sha256": "7ED570B4EB54987AA6325D0DB227B32E41CE54EC735E50A3A162FF9696D8D081"
+    },
+    {
+      "path": "MQL5/Experts/KingEA/IOCExecutionConformance.mq5",
+      "size": 7134,
+      "sha256": "15C1CF69DCCBB52EA4782CC3A053C8053DC1027F415F4BDFE4945352711F73BD"
+    },
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "size": 8730,
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "size": 73395,
+      "sha256": "CBA75170AFC37FE63F12642968B6515302CCF920A53A7CC3D3919B87AA07F4C1"
+    }
+  ]
+}

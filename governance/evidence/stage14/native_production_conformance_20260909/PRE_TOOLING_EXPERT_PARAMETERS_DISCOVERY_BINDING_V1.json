@@ -1,0 +1,34 @@
+{
+  "kind": "PRE_TOOLING_CONFORMANCE_EXPERT_PARAMETERS_DISCOVERY_BINDING_V1",
+  "source_scope": [
+    "research_pipeline/native_conformance_control.py"
+  ],
+  "test_scope": [
+    "tests/test_native_conformance_control.py"
+  ],
+  "files": [
+    {
+      "path": "research_pipeline/native_conformance_control.py",
+      "sha256": "0E62C601066E93F69061F0C66B8CC7449BA0578B286F498C4DDF119FFD20088F",
+      "bytes": 20571
+    },
+    {
+      "path": "tests/test_native_conformance_control.py",
+      "sha256": "D7F392DEBE6FFD699B733B6AB8586ABF96DA5241B961B59D37C1BA560CAB5BA5",
+      "bytes": 17454
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "sha256": "1CA356757CDC0CEC4985B7CA077A589F4C6DBBCCD0C6239725B436F08CA5707C",
+      "bytes": 82123
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.ex5",
+      "sha256": "7DA7EEFDBD80A82572E48E7FDA71FB17F9893B2A4D0082EEC086EC5B47A2B63B",
+      "bytes": 170292
+    }
+  ],
+  "runtime": "NOT_LAUNCHED",
+  "B2": "LOCKED",
+  "successor_freeze": "NOT_AUTHORIZED"
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "test": "Test-CandidateEthSt001Contract.ps1",
+    "status": "PASS",
+    "output": "CANDIDATE_ETH_ST_001_CONTRACT_PASS: pure intent module; symmetric fresh breakouts; structural stops; time exits; no sizing or trading capability."
+  },
+  {
+    "test": "Test-Gate1ZeroEntryDiagnosticPolicy.ps1",
+    "status": "PASS",
+    "output": "ZERO_ENTRY_DIAGNOSTIC_POLICY_PASS: immutable all-zero lineage, non-order funnel instrumentation, synthetic boundary tests, and isolated tester authorization are present."
+  },
+  {
+    "test": "Test-KillSwitchDrillPolicy.ps1",
+    "status": "PASS",
+    "output": "KILL_SWITCH_DRILL_POLICY_PASS: guarded read-only inventory, exact bounded evidence, no raw login, disabled watchdog, and no automated-order/performance capability."
+  },
+  {
+    "test": "Test-MarketContextPolicy.ps1",
+    "status": "PASS",
+    "output": "MARKET_CONTEXT_POLICY_PASS: pure deterministic regime/correlation modules, fail-closed boundaries, ETH-only registration, frozen-candidate immutability, and no trading/performance capability."
+  },
+  {
+    "test": "Test-MinuteBarDerivationPolicy.ps1",
+    "status": "PASS",
+    "output": "M1_DERIVATION_POLICY_PASS: exact fixture; bar metadata retains minimum positive spread; instrumentation and compile clean."
+  },
+  {
+    "test": "Test-OperationalSafetyPolicy.ps1",
+    "status": "PASS",
+    "output": "OPERATIONAL_SAFETY_POLICY_PASS: A/B persistence, broker reconciliation, configuration epochs, watchdog escalation, standdown race, and prohibitions verified."
+  },
+  {
+    "test": "Test-RSB2Policy.ps1",
+    "status": "PASS",
+    "output": "RSB3_POLICY_PASS: zero-spread mapping floor=0.98; exact crossed whitelist; CustomTicksReplace only; per-day count/field readback; unknown reversals blocked; deterministic persisted flags clear bit 128 only."
+  },
+  {
+    "test": "Test-RSB3ManifestGatePolicy.ps1",
+    "status": "PASS",
+    "output": "RSB3_MANIFEST_GATE_POLICY_PASS: full-population read-only scan; exact crossed whitelist; all-tick flag rule; pre-dataset warm-up; no trading or mutation APIs."
+  },
+  {
+    "test": "Test-RSB3MinuteBarBuilderPolicy.ps1",
+    "status": "PASS",
+    "output": "RSB3_M1_POLICY_PASS: full preflight before authorization; M1-only mutation; per-day M1/M30 and tick-fingerprint invariants; compile clean."
+  },
+  {
+    "test": "Test-SafetyKernelPolicy.ps1",
+    "status": "PASS",
+    "output": "SAFETY_KERNEL_POLICY_PASS: one pure interface; frozen risk/margin/recovery thresholds; internal HMR proxy; no trading, history, performance, or tick-flag capability."
+  },
+  {
+    "test": "Test-SleeveEthSt001Policy.ps1",
+    "status": "PASS",
+    "output": "SLEEVE_ETH_ST_001_POLICY_PASS: frozen Candidate 001 integration, exact grid, closed-bar indicators/progress, signal expiry, immutable artifacts, and no trading/performance capability."
+  },
+  {
+    "test": "Test-SpecificationMonitorPolicy.ps1",
+    "status": "PASS",
+    "output": "SPECIFICATION_MONITOR_POLICY_PASS: pure fail-closed monitor, calculator-only Demo2 adapter, proof-based tier handling, independent scheduled confirmation, and no trading/performance capability."
+  },
+  {
+    "test": "Test-Stage12ResearchPipelinePolicy.ps1",
+    "status": "PASS",
+    "output": "STAGE12_RESEARCH_PIPELINE_POLICY_PASS: guarded tester seam, immutable manifests, independent branches, complete stresses/surfaces, deterministic Monte Carlo, frozen hashes, and zero performance authorization."
+  },
+  {
+    "test": "Test-Stage13AccountingPolicy.ps1",
+    "status": "PASS",
+    "output": "STAGE13_ACCOUNTING_POLICY_PASS: immutable ledger, read-only reconciliation, cumulative escalation, governed recovery, health reporting, frozen hashes, and zero performance authorization."
+  },
+  {
+    "test": "Test-Stage14ResearchReadinessPolicy.ps1",
+    "status": "FAIL",
+    "reason": "STAGE14_RESEARCH_READINESS_POLICY_FAIL: date-gate source changed after PRE_TOOLING: C:/KingEA_v1/MQL5/Experts/KingEA/GuardedResearchTester.mq5"
+  },
+  {
+    "test": "Test-TesterSetFiles.ps1",
+    "status": "PASS",
+    "output": "TESTER_SET_PASS: all governed input sets match the EA and append-only UI run matrix."
+  },
+  {
+    "test": "Test-TesterTickReconciliationPolicy.ps1",
+    "status": "PASS",
+    "output": "TESTER_RECON_POLICY_PASS: tester-only; no trading/strategy APIs; exact count/order/field/flag replay invariants; compile clean."
+  },
+  {
+    "test": "Test-KingEAWatchdog.ps1",
+    "status": "PASS",
+    "output": "KINGEA_WATCHDOG_TEST_PASS: short/long counters, review epochs, standdown race, heartbeat integrity, and exact process identity."
+  },
+  {
+    "test": "Test-KillSwitchDrillEvidence.ps1",
+    "status": "PASS",
+    "output": "KILL_SWITCH_DRILL_TEST_PASS: bounded fixtures, ordering, standdown, mobile resolution, screenshot hashes, zero inventory, and prohibitions verified."
+  }
+]

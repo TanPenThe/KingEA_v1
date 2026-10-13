@@ -1,0 +1,41 @@
+{
+    "kind":  "PRE_TOOLING",
+    "build_id":  "KINGEA-GATE1-ZERO-ENTRY-FORENSICS-20260903-V1",
+    "sources":  [
+                    {
+                        "path":  "research_pipeline\\gate1_zero_entry_forensics.py",
+                        "size":  23645,
+                        "sha256":  "42BE9C1E297A88FDA79EA7C125C7FF9A00E7CC67A262642F759829002BE8A1FB"
+                    },
+                    {
+                        "path":  "research_pipeline\\gate1_zero_entry_forensics_cli.py",
+                        "size":  3188,
+                        "sha256":  "F65B8C97C79E42FDEAAC5816334F3D64D9222E38F2AF88C7BFF9AFB5D2BD257D"
+                    },
+                    {
+                        "path":  "operations\\Start-Gate1ZeroEntryForensicAudit.ps1",
+                        "size":  2010,
+                        "sha256":  "0474E7FD140626A9C9B6FC64D58B28BA8B82AF1CAD98D1B31D56593795804836"
+                    },
+                    {
+                        "path":  "operations\\Start-Gate1Stage13ForensicAudit.ps1",
+                        "size":  1875,
+                        "sha256":  "5F7D3EAF416F30F9F55786342F0D63C4A42992D269C1F1873B515DDFD6D1EF84"
+                    },
+                    {
+                        "path":  "operations\\New-Gate1ZeroEntryForensicsPreTooling.ps1",
+                        "size":  1813,
+                        "sha256":  "E3961BC7D4A2E37E67D130854D6F3521C40775D6D919DD97D306F6FBF17F403D"
+                    },
+                    {
+                        "path":  "tests\\test_gate1_zero_entry_forensics.py",
+                        "size":  13748,
+                        "sha256":  "F5D3660AF515C94CA18871CF5F1D5BF0866B4CE0A51B9873E8B585549CE74A71"
+                    }
+                ],
+    "dependencies":  {
+                         "zero_entry_anomaly":  "7BB71FFD6F3B50507CB92F282EAD4749520495C7E57ADF36C4E68DADC854CC20",
+                         "diagnostic_root":  "B17EA4E5AA3A6D823B522252D5997F63BC8C0A6CD620C0DDDBA26851E194185D"
+                     },
+    "manifest_sha256":  "b1eb365888f9d984dbee008604e97f06762199866bfff42b5b8076a3a6caeaf6"
+}

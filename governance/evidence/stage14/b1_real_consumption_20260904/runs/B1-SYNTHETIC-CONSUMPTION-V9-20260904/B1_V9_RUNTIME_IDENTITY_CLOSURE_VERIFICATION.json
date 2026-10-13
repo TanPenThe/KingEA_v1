@@ -1,0 +1,89 @@
+{
+  "actual_identity": {
+    "compiler": {
+      "build": 6140,
+      "path": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+      "version": "5.0.0.6140"
+    },
+    "terminal": {
+      "build": 6140,
+      "path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+      "version": "5.0.0.6140"
+    }
+  },
+  "bindings": {
+    "authorization_sha256": "D19331CD62E36EC9407E6007C053C1520C7FD32E264390D84B93FD5CBEDA48D1",
+    "packet_sha256": "38A0E1A359135DD37FC22B345466B6C6A13300FAA87209A00B76E4CF6F67FD0E",
+    "receipt_manifest_sha256": "99152C9DE2529983E6A20D0754974E8FDF57DC43B25D2C3336F72B46AAE78F6B",
+    "run_manifest_sha256": "99152C9DE2529983E6A20D0754974E8FDF57DC43B25D2C3336F72B46AAE78F6B",
+    "runtime_agent_ids": [
+      "local-terminal-tester:16108:in-process"
+    ],
+    "runtime_exit_code": 0,
+    "runtime_process_id": 16108,
+    "source_tree_sha256": "33D73FCE5B7F1655A303FC9195279D30F9CC079FD6FC57CED7786E5161F5FD39"
+  },
+  "compile_provenance": {
+    "accepted_ex5_sha256": "42F9398FEB1A0317314B68453ED4ABCD1863BF2E0A429150889F3F0AB0E6376E",
+    "command": [
+      "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+      "/compile:C:\\KingEA_v1\\MQL5\\Experts\\KingEA\\B1SyntheticNoOrder.mq5",
+      "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\b1_real_consumption_20260904\\runs\\B1-SYNTHETIC-CONSUMPTION-V9-20260904\\build\\B1SyntheticNoOrder.compile.log"
+    ],
+    "compile_log_sha256": "B49E215D69A88630D5DF9738E681661D6B5ABE3133C918CB5BD73FBBFDBBADA0",
+    "ended_at": "2026-09-04T04:49:53.789786+00:00",
+    "ex5_preexisting": false,
+    "produced_ex5_sha256": "42F9398FEB1A0317314B68453ED4ABCD1863BF2E0A429150889F3F0AB0E6376E",
+    "proof": "prior workspace EX5 was removed before compile; compile log reports zero errors/warnings; output EX5 hash equals accepted EX5 hash",
+    "return_code": 1,
+    "started_at": "2026-09-04T04:49:52.885983+00:00"
+  },
+  "controls": {
+    "b2": "LOCKED",
+    "candidate_budget_consumption": 0,
+    "candidate_execution": false,
+    "holdout_access": false,
+    "native_orders": 0,
+    "oos_access": false
+  },
+  "created_at": "2026-09-04T04:51:13.196073+00:00",
+  "exact_launch_command": [
+    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\b1_real_consumption_20260904\\runs\\B1-SYNTHETIC-CONSUMPTION-V9-20260904\\launch\\B1SyntheticNoOrder.ini"
+  ],
+  "implementation_checks": {
+    "fresh_ex5_compile_binding": "PASS",
+    "literal_launch_command_binding": "PASS",
+    "sealed_only_verification": "PASS",
+    "terminal_and_compiler_metadata": "PASS",
+    "terminal_stopped_after_run": "PASS"
+  },
+  "kind": "B1_V9_RUNTIME_IDENTITY_CLOSURE_VERIFICATION",
+  "pre_tooling": {
+    "path": "governance/evidence/stage14/PRE_TOOLING_B1_RUNTIME_IDENTITY_V9_20260904.json",
+    "post_test_source_equality": "PASS",
+    "sha256": "333B35373957E0AEA59BE5B652BDCB2982C7B16CC8DB6FC2022C3AA206A01A6E"
+  },
+  "prior_run_note": "V7 is preserved append-only as UNSEALED_SCHEMA_REJECTED after its manifest field-name defect. V8 remains sealed for its source state. V9 is the final authoritative proof for the expanded negative-test suite.",
+  "report_sha256": "E55C66445BD077FA6B20099BF0CDC52E201DBB8810ABD4015547D93A53CD0136",
+  "run_id": "B1-SYNTHETIC-CONSUMPTION-V9-20260904",
+  "runtime_journals": {
+    "agent": "documented native limitation: tester ran in terminal process; no separate local MetaTester journal emitted",
+    "terminal": "native terminal log retained",
+    "tester": "documented native limitation: local single-run tester emits tester records into terminal journal"
+  },
+  "status": "PASS",
+  "tests": {
+    "b1_contract_tests": "10/10 PASS",
+    "full_repository_regression": "128/128 PASS",
+    "negative_cases": [
+      "false terminal build",
+      "false compiler build",
+      "altered literal launch command",
+      "stale/unproven EX5 assertion",
+      "compile-log mismatch binding",
+      "timestamp inconsistency",
+      "journal/receipt/authorization tampering"
+    ]
+  }
+}

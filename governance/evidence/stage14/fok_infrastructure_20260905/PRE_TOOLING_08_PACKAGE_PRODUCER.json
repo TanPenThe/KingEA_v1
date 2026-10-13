@@ -1,0 +1,76 @@
+{
+  "phase": "PRE_TOOLING",
+  "build_id": "08_PACKAGE_PRODUCER",
+  "b2": "LOCKED",
+  "source": [
+    {
+      "path": "MQL5/Experts/KingEA/FOKInfrastructureConformance.mq5",
+      "size": 11321,
+      "sha256": "9A991FC7012A40789747DC44F18B8425C887B7C9822D69C26C91F8C6116175B4"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegration.mqh",
+      "size": 3741,
+      "sha256": "50FED059947798309ED56A73E7651AB82F990C984AB851EC1639D69A82A53921"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegrationTests.mqh",
+      "size": 3310,
+      "sha256": "CEB6C823BE704F30C92DA7439DD8CA4A29402FCDEC82E9E7F9356AB0F9216307"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "size": 12155,
+      "sha256": "C637E5C1FEBCBBEE5DD4A4F2F4E4D2CA9E7D0F8746ECCC5E5F915CD829D6FB08"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "size": 3561,
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779"
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostContractTests.mqh",
+      "size": 7555,
+      "sha256": "9A693C258AFE091E651FD4E79701AAEF3DEBCC9F70D8524287157F53385D22A5"
+    },
+    {
+      "path": "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh",
+      "size": 8653,
+      "sha256": "287039299A7C6CB5ABD2BA285A24465AA3DD102A45E7E3DB69BEC63B0D024C8F"
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "size": 73395,
+      "sha256": "CBA75170AFC37FE63F12642968B6515302CCF920A53A7CC3D3919B87AA07F4C1"
+    },
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "size": 8730,
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D"
+    },
+    {
+      "path": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+      "size": 6588,
+      "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83"
+    },
+    {
+      "path": "research_pipeline/native_cost_conformance_run.py",
+      "size": 10839,
+      "sha256": "E3C8D378BD0832736701EABF119B1B9C6D4C308FDD29461B28C3E6D01209F92F"
+    },
+    {
+      "path": "research_pipeline/gate1_finalization.py",
+      "size": 67829,
+      "sha256": "90D871610F1BE653D74F1A4A805D59B94F3714FFF76B0ACD2861A211AEB3144E"
+    },
+    {
+      "path": "research_pipeline/stage14.py",
+      "size": 75022,
+      "sha256": "485DE76F92ED9DA72143720EA4EDA847471DF3E97ED226250178DE9D5866A28D"
+    }
+  ],
+  "governance_hashes": [
+    "CDFE801225C54C622A566CB125FE37B0759A3E47320D988571B796629CF984D9",
+    "909C23E3B14BB64A62BC371890B2FFFB1964D24FC24879971DB614FB078E92C6"
+  ]
+}

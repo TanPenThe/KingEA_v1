@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 from .stage12 import Stage12Pipeline
+from .b2_date_gate import realize_partition_dates
+from .successor_evidence import validate, validate_frame, SuccessorEvidenceError
 
 
 class Stage14Error(ValueError):
@@ -26,6 +28,10 @@ class Stage14Error(ValueError):
 
 class ResearchRunCoordinator:
     """Deep deterministic interface for Stage 14 preparation and evidence."""
+
+    def __init__(self, *, control_context=None):
+        # Supplied by the independent control plane, never a manifest field.
+        self._control_context = control_context
 
     BUILD_ID = "KINGEA-STAGE14-20260802-A"
     TOTAL_DEVELOPMENT_PASSES = 194_400
@@ -160,6 +166,13 @@ class ResearchRunCoordinator:
             or int(facts["execution_mode"]) != int(declared["mode"])
         ):
             raise Stage14Error("SCENARIO_REALIZATION_MISMATCH")
+        # B2 is a new normal Gate 1 lineage, not the prior virtual/stress study.
+        if expected_gate == 1 and purpose == "DEVELOPMENT" and (
+            scenario != "BASELINE_20MS"
+            or facts["execution_adapter"] != "NATIVE"
+            or int(facts["execution_mode"]) != 20
+        ):
+            raise Stage14Error("B2_NORMAL_EXECUTION_LOCK_VIOLATION")
         hashes = facts["artifact_hashes"]
         if not isinstance(hashes, Mapping) or set(hashes) != self.REQUIRED_HASHES:
             raise Stage14Error("ARTIFACT_HASH_SET_INVALID")
@@ -216,6 +229,7 @@ class ResearchRunCoordinator:
     def prepare_child(self, facts: Mapping[str, Any]) -> dict[str, Any]:
         self._validate_child_facts(facts)
         start, end = self.PARTITIONS[str(facts["partition"])]
+        date_realization = realize_partition_dates(str(facts["partition"]))
         configuration_ids = list(
             range(int(facts["configuration_start"]), int(facts["configuration_end"]) + 1)
         )
@@ -240,6 +254,10 @@ class ResearchRunCoordinator:
             "root_sha256": root_sha256,
             "start_inclusive": start,
             "end_exclusive": end,
+            "from_date": date_realization["from_date"],
+            "evaluation_start": date_realization["evaluation_start"],
+            "evaluation_end_exclusive": date_realization["evaluation_end_exclusive"],
+            "to_date_inclusive": date_realization["to_date_inclusive"],
             "initial_equity_usd": 1_000.0,
             "risk_percent": 1.10,
             "expected_symbol": (
@@ -448,6 +466,10 @@ class ResearchRunCoordinator:
     def authorize(
         self, manifest: Mapping[str, Any], authorization: Mapping[str, Any] | None
     ) -> dict[str, Any]:
+        try:
+            validate(self._control_context, manifest, 'authorization', authorization)
+        except SuccessorEvidenceError as exc:
+            return {"allowed": False, "reason": str(exc), "stage": exc.stage, "detail": exc.detail}
         stored = manifest.get("manifest_sha256")
         unhashed = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
         if not self._valid_hash(stored) or self.canonical_hash(unhashed) != stored:
@@ -465,18 +487,23 @@ class ResearchRunCoordinator:
     def render_bundle(
         self, manifest: Mapping[str, Any], authorization: Mapping[str, Any]
     ) -> dict[str, str]:
+        expected = validate(self._control_context, manifest, 'rendering', authorization)
+        inputs = self._control_context.capture_render_inputs(expected, manifest)
         decision = self.authorize(manifest, authorization)
         if not decision["allowed"]:
-            raise Stage14Error(str(decision["reason"]))
+            raise SuccessorEvidenceError("rendering", str(decision.get("detail", decision["reason"])))
         scenario = self.SCENARIOS[str(manifest["scenario"])]
+        required_dates = ("from_date", "evaluation_start", "evaluation_end_exclusive", "to_date_inclusive")
+        if any(not str(manifest.get(field, "")) for field in required_dates):
+            raise Stage14Error("EXPLICIT_DATE_REALIZATION_REQUIRED")
         token = hashlib.sha256(
             f"{manifest['manifest_sha256']}|{manifest['purpose']}|RUNNING".encode()
         ).hexdigest().upper()
         set_lines = [
             "; Generated exclusively from an authorized Stage 14 child manifest.",
-            f"InpRunManifest=KingEA\\runs\\{manifest['manifest_sha256']}.json",
+            f"InpRunManifest={inputs['manifest'].path}",
             f"InpManifestSha256={manifest['manifest_sha256']}",
-            "InpManifestFileSha256=SET_AT_EXECUTION",
+            f"InpManifestFileSha256={inputs['manifest'].sha256}",
             f"InpDetachedAuthorizationToken={token}",
             f"InpRootSha256={manifest['root_sha256']}",
             f"InpGate={manifest['gate']}",
@@ -484,6 +511,8 @@ class ResearchRunCoordinator:
             f"InpPartition={manifest['partition']}",
             f"InpBranch={manifest['branch']}",
             f"InpExpectedSymbol={manifest['expected_symbol']}",
+            f"InpEvaluationStart={manifest['evaluation_start']}",
+            f"InpEvaluationEndExclusive={manifest['evaluation_end_exclusive']}",
             f"InpConfigurationId={manifest['configuration_start']}||{manifest['configuration_start']}||1||{manifest['configuration_end']}||Y",
             "InpTesterModel=4",
             "InpLocalAgentsOnly=true",
@@ -491,6 +520,8 @@ class ResearchRunCoordinator:
             "InpCloudAgentsDisabled=true",
             f"InpScenario={manifest['scenario']}",
             f"InpExecutionAdapter={manifest['execution_adapter']}",
+            "InpWorkloadDryRun=false",
+            "InpZeroEntryDiagnostic=false",
             f"InpDelayMs={int(scenario.get('delay', manifest['execution_mode']))}",
             f"InpSpreadMultiplier={float(scenario.get('spread', 1.0))}",
             f"InpCostMultiplier={float(scenario.get('cost', 1.0))}",
@@ -501,8 +532,8 @@ class ResearchRunCoordinator:
             f"InpCalendarSha256={manifest['artifact_hashes']['calendar']}",
             f"InpCostManifestSha256={manifest['artifact_hashes']['cost']}",
             f"InpResearchSpecificationSha256={manifest['artifact_hashes']['research_specification']}",
-            f"InpCalendarIntervalsFile={manifest['operational_facts']['calendar_intervals_file']}",
-            f"InpCalendarFileSha256={manifest['operational_facts']['calendar_file_sha256']}",
+            f"InpCalendarIntervalsFile={inputs['calendar'].path}",
+            f"InpCalendarFileSha256={inputs['calendar'].sha256}",
             f"InpCommissionPerLotRoundTurn={manifest['operational_facts']['commission_per_lot_round_turn']}",
             f"InpSwapPerLotStress={manifest['operational_facts']['swap_per_lot_stress']}",
             f"InpWeekendRiskMultiplier={manifest['operational_facts']['weekend_risk_multiplier']}",
@@ -512,10 +543,6 @@ class ResearchRunCoordinator:
             f"InpSelectionSha256={manifest.get('selection_sha256', '')}",
             f"InpSurfaceSha256={manifest.get('surface_sha256', '')}",
         ]
-        start = datetime.fromisoformat(str(manifest["start_inclusive"]))
-        end = datetime.fromisoformat(str(manifest["end_exclusive"]))
-        tester_start = max(datetime(2021, 4, 1), start - timedelta(days=90))
-        tester_end = end - timedelta(days=1)
         ini_lines = [
             "[Tester]",
             r"Expert=KingEA\GuardedResearchTester.ex5",
@@ -531,8 +558,8 @@ class ResearchRunCoordinator:
             "Genetic=0",
             "Deposit=1000",
             "Currency=USD",
-            f"FromDate={tester_start:%Y.%m.%d}",
-            f"ToDate={tester_end:%Y.%m.%d}",
+            f"FromDate={manifest['from_date']}",
+            f"ToDate={manifest['to_date_inclusive']}",
             "ShutdownTerminal=1",
         ]
         return {"set": "\n".join(set_lines) + "\n", "ini": "\n".join(ini_lines) + "\n"}
@@ -545,7 +572,7 @@ class ResearchRunCoordinator:
     ) -> dict[str, Any]:
         expected = self.render_bundle(manifest, authorization)
         if set(bundle) != {"set", "ini"} or any(bundle[name] != expected[name] for name in expected):
-            raise Stage14Error("TESTER_BUNDLE_NOT_DERIVED_FROM_CHILD_MANIFEST")
+            raise SuccessorEvidenceError('rendering', "TESTER_BUNDLE_NOT_DERIVED_FROM_CHILD_MANIFEST")
         return {
             "passed": True,
             "set_sha256": hashlib.sha256(bundle["set"].encode()).hexdigest().upper(),
@@ -555,12 +582,28 @@ class ResearchRunCoordinator:
     def append_frame(
         self, spool: Path, manifest: Mapping[str, Any], frame: Mapping[str, Any]
     ) -> dict[str, Any]:
-        final_path = spool / "FINALIZED.json"
+        validate(self._control_context, manifest, 'ingestion')
+        validate_frame(self._control_context, manifest, frame.get('payload'), 'ingestion')
+        return self._append_integrity_frame(spool, manifest, frame)
+
+    def _append_integrity_frame(
+        self,
+        spool: Path,
+        manifest: Mapping[str, Any],
+        frame: Mapping[str, Any],
+        *,
+        audit_only: bool = False,
+    ) -> dict[str, Any]:
+        final_path = spool / (
+            "HISTORICAL_AUDIT_RESULT.json" if audit_only else "FINALIZED.json"
+        )
         if final_path.exists():
             raise Stage14Error("LATE_FRAME_AFTER_FINALIZATION")
         frame_id = str(frame.get("frame_id", ""))
         if frame_id not in manifest.get("expected_frame_ids", []):
-            raise Stage14Error("UNEXPECTED_FRAME_ID")
+            if audit_only:
+                raise Stage14Error("UNEXPECTED_FRAME_ID")
+            raise SuccessorEvidenceError('ingestion', "UNEXPECTED_FRAME_ID")
         payload = frame.get("payload")
         if not isinstance(payload, Mapping) or payload.get("complete") != 1:
             raise Stage14Error("MALFORMED_OR_INCOMPLETE_FRAME")
@@ -574,36 +617,98 @@ class ResearchRunCoordinator:
         target = spool / f"{hashlib.sha256(frame_id.encode()).hexdigest().upper()}.frame.json"
         if target.exists():
             if target.read_bytes() != encoded:
-                raise Stage14Error("CONFLICTING_DUPLICATE_FRAME")
+                if audit_only:
+                    raise Stage14Error("CONFLICTING_DUPLICATE_FRAME")
+                raise SuccessorEvidenceError('ingestion', "CONFLICTING_DUPLICATE_FRAME")
             return {"status": "IDEMPOTENT_REPLAY", "path": str(target)}
         target.write_bytes(encoded)
         return {"status": "APPENDED", "path": str(target)}
 
-    def finalize_frames(self, spool: Path, manifest: Mapping[str, Any]) -> dict[str, Any]:
+    def finalize_frames(self, spool: Path, manifest: Mapping[str, Any], *,
+                        finalization_stage: str = 'normal_finalization') -> dict[str, Any]:
+        if finalization_stage not in ('normal_finalization', 'boundary_finalization'):
+            raise SuccessorEvidenceError('normal_finalization', 'UNKNOWN_FINALIZATION_STAGE')
+        validate(self._control_context, manifest, finalization_stage)
+        return self._finalize_integrity_frames(
+            spool,
+            manifest,
+            finalization_stage=finalization_stage,
+            audit_only=False,
+        )
+
+    def _finalize_integrity_frames(
+        self,
+        spool: Path,
+        manifest: Mapping[str, Any],
+        *,
+        finalization_stage: str,
+        audit_only: bool,
+    ) -> dict[str, Any]:
         records: dict[str, dict[str, Any]] = {}
         for path in spool.glob("*.frame.json"):
             try:
                 record = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as exc:
-                raise Stage14Error("MALFORMED_FRAME_SPOOL") from exc
+                if audit_only:
+                    raise Stage14Error("MALFORMED_FRAME_SPOOL") from exc
+                raise SuccessorEvidenceError(finalization_stage, "MALFORMED_FRAME_SPOOL") from exc
             if record.get("manifest_sha256") != manifest.get("manifest_sha256"):
-                raise Stage14Error("FRAME_MANIFEST_CONFLICT")
+                if audit_only:
+                    raise Stage14Error("FRAME_MANIFEST_CONFLICT")
+                raise SuccessorEvidenceError(finalization_stage, "FRAME_MANIFEST_CONFLICT")
             frame_id = str(record.get("frame_id", ""))
             if frame_id in records:
-                raise Stage14Error("DUPLICATE_FRAME_ID")
+                if audit_only:
+                    raise Stage14Error("DUPLICATE_FRAME_ID")
+                raise SuccessorEvidenceError(finalization_stage, "DUPLICATE_FRAME_ID")
             records[frame_id] = record
         expected = set(manifest.get("expected_frame_ids", []))
         if set(records) != expected:
-            raise Stage14Error("FRAME_SET_INCOMPLETE")
+            if audit_only:
+                raise Stage14Error("FRAME_SET_INCOMPLETE")
+            raise SuccessorEvidenceError(finalization_stage, "FRAME_SET_INCOMPLETE")
         frames = [records[frame_id]["payload"] for frame_id in sorted(records)]
+        if not audit_only:
+            for frame in frames:
+                stage = ('boundary_finalization' if frame.get('boundary_finalization_count', 0)
+                         else finalization_stage)
+                validate_frame(self._control_context, manifest, frame, stage)
+        # Prospective evidence contract only; historical immutable roots retain their schema.
+        if audit_only and manifest.get("native_cost_contract"):
+            from .native_cost_archive import NativeCostArchiveConsumer
+            if manifest["native_cost_contract"]!="NATIVE_COST_BOUNDARY_V2":
+                raise Stage14Error("NATIVE_COST_CONTRACT_UNKNOWN")
+            for frame in frames:
+                try:
+                    NativeCostArchiveConsumer.validate_packages(
+                        frame["native_cost_packages"],
+                        dict(run=manifest["manifest_sha256"],configuration=frame["configuration_id"],
+                             branch=manifest["branch"],partition=manifest["partition"],package_schema='NATIVE_COST_BOUNDARY_PACKAGE_V2'),
+                        boundary_count=frame["boundary_finalization_count"],close_frames=frame["stage13_close_frames"])
+                except (ValueError,KeyError) as exc:
+                    raise Stage14Error(f"NATIVE_COST_EVIDENCE_INVALID:{exc}") from exc
         result = {
-            "status": "COMPLETE",
+            "status": (
+                "RETIRED_HISTORICAL_AUDIT_PASS" if audit_only else "COMPLETE"
+            ),
             "manifest_sha256": manifest["manifest_sha256"],
             "frame_count": len(frames),
             "frames": frames,
         }
+        if audit_only:
+            result.update(
+                authority="READ_ONLY_INTEGRITY_VERIFICATION",
+                candidate_budget_consumed=0,
+                running_eligible=False,
+                selection_emitted=False,
+                research_root_created=False,
+                gate2_prepared=False,
+                successor_evidence_satisfied=False,
+            )
         result["evidence_sha256"] = self.canonical_hash(result)
-        target = spool / "FINALIZED.json"
+        target = spool / (
+            "HISTORICAL_AUDIT_RESULT.json" if audit_only else "FINALIZED.json"
+        )
         if target.exists():
             raise Stage14Error("FINALIZATION_ALREADY_EXISTS")
         target.write_bytes(self.canonical_bytes(result))

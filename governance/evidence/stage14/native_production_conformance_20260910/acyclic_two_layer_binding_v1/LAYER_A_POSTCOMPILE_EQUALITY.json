@@ -1,0 +1,31 @@
+{
+  "kind": "CONFORMANCE_ACYCLIC_LAYER_A_POSTCOMPILE_EQUALITY_V1",
+  "created_utc": "2026-09-10T03:16:09.7623039Z",
+  "precompile_receipt_sha256": "058DE5F2B16CC543E9512B2C47B0FDE99B7D09FC3E34E626F13F1D22DC0A75FE",
+  "resources": [
+    {
+      "fixture_id": "NCV1-LONG-NORMAL-001",
+      "path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\KingEA\\conformance\\NCV1-LONG-NORMAL-001\\manifest.json",
+      "byte_length": 873,
+      "sha256": "70348DB9FD453A1E5C48139B4D55D50C68C447DAF7427ABC3A1D2AAF41411B4F",
+      "equals_precompile": true
+    },
+    {
+      "fixture_id": "NCV1-SHORT-NORMAL-001",
+      "path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\KingEA\\conformance\\NCV1-SHORT-NORMAL-001\\manifest.json",
+      "byte_length": 877,
+      "sha256": "7F391DE53C97B4DE2DF6E75A8FBF396601F340291BC5D8FB69DE189B0A5C9253",
+      "equals_precompile": true
+    },
+    {
+      "fixture_id": "NCV1-LONG-BOUNDARY-001",
+      "path": "C:\\Users\\tpent\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\KingEA\\conformance\\NCV1-LONG-BOUNDARY-001\\manifest.json",
+      "byte_length": 871,
+      "sha256": "9C0D577544BFD7E1F55C9AAEE75FEE88BE4755C5A5174E9B139B279135BC229B",
+      "equals_precompile": true
+    }
+  ],
+  "status": "PASS",
+  "runtime": "NOT_LAUNCHED",
+  "B2": "LOCKED"
+}

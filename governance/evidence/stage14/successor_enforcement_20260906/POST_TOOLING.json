@@ -1,0 +1,572 @@
+{
+  "phase": "POST_TOOLING",
+  "observed_utc": "2026-09-06T14:08:47.447973+00:00",
+  "authorization": "SUCCESSOR_EVIDENCE_ENFORCEMENT_IMPLEMENTATION_AND_NON_RUNTIME_TESTS_ONLY",
+  "approved_contracts": [
+    {
+      "path": "governance/review/repair_design_revision_20260906/SUCCESSOR_EVIDENCE_CONTRACT.md",
+      "sha256": "AC35567F7C31BA8707100AC553EB54C095E6859CB071B13B78E379DF6EBEEB61"
+    },
+    {
+      "path": "governance/review/repair_design_revision_20260906/NEGATIVE_TEST_MATRIX.md",
+      "sha256": "2CA47112EEACD7D0D95DDB027490141DE5E13D245C33608A45F1CBBAFE68712D"
+    }
+  ],
+  "source_comparison": [
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "pre_sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "post_sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/BrokerInventoryAdapter.mqh",
+      "pre_sha256": "58D4F30E3DDC7C4070245651025609ACC46F7AA435D652B5E1CC4FA5AD52D3C7",
+      "post_sha256": "58D4F30E3DDC7C4070245651025609ACC46F7AA435D652B5E1CC4FA5AD52D3C7",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+      "pre_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "post_sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/CorrelationClustering.mqh",
+      "pre_sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "post_sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh",
+      "pre_sha256": "92C449A7794146CD523C80C8E9BEA69F1D0106D7306CF327CAEDE3139FD4E93F",
+      "post_sha256": "92C449A7794146CD523C80C8E9BEA69F1D0106D7306CF327CAEDE3139FD4E93F",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostContractTests.mqh",
+      "pre_sha256": "874A7F2B95AE47BFE22263CD65F5D6DA178C7121A1BC078404088DD42D81DA13",
+      "post_sha256": "874A7F2B95AE47BFE22263CD65F5D6DA178C7121A1BC078404088DD42D81DA13",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "pre_sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "post_sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegration.mqh",
+      "pre_sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "post_sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegrationTests.mqh",
+      "pre_sha256": "443EFAEBE847FAD659DAE538AB561B9702AD2D91FFD44E6E1AD39248DFB235C3",
+      "post_sha256": "443EFAEBE847FAD659DAE538AB561B9702AD2D91FFD44E6E1AD39248DFB235C3",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "pre_sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "post_sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/OperationalSafety.mqh",
+      "pre_sha256": "B6178D0A660523DEFEF67361A04650411AA4B347C6F218F01C4F37C75B719468",
+      "post_sha256": "B6178D0A660523DEFEF67361A04650411AA4B347C6F218F01C4F37C75B719468",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/RegimeClassifier.mqh",
+      "pre_sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "post_sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/ResearchExecution.mqh",
+      "pre_sha256": "F69FA5EED1192B9910E16A19A2EC05A7DAC54402A0B8AF47ECBD5932FD1650D3",
+      "post_sha256": "F69FA5EED1192B9910E16A19A2EC05A7DAC54402A0B8AF47ECBD5932FD1650D3",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SafetyKernel.mqh",
+      "pre_sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "post_sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SleeveEthSt001.mqh",
+      "pre_sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "post_sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SpecificationMonitor.mqh",
+      "pre_sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "post_sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/SymbolSpecificationAdapter.mqh",
+      "pre_sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "post_sha256": "E3494F7940C4361F94C0E69338C9FAB74FFB8089C2246839723D7CB4EFFF7494",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/ZeroEntryDiagnostic.mqh",
+      "pre_sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8",
+      "post_sha256": "BBC16A79926EA8EAFB0896FFD884D723EFF70D073EB0CF057CBC069842C9ACF8",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/B1SyntheticNoOrder.mq5",
+      "pre_sha256": "D7778D5D5B47BCE3A8DC48E94255E07AD18450240BB6FE077E543ED6189B6AFA",
+      "post_sha256": "D7778D5D5B47BCE3A8DC48E94255E07AD18450240BB6FE077E543ED6189B6AFA",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/FOKInfrastructureConformance.mq5",
+      "pre_sha256": "4D618B0348592675469707DF12433637677938E47F67CC05142DEF6E46C2FE87",
+      "post_sha256": "4D618B0348592675469707DF12433637677938E47F67CC05142DEF6E46C2FE87",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "pre_sha256": "59D976250D70B6E28CB9DEEB30D96FB27321C100A60183709B23F3D9D252FC98",
+      "post_sha256": "59D976250D70B6E28CB9DEEB30D96FB27321C100A60183709B23F3D9D252FC98",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/IOCExecutionConformance.mq5",
+      "pre_sha256": "15C1CF69DCCBB52EA4782CC3A053C8053DC1027F415F4BDFE4945352711F73BD",
+      "post_sha256": "15C1CF69DCCBB52EA4782CC3A053C8053DC1027F415F4BDFE4945352711F73BD",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/NativeCostConformance.mq5",
+      "pre_sha256": "72F89F1D1BF8298204ADA4ACE46BAAAF3970993E18B5636C28874A536520569A",
+      "post_sha256": "72F89F1D1BF8298204ADA4ACE46BAAAF3970993E18B5636C28874A536520569A",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/ReconcileTesterRealTicks.mq5",
+      "pre_sha256": "00AA91CFA53E848D91B8B2095071F9790E461FA898D512CB4BB080CAEC29777D",
+      "post_sha256": "00AA91CFA53E848D91B8B2095071F9790E461FA898D512CB4BB080CAEC29777D",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Experts/KingEA/ResearchThroughputBenchmark.mq5",
+      "pre_sha256": "1B36A6D270B4AB0910BEB78096F2019F2F46E45E0148FAB6960F2D8F85305814",
+      "post_sha256": "1B36A6D270B4AB0910BEB78096F2019F2F46E45E0148FAB6960F2D8F85305814",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/AuditHistoryAvailability.mq5",
+      "pre_sha256": "CE737F0EEFE2BC9F86F40ADD875F92122B38B5C72D6C40F23D25033E999C0139",
+      "post_sha256": "CE737F0EEFE2BC9F86F40ADD875F92122B38B5C72D6C40F23D25033E999C0139",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/AuditHistoryQuality.mq5",
+      "pre_sha256": "72BCD49F3A2E3C87AF9A62550088ACA5031CF4856426311A365F8599E6729283",
+      "post_sha256": "72BCD49F3A2E3C87AF9A62550088ACA5031CF4856426311A365F8599E6729283",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/AuditSpreadBracketEvidence.mq5",
+      "pre_sha256": "ED86D6498C79D207748B6769677068E101337BEAE5BF43C6F6F81454DE3F2013",
+      "post_sha256": "ED86D6498C79D207748B6769677068E101337BEAE5BF43C6F6F81454DE3F2013",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/BuildNativeReducedSpreadSymbol.mq5",
+      "pre_sha256": "5D7E8714A6BAF5B5D1667F38B7473E66CD7ABFE342D5EC130F747556661368BA",
+      "post_sha256": "5D7E8714A6BAF5B5D1667F38B7473E66CD7ABFE342D5EC130F747556661368BA",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/BuildRSB3MinuteBars.mq5",
+      "pre_sha256": "CFA93FA6711FB921734738F428CBB82F5703604BAF5E2F754F04F25F38BB486D",
+      "post_sha256": "CFA93FA6711FB921734738F428CBB82F5703604BAF5E2F754F04F25F38BB486D",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/CaptureKillSwitchInventory.mq5",
+      "pre_sha256": "DBBD07CF6F29F2CEAD3676E83CDCC7BEADE6E98F538FBD7E4ABE826F4D13E1B0",
+      "post_sha256": "DBBD07CF6F29F2CEAD3676E83CDCC7BEADE6E98F538FBD7E4ABE826F4D13E1B0",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/CompareCrossedTickFields.mq5",
+      "pre_sha256": "E27B9C1DB540ACC2503A651AA6B968DB614C07E4B3F2D6BCF26048834B52760B",
+      "post_sha256": "E27B9C1DB540ACC2503A651AA6B968DB614C07E4B3F2D6BCF26048834B52760B",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseCustomTesterReadiness.mq5",
+      "pre_sha256": "BF7F620F79D2066A86E33A3B8DEBAF1852814B9C1317AA063D7A0BACC422DEFF",
+      "post_sha256": "BF7F620F79D2066A86E33A3B8DEBAF1852814B9C1317AA063D7A0BACC422DEFF",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseCustomTickRetention.mq5",
+      "pre_sha256": "0B134CA435000A4A503FB07BC51C271B48C548417A0218CAC4073F3D726D49BC",
+      "post_sha256": "0B134CA435000A4A503FB07BC51C271B48C548417A0218CAC4073F3D726D49BC",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseMinuteBarDerivation.mq5",
+      "pre_sha256": "17386EC153B2AEC35428D932717594D7F8438571D7220D285FC5D42A5447D040",
+      "post_sha256": "17386EC153B2AEC35428D932717594D7F8438571D7220D285FC5D42A5447D040",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseNativeBuildFailure.mq5",
+      "pre_sha256": "2AC3A8D58B1F8BC98D203D62A11173FD5D4097B69B02F06BE50B8080CF369765",
+      "post_sha256": "2AC3A8D58B1F8BC98D203D62A11173FD5D4097B69B02F06BE50B8080CF369765",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnosePersistedFlagNormalization.mq5",
+      "pre_sha256": "CC8E47C9C88C51A1A77E30145FBDF27C28CC146560B70B4D17F5DD46386C9F09",
+      "post_sha256": "CC8E47C9C88C51A1A77E30145FBDF27C28CC146560B70B4D17F5DD46386C9F09",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/DiagnoseReversedSpread.mq5",
+      "pre_sha256": "DB9DD15233B37A2B3322DB5F0FDDFD88991DCED1AD379E13C50962FB6DD41054",
+      "post_sha256": "DB9DD15233B37A2B3322DB5F0FDDFD88991DCED1AD379E13C50962FB6DD41054",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ExportAccountingHistory.mq5",
+      "pre_sha256": "9EAF54A90F89597DEE1980FD6B4CD1E92A6B79F650AEBB78FAD576177B0FFE67",
+      "post_sha256": "9EAF54A90F89597DEE1980FD6B4CD1E92A6B79F650AEBB78FAD576177B0FFE67",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ExportResearchCalendar.mq5",
+      "pre_sha256": "405F21EC4B1F591D82EA865FF460BD63FC4784B1F47FEC632E33599050518F6F",
+      "post_sha256": "405F21EC4B1F591D82EA865FF460BD63FC4784B1F47FEC632E33599050518F6F",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ExportSymbolFeasibility.mq5",
+      "pre_sha256": "DDB700A346096E4FE920DB8EAE9854A293F5EC9DC02866E0E7CBFD3869149F6D",
+      "post_sha256": "DDB700A346096E4FE920DB8EAE9854A293F5EC9DC02866E0E7CBFD3869149F6D",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ImportIndependentTicks.mq5",
+      "pre_sha256": "EB433806314B522BEFF97EDBAA07239D5E9B48340C8D669CA5D02655C94B3F45",
+      "post_sha256": "EB433806314B522BEFF97EDBAA07239D5E9B48340C8D669CA5D02655C94B3F45",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ObserveSpecificationMonitor.mq5",
+      "pre_sha256": "E1BABB2E23647CB1997EE5E321B0A9946AB5135CF01866B3B7792E04A206F101",
+      "post_sha256": "E1BABB2E23647CB1997EE5E321B0A9946AB5135CF01866B3B7792E04A206F101",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ProbeCrossedTickRoundTrip.mq5",
+      "pre_sha256": "FF0FA0454EAC125D996FF74EB1BF2DC9CC17A61F75A6A54369E35DA7C8EBC0D5",
+      "post_sha256": "FF0FA0454EAC125D996FF74EB1BF2DC9CC17A61F75A6A54369E35DA7C8EBC0D5",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ProbeCustomTicksReplace.mq5",
+      "pre_sha256": "59FE23B1334EF57E729F74ADA156ED87309267C89E371B6C1D2D8DC5AEF1DFDC",
+      "post_sha256": "59FE23B1334EF57E729F74ADA156ED87309267C89E371B6C1D2D8DC5AEF1DFDC",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestAccountingLedger.mq5",
+      "pre_sha256": "7E28FE0E321EDE93914E5EE3E7EAC2B8E375D87F8D7AA4364111EE2574AC431B",
+      "post_sha256": "7E28FE0E321EDE93914E5EE3E7EAC2B8E375D87F8D7AA4364111EE2574AC431B",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestCandidateEthSt001.mq5",
+      "pre_sha256": "F2C60631629AC3EFC2CC485824AF6447D834CC90C6ABF06EEB1BF6AFBF61045C",
+      "post_sha256": "F2C60631629AC3EFC2CC485824AF6447D834CC90C6ABF06EEB1BF6AFBF61045C",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestMarketContext.mq5",
+      "pre_sha256": "1B1A281AB0FB8F076FD4602224132E208B1B6D8BD66AD7AE25564D20F635956F",
+      "post_sha256": "1B1A281AB0FB8F076FD4602224132E208B1B6D8BD66AD7AE25564D20F635956F",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestOperationalSafety.mq5",
+      "pre_sha256": "E9DC24C7D2330DC3A8A8A6948852DE447099B32F4038EE8B452CA0B468D71840",
+      "post_sha256": "E9DC24C7D2330DC3A8A8A6948852DE447099B32F4038EE8B452CA0B468D71840",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestResearchPipeline.mq5",
+      "pre_sha256": "A22BBB0DCC7FB1EB9B4B8986B2E92333A369F323A9BA00D755ED7C4AAFFF9DFF",
+      "post_sha256": "A22BBB0DCC7FB1EB9B4B8986B2E92333A369F323A9BA00D755ED7C4AAFFF9DFF",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestSafetyKernel.mq5",
+      "pre_sha256": "59FC0C37191F80E9C0BEB0B64019BDF439162F0713F164B14818DB73840FDF67",
+      "post_sha256": "59FC0C37191F80E9C0BEB0B64019BDF439162F0713F164B14818DB73840FDF67",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestSleeveEthSt001.mq5",
+      "pre_sha256": "690E553DEF009E80A9DB53240059D2F7EEDE0B9F36CFC6E0BA78F161D4FE72EC",
+      "post_sha256": "690E553DEF009E80A9DB53240059D2F7EEDE0B9F36CFC6E0BA78F161D4FE72EC",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestSpecificationMonitor.mq5",
+      "pre_sha256": "F983F8820B66A61B5A749D4197DA3675D6D231C6639E2D274B9959514D1B34FE",
+      "post_sha256": "F983F8820B66A61B5A749D4197DA3675D6D231C6639E2D274B9959514D1B34FE",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/TestZeroEntryDiagnostic.mq5",
+      "pre_sha256": "73B2674E419EFAB31947BAF7768EF82F08172F15D90D70EB321BD3BA3F630CEA",
+      "post_sha256": "73B2674E419EFAB31947BAF7768EF82F08172F15D90D70EB321BD3BA3F630CEA",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/ValidateRSB3ManifestGate.mq5",
+      "pre_sha256": "BCD1D5653EF4C811DDF254FB15D2AB3AE11BDA3A89E64F6D5310C104BCD74649",
+      "post_sha256": "BCD1D5653EF4C811DDF254FB15D2AB3AE11BDA3A89E64F6D5310C104BCD74649",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "MQL5/Scripts/KingEA/VerifyNativeReducedSpreadSymbol.mq5",
+      "pre_sha256": "21234DF52860515BFC78D547ED59461A765457C73C6D401EC3281741A438D8C3",
+      "post_sha256": "21234DF52860515BFC78D547ED59461A765457C73C6D401EC3281741A438D8C3",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "accounting_pipeline/cli.py",
+      "pre_sha256": "913C2802D412EB3B5F6CF615A9666F90827795C2EF5E1519CE9A79341C3F4FBE",
+      "post_sha256": "913C2802D412EB3B5F6CF615A9666F90827795C2EF5E1519CE9A79341C3F4FBE",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "accounting_pipeline/stage13.py",
+      "pre_sha256": "3C21FB0DD728DDBB92FC10E6AB6B01988813A97792D1AE82D01689E6F0A91640",
+      "post_sha256": "3C21FB0DD728DDBB92FC10E6AB6B01988813A97792D1AE82D01689E6F0A91640",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "accounting_pipeline/__init__.py",
+      "pre_sha256": "CD2B99961D0800EE49E04ED97559D7950AB5FF1D1317DDB0D4A1E76BD07650A8",
+      "post_sha256": "CD2B99961D0800EE49E04ED97559D7950AB5FF1D1317DDB0D4A1E76BD07650A8",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "research_pipeline/stage14.py",
+      "pre_sha256": "1AC3DAC77B6FE3D30605A4BC56DB1281467D221655C01629F41388907416D7CE",
+      "post_sha256": "318065DD7B5D9768FFCB28C4126AFAB0BFA9F5A8BC8B7CB7700E5992E006EBAD",
+      "changed": true,
+      "change_authorized": true
+    },
+    {
+      "path": "research_pipeline/gate1_finalization.py",
+      "pre_sha256": "BDEB34942B51C0E8B28CA16434804EEE66F3EC7FCACBFDE47810409F2A33D22C",
+      "post_sha256": "9E962499029A989B424035EF3AC81D6A2FAD13564EF2E3D495E32DB8DFD0F07E",
+      "changed": true,
+      "change_authorized": true
+    },
+    {
+      "path": "research_pipeline/native_cost_archive.py",
+      "pre_sha256": "0CA2CC53B96EB15C1BB32BF99F27EAA1F0AB2F1B0CDB55B8477110DAE6236744",
+      "post_sha256": "0CA2CC53B96EB15C1BB32BF99F27EAA1F0AB2F1B0CDB55B8477110DAE6236744",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "tests/test_stage14_pipeline.py",
+      "pre_sha256": "7978B810864012B13894C01404B2C2D08E674F37CF896110A4CAC88BE2487CA3",
+      "post_sha256": "7978B810864012B13894C01404B2C2D08E674F37CF896110A4CAC88BE2487CA3",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "tests/test_gate1_finalization.py",
+      "pre_sha256": "B767F585CCF8729532B79A586244E2C05740EDFA82FE0CAFD6EBF1D2B8DF6186",
+      "post_sha256": "B767F585CCF8729532B79A586244E2C05740EDFA82FE0CAFD6EBF1D2B8DF6186",
+      "changed": false,
+      "change_authorized": false
+    },
+    {
+      "path": "tests/test_native_cost_archive.py",
+      "pre_sha256": "A274527FC7627D437C24EBBE22A15AF58DE0153F345EDF8EF26F165AC920F2F6",
+      "post_sha256": "A274527FC7627D437C24EBBE22A15AF58DE0153F345EDF8EF26F165AC920F2F6",
+      "changed": false,
+      "change_authorized": false
+    }
+  ],
+  "summary": {
+    "pre_tooling_sources": 65,
+    "authorized_changed": 2,
+    "protected_unchanged": 63,
+    "protected_mismatches": 0,
+    "new_sources": [
+      "research_pipeline/successor_evidence.py",
+      "tests/test_successor_evidence.py"
+    ],
+    "tested_source_post_test_equal": true
+  },
+  "tested_source_stability": [
+    {
+      "path": "research_pipeline/stage14.py",
+      "pre_test_sha256": "318065DD7B5D9768FFCB28C4126AFAB0BFA9F5A8BC8B7CB7700E5992E006EBAD",
+      "post_test_sha256": "318065DD7B5D9768FFCB28C4126AFAB0BFA9F5A8BC8B7CB7700E5992E006EBAD",
+      "equal": true
+    },
+    {
+      "path": "research_pipeline/gate1_finalization.py",
+      "pre_test_sha256": "9E962499029A989B424035EF3AC81D6A2FAD13564EF2E3D495E32DB8DFD0F07E",
+      "post_test_sha256": "9E962499029A989B424035EF3AC81D6A2FAD13564EF2E3D495E32DB8DFD0F07E",
+      "equal": true
+    },
+    {
+      "path": "research_pipeline/successor_evidence.py",
+      "pre_test_sha256": "C046FC17A3229215314E8C2EC8AC1C900C95FFEA7DE5CD14FB358C7DB4B4730F",
+      "post_test_sha256": "C046FC17A3229215314E8C2EC8AC1C900C95FFEA7DE5CD14FB358C7DB4B4730F",
+      "equal": true
+    },
+    {
+      "path": "tests/test_successor_evidence.py",
+      "pre_test_sha256": "10646055664E5D2A204589A8B5DD570DE0D34AEF30DC84FDFC2CE450C9A69D9A",
+      "post_test_sha256": "10646055664E5D2A204589A8B5DD570DE0D34AEF30DC84FDFC2CE450C9A69D9A",
+      "equal": true
+    }
+  ],
+  "financial_safety_and_candidate_hashes": [
+    {
+      "path": "governance/SAFETY_KERNEL_CONTRACT.md",
+      "sha256": "E59C45C8CA54429390A95D96FDFDD381475555C8D0891FA92DBC31A88747258B",
+      "pre_tooling_equal": false
+    },
+    {
+      "path": "governance/OPERATIONAL_SAFETY_CONTRACT.md",
+      "sha256": "DA885E3A6E9D2E7E46D03CDD1891FFFD4CF66F7822A5FB62DC3DCB565CAF8847",
+      "pre_tooling_equal": false
+    },
+    {
+      "path": "governance/STAGE13_ACCOUNTING_CONTRACT.md",
+      "sha256": "D72E0041FA165354CC88E536B888A6DA67B5214384855A3E70318843147305AE",
+      "pre_tooling_equal": false
+    },
+    {
+      "path": "MQL5/Include/KingEA/AccountingEvents.mqh",
+      "sha256": "2B88475645AC23207D9A4227A676E89E8D6D58C9753FAE12BF1C8496CA839D9D",
+      "pre_tooling_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostEvidence.mqh",
+      "sha256": "339B581E8803A37BA4D32B1986B9FCE8E797CF4947C2313B11EF2BC908AB1CED",
+      "pre_tooling_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostIntegration.mqh",
+      "sha256": "4F888DBBB69E63621213112FD341D22500ABF976C89475115A9E123A6AF3F553",
+      "pre_tooling_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/NativeCostMetadataAdapter.mqh",
+      "sha256": "9A192E197F62AA9EDD299173B686A7C487DB8F623C0DFF3AFE06E5CE306CD779",
+      "pre_tooling_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/GuardedNativeCostIntegration.mqh",
+      "sha256": "92C449A7794146CD523C80C8E9BEA69F1D0106D7306CF327CAEDE3139FD4E93F",
+      "pre_tooling_equal": true
+    },
+    {
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "sha256": "59D976250D70B6E28CB9DEEB30D96FB27321C100A60183709B23F3D9D252FC98",
+      "pre_tooling_equal": true
+    },
+    {
+      "path": "MQL5/Include/KingEA/CandidateEthSt001.mqh",
+      "sha256": "4CE407201787EDACC61DF1DDD0E6068E56C39C97E61D93CD19B58550B7367F83",
+      "pre_tooling_equal": true
+    }
+  ],
+  "excluded": {
+    "decision_a": "NOT_ADOPTED",
+    "decision_s": "NOT_ADOPTED",
+    "successor_freeze": "NOT_AUTHORIZED",
+    "b2": "LOCKED",
+    "mt5": false,
+    "capacity_sample": false,
+    "candidate_execution": false,
+    "research_root": false,
+    "cleanup": false
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "authorization_sha256": "77C86E09D20D749B1EA9D4E1AA3877469F65EDEA7544F87C296C05054F45717A",
+  "b2": "LOCKED",
+  "candidate_id": null,
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\fok_infrastructure_20260905\\NC-FOK-06-CALLBACK-CHECK\\tester.ini"
+  ],
+  "evidence_contract": "NATIVE_COST_BOUNDARY_V2",
+  "ex5_sha256": "5191621A6037FD247A0B08A0144DD8ECDB1F85FDF18A6BD57E8A1DC94DB3A50D",
+  "execution_mode": 20,
+  "ini_sha256": "7C9157899D926B50D2B0C0AE59E3D0D19EF70B853A5836324DEE64AF43948A0C",
+  "local_only": true,
+  "partition": "NON_CANDIDATE_2023_06_01_ONLY",
+  "run_id": "NC-FOK-06-CALLBACK-CHECK",
+  "set_sha256": "4B890F1CAD8DA2427E5EDA0EDE735B5E4BDAB98F31B12E725D22283F376A6BD0",
+  "source_sha256": "8DFF9933B4FF0AA62B47589C388755141FC3EA66B4DDF3478CB888AECA171482",
+  "terminal": {
+    "build": 6140,
+    "file_version": "5.0.0.6140",
+    "path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2"
+  },
+  "type_filling": "ORDER_FILLING_FOK"
+}

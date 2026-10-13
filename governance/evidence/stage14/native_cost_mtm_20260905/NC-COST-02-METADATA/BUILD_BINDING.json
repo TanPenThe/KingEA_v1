@@ -1,0 +1,21 @@
+{
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "/compile:C:\\KingEA_v1\\governance\\evidence\\stage14\\native_cost_mtm_20260905\\NC-COST-02-METADATA\\build\\MQL5\\Experts\\KingEA\\NativeCostConformance.mq5",
+    "/include:C:\\KingEA_v1\\governance\\evidence\\stage14\\native_cost_mtm_20260905\\NC-COST-02-METADATA\\build\\MQL5",
+    "/log:C:\\KingEA_v1\\governance\\evidence\\stage14\\native_cost_mtm_20260905\\NC-COST-02-METADATA\\compile.log"
+  ],
+  "compiler": {
+    "build": 6140,
+    "file_version": "5.0.0.6140",
+    "path": "C:\\Program Files\\MetaTrader 5\\metaeditor64.exe",
+    "sha256": "05718F3FA55F3F59FD2F024D8C433B457FBD58FCF39E947A16CCDAD00A614EC7"
+  },
+  "ended": "2026-09-05T06:24:53.821391+00:00",
+  "log_sha256": "95B09CD39BC0648180B9ECCB7BF1D010DBF8F367C2537DA7BA43FFD133DC4E4B",
+  "preexisting_ex5": false,
+  "produced_ex5_sha256": "09DAD4287BB08A25160ACBB832307A544697BC6CD153D166021841BA24C6E14A",
+  "return_code": 1,
+  "source_manifest_sha256": "9F6DD872B28BFF30046CFE2DA3AD84FC724E0CD3CC83D4D26BC16A9E33CED8D4",
+  "started": "2026-09-05T06:24:52.174021+00:00"
+}

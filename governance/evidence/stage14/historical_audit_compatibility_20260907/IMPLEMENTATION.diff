@@ -1,0 +1,515 @@
+diff --git a/governance/evidence/stage14/historical_audit_compatibility_20260907/reconstructed_pre_current/research_pipeline/stage14.py b/research_pipeline/stage14.py
+index bd58513..936358b 100644
+--- a/governance/evidence/stage14/historical_audit_compatibility_20260907/reconstructed_pre_current/research_pipeline/stage14.py
++++ b/research_pipeline/stage14.py
+@@ -583,11 +583,25 @@ class ResearchRunCoordinator:
+     ) -> dict[str, Any]:
+         validate(self._control_context, manifest, 'ingestion')
+         validate_frame(self._control_context, manifest, frame.get('payload'), 'ingestion')
+-        final_path = spool / "FINALIZED.json"
++        return self._append_integrity_frame(spool, manifest, frame)
++
++    def _append_integrity_frame(
++        self,
++        spool: Path,
++        manifest: Mapping[str, Any],
++        frame: Mapping[str, Any],
++        *,
++        audit_only: bool = False,
++    ) -> dict[str, Any]:
++        final_path = spool / (
++            "HISTORICAL_AUDIT_RESULT.json" if audit_only else "FINALIZED.json"
++        )
+         if final_path.exists():
+             raise Stage14Error("LATE_FRAME_AFTER_FINALIZATION")
+         frame_id = str(frame.get("frame_id", ""))
+         if frame_id not in manifest.get("expected_frame_ids", []):
++            if audit_only:
++                raise Stage14Error("UNEXPECTED_FRAME_ID")
+             raise SuccessorEvidenceError('ingestion', "UNEXPECTED_FRAME_ID")
+         payload = frame.get("payload")
+         if not isinstance(payload, Mapping) or payload.get("complete") != 1:
+@@ -602,6 +616,8 @@ class ResearchRunCoordinator:
+         target = spool / f"{hashlib.sha256(frame_id.encode()).hexdigest().upper()}.frame.json"
+         if target.exists():
+             if target.read_bytes() != encoded:
++                if audit_only:
++                    raise Stage14Error("CONFLICTING_DUPLICATE_FRAME")
+                 raise SuccessorEvidenceError('ingestion', "CONFLICTING_DUPLICATE_FRAME")
+             return {"status": "IDEMPOTENT_REPLAY", "path": str(target)}
+         target.write_bytes(encoded)
+@@ -612,26 +628,50 @@ class ResearchRunCoordinator:
+         if finalization_stage not in ('normal_finalization', 'boundary_finalization'):
+             raise SuccessorEvidenceError('normal_finalization', 'UNKNOWN_FINALIZATION_STAGE')
+         validate(self._control_context, manifest, finalization_stage)
++        return self._finalize_integrity_frames(
++            spool,
++            manifest,
++            finalization_stage=finalization_stage,
++            audit_only=False,
++        )
++
++    def _finalize_integrity_frames(
++        self,
++        spool: Path,
++        manifest: Mapping[str, Any],
++        *,
++        finalization_stage: str,
++        audit_only: bool,
++    ) -> dict[str, Any]:
+         records: dict[str, dict[str, Any]] = {}
+         for path in spool.glob("*.frame.json"):
+             try:
+                 record = json.loads(path.read_text(encoding="utf-8"))
+             except (OSError, json.JSONDecodeError) as exc:
++                if audit_only:
++                    raise Stage14Error("MALFORMED_FRAME_SPOOL") from exc
+                 raise SuccessorEvidenceError(finalization_stage, "MALFORMED_FRAME_SPOOL") from exc
+             if record.get("manifest_sha256") != manifest.get("manifest_sha256"):
++                if audit_only:
++                    raise Stage14Error("FRAME_MANIFEST_CONFLICT")
+                 raise SuccessorEvidenceError(finalization_stage, "FRAME_MANIFEST_CONFLICT")
+             frame_id = str(record.get("frame_id", ""))
+             if frame_id in records:
++                if audit_only:
++                    raise Stage14Error("DUPLICATE_FRAME_ID")
+                 raise SuccessorEvidenceError(finalization_stage, "DUPLICATE_FRAME_ID")
+             records[frame_id] = record
+         expected = set(manifest.get("expected_frame_ids", []))
+         if set(records) != expected:
++            if audit_only:
++                raise Stage14Error("FRAME_SET_INCOMPLETE")
+             raise SuccessorEvidenceError(finalization_stage, "FRAME_SET_INCOMPLETE")
+         frames = [records[frame_id]["payload"] for frame_id in sorted(records)]
+-        for frame in frames:
+-            stage = ('boundary_finalization' if frame.get('boundary_finalization_count', 0)
+-                     else finalization_stage)
+-            validate_frame(self._control_context, manifest, frame, stage)
++        if not audit_only:
++            for frame in frames:
++                stage = ('boundary_finalization' if frame.get('boundary_finalization_count', 0)
++                         else finalization_stage)
++                validate_frame(self._control_context, manifest, frame, stage)
+         # Prospective evidence contract only; historical immutable roots retain their schema.
+         if manifest.get("native_cost_contract"):
+             from .native_cost_archive import NativeCostArchiveConsumer
+@@ -647,13 +687,27 @@ class ResearchRunCoordinator:
+                 except (ValueError,KeyError) as exc:
+                     raise Stage14Error(f"NATIVE_COST_EVIDENCE_INVALID:{exc}") from exc
+         result = {
+-            "status": "COMPLETE",
++            "status": (
++                "RETIRED_HISTORICAL_AUDIT_PASS" if audit_only else "COMPLETE"
++            ),
+             "manifest_sha256": manifest["manifest_sha256"],
+             "frame_count": len(frames),
+             "frames": frames,
+         }
++        if audit_only:
++            result.update(
++                authority="READ_ONLY_INTEGRITY_VERIFICATION",
++                candidate_budget_consumed=0,
++                running_eligible=False,
++                selection_emitted=False,
++                research_root_created=False,
++                gate2_prepared=False,
++                successor_evidence_satisfied=False,
++            )
+         result["evidence_sha256"] = self.canonical_hash(result)
+-        target = spool / "FINALIZED.json"
++        target = spool / (
++            "HISTORICAL_AUDIT_RESULT.json" if audit_only else "FINALIZED.json"
++        )
+         if target.exists():
+             raise Stage14Error("FINALIZATION_ALREADY_EXISTS")
+         target.write_bytes(self.canonical_bytes(result))
+diff --git a/governance/evidence/stage14/historical_audit_compatibility_20260907/reconstructed_pre_current/research_pipeline/gate1_finalization.py b/research_pipeline/gate1_finalization.py
+index 85c359a..b136a3d 100644
+--- a/governance/evidence/stage14/historical_audit_compatibility_20260907/reconstructed_pre_current/research_pipeline/gate1_finalization.py
++++ b/research_pipeline/gate1_finalization.py
+@@ -20,6 +20,9 @@ class Gate1FinalizationError(ValueError):
+     pass
+ 
+ 
++_RETIRED_HISTORICAL_AUDIT_CAPABILITY = object()
++
++
+ @dataclass(frozen=True)
+ class Gate1FinalizationRequest:
+     prior_package: Path
+@@ -35,8 +38,11 @@ class Gate1FinalizationRequest:
+ class Gate1Finalizer:
+     """Stream Gate 1 evidence, classify it, and publish one immutable result."""
+ 
+-    def __init__(self, *, control_context=None):
++    def __init__(self, *, control_context=None, _historical_audit_capability=None):
+         self._control_context = control_context
++        self._historical_audit = (
++            _historical_audit_capability is _RETIRED_HISTORICAL_AUDIT_CAPABILITY
++        )
+ 
+     def finalize_successor_frames(self, spool: Path, manifest: Mapping[str, Any], *, boundary=False):
+         """Evidence acceptance only; no scoring, economics or gate advancement.
+@@ -420,8 +426,9 @@ class Gate1Finalizer:
+         record: Mapping[str, Any],
+         child: Mapping[str, Any],
+     ) -> dict[str, Any]:
+-        validate(self._control_context, child, 'normal_finalization')
+-        validate_frame(self._control_context, child, record.get('successor_evidence_frame'), 'normal_finalization')
++        if not self._historical_audit:
++            validate(self._control_context, child, 'normal_finalization')
++            validate_frame(self._control_context, child, record.get('successor_evidence_frame'), 'normal_finalization')
+         native_contract=record.get("stage12",{}).get("native_cost_contract")
+         native_present="native_packages" in record
+         expected_record={
+@@ -1151,7 +1158,81 @@ class Gate1Finalizer:
+             "children": child_records,
+         }
+ 
++    @classmethod
++    def historical_record_identity(cls, request: Gate1FinalizationRequest) -> str:
++        """Hash the exact retained roots and indexes named by an audit caller."""
++        prior = Path(request.prior_package)
++        continuation = Path(request.continuation_package)
++        value = {
++            "prior_root": cls._read(prior / "GATE1_ROOT.json"),
++            "prior_index_sha256": hashlib.sha256(
++                (prior / "CHILD_INDEX.json").read_bytes()
++            ).hexdigest().upper(),
++            "continuation_root": cls._read(continuation / "GATE1_ROOT.json"),
++            "continuation_index_sha256": hashlib.sha256(
++                (continuation / "CHILD_INDEX.json").read_bytes()
++            ).hexdigest().upper(),
++        }
++        return cls.canonical_hash(value)
++
++    def _retired_audit_summary(
++        self,
++        request: Gate1FinalizationRequest,
++        rows: list[Mapping[str, Any]],
++        archive_inventory: Mapping[str, Any],
++        results: list[dict[str, Any]],
++    ) -> dict[str, Any]:
++        self._validate_cardinality(rows, results)
++        entries = sum(row["entries"] for row in results)
++        trades = sum(row["trade_groups"] for row in results)
++        result = {
++            "schema": 1,
++            "status": "RETIRED_HISTORICAL_AUDIT_PASS",
++            "authority": "READ_ONLY_INTEGRITY_VERIFICATION",
++            "evaluated_configuration_count": len(results),
++            "entry_count": entries,
++            "exit_count": sum(row["exits"] for row in results),
++            "trade_group_count": trades,
++            "hard_failure_count": sum(row["hard_failures"] for row in results),
++            "partition_summary": self._partition_summary(results),
++            "archive_inventory": dict(archive_inventory),
++            "historical_classification": (
++                "QUARANTINED_PENDING_DIAGNOSTIC"
++                if entries == 0 or trades == 0
++                else "INTEGRITY_VERIFIED_WITH_NONZERO_ACTIVITY"
++            ),
++            "candidate_budget_consumed": 0,
++            "selection_emitted": False,
++            "research_root_created": False,
++            "gate2_prepared": False,
++        }
++        result["result_sha256"] = self.canonical_hash(result)
++        return result
++
++    def _retired_audit_finalize(
++        self, request: Gate1FinalizationRequest
++    ) -> dict[str, Any]:
++        rows = self._epoch_rows(request)
++        archive_inventory = self._verify_archive_inventory(request, rows)
++        results: list[dict[str, Any]] = []
++        for completed_archives, row in enumerate(rows, start=1):
++            results.extend(self._verify_archive(request, row))
++            if request.progress_callback is not None:
++                request.progress_callback(
++                    {
++                        "run_id": row["run_id"],
++                        "completed_archives": completed_archives,
++                        "total_archives": len(rows),
++                        "verified_configurations": len(results),
++                    }
++                )
++        return self._retired_audit_summary(
++            request, rows, archive_inventory, results
++        )
++
+     def finalize(self, request: Gate1FinalizationRequest) -> dict[str, Any]:
++        if self._historical_audit:
++            return self._retired_audit_finalize(request)
+         raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         output = Path(request.output_root)
+         if output.exists() and any(output.iterdir()):
+@@ -1276,6 +1357,7 @@ class Gate1Finalizer:
+         self._write_immutable(output / "FINALIZATION_RESULT.json", result)
+         return result
+ 
++
+     def _audit_binding(
+         self,
+         request: Gate1FinalizationRequest,
+@@ -1363,7 +1445,8 @@ class Gate1Finalizer:
+         *,
+         batch_size: int = 20,
+     ) -> dict[str, Any]:
+-        raise SuccessorEvidenceError('ingestion', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
++        if not self._historical_audit:
++            raise SuccessorEvidenceError('ingestion', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         rows, selected, batch = self._batch_rows(request, batch_id, batch_size)
+         archive_inventory = self._verify_archive_inventory(request, rows)
+         binding = self._audit_binding(request, rows, archive_inventory)
+@@ -1426,7 +1509,8 @@ class Gate1Finalizer:
+         *,
+         batch_size: int = 20,
+     ) -> dict[str, Any]:
+-        raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
++        if not self._historical_audit:
++            raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         rows, _, batch = self._batch_rows(request, 1, batch_size)
+         archive_inventory = self._verify_archive_inventory(request, rows)
+         binding = self._audit_binding(request, rows, archive_inventory)
+@@ -1445,7 +1529,9 @@ class Gate1Finalizer:
+                 path, binding, selected, index, batch_size
+             )
+             results.extend(shard["results"])
+-        return self._publish_verified_results(request, rows, archive_inventory, results)
++        return self._retired_audit_summary(
++            request, rows, archive_inventory, results
++        )
+ 
+     def batch_status(
+         self,
+@@ -1454,7 +1540,8 @@ class Gate1Finalizer:
+         *,
+         batch_size: int = 20,
+     ) -> dict[str, Any]:
+-        raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
++        if not self._historical_audit:
++            raise SuccessorEvidenceError('normal_finalization', 'HISTORICAL_COMPATIBILITY_DEFAULT_DENY')
+         rows, _, batch = self._batch_rows(request, 1, batch_size)
+         archive_inventory = self._verify_archive_inventory(request, rows)
+         binding = self._audit_binding(request, rows, archive_inventory)
+@@ -1471,12 +1558,9 @@ class Gate1Finalizer:
+             index for index in range(1, batch["batch_count"] + 1)
+             if index not in completed
+         ]
+-        final_path = Path(request.output_root) / "FINALIZATION_RESULT.json"
+-        if final_path.exists() and remaining:
+-            raise Gate1FinalizationError("FINALIZATION_WITH_INCOMPLETE_SHARDS")
+         return {
+             **batch,
+-            "status": "FINALIZED" if final_path.exists() else "PENDING",
++            "status": "AUDIT_COMPLETE" if not remaining else "PENDING",
+             "completed_batches": completed,
+             "remaining_batches": remaining,
+             "next_batch_id": remaining[0] if remaining else None,
+diff --git a/governance/evidence/stage14/historical_audit_compatibility_20260907/reconstructed_pre_current/EMPTY b/research_pipeline/historical_audit.py
+index e69de29..5216d70 100644
+--- a/governance/evidence/stage14/historical_audit_compatibility_20260907/reconstructed_pre_current/EMPTY
++++ b/research_pipeline/historical_audit.py
+@@ -0,0 +1,201 @@
++"""Explicit authority and scope bindings for retired historical audit.
++
++This module deliberately grants no production capability.  Its scope objects
++can only unlock retained integrity checks exposed by the dedicated audit
++adapters in :mod:`gate1_finalization` and :mod:`stage14`.
++"""
++
++from __future__ import annotations
++
++import re
++from dataclasses import dataclass
++from typing import Any, Mapping
++
++
++RETIRED_HISTORICAL_AUDIT_ONLY = "RETIRED_HISTORICAL_AUDIT_ONLY"
++READ_ONLY_INTEGRITY_VERIFICATION = "READ_ONLY_INTEGRITY_VERIFICATION"
++
++
++class HistoricalAuditIntegrityError(ValueError):
++    """A historical audit scope or record binding is invalid."""
++
++
++@dataclass(frozen=True)
++class HistoricalAuditScope:
++    scope_id: str
++    schema_version: int
++    record_identity: str
++    mode: str = RETIRED_HISTORICAL_AUDIT_ONLY
++    authority: str = READ_ONLY_INTEGRITY_VERIFICATION
++
++
++_KNOWN_SCOPES: Mapping[str, Mapping[str, Any]] = {
++    "CANDIDATE_001_GATE1_RETIRED": {"schema_version": 1, "target": "gate1"},
++    "RETIRED_GATE1_TEST_FIXTURE": {"schema_version": 1, "target": "gate1"},
++    "RETIRED_STAGE14_FRAME_V2_TEST_FIXTURE": {
++        "schema_version": 2,
++        "target": "stage14_frames",
++    },
++    "RETIRED_NATIVE_COST_FRAME_V2": {
++        "schema_version": 2,
++        "target": "stage14_frames",
++    },
++}
++
++_RECORD_IDENTITY = re.compile(r"^[A-Z0-9][A-Z0-9._:-]{0,127}$")
++
++
++def validate_scope(scope: HistoricalAuditScope, target: str) -> None:
++    if not isinstance(scope, HistoricalAuditScope):
++        raise HistoricalAuditIntegrityError("HISTORICAL_AUDIT_SCOPE_REQUIRED")
++    definition = _KNOWN_SCOPES.get(scope.scope_id)
++    if definition is None:
++        raise HistoricalAuditIntegrityError("HISTORICAL_AUDIT_SCOPE_UNKNOWN")
++    if (
++        scope.mode != RETIRED_HISTORICAL_AUDIT_ONLY
++        or scope.authority != READ_ONLY_INTEGRITY_VERIFICATION
++        or scope.schema_version != definition["schema_version"]
++        or target != definition["target"]
++        or not _RECORD_IDENTITY.fullmatch(scope.record_identity)
++        or "LATEST" in scope.record_identity
++    ):
++        raise HistoricalAuditIntegrityError("HISTORICAL_AUDIT_SCOPE_MISMATCH")
++
++
++def bind_record(scope: HistoricalAuditScope, actual_record_identity: str) -> None:
++    if scope.record_identity != actual_record_identity:
++        raise HistoricalAuditIntegrityError("HISTORICAL_AUDIT_RECORD_MISMATCH")
++
++
++def capability_statement(scope: HistoricalAuditScope) -> dict[str, Any]:
++    return {
++        "mode": scope.mode,
++        "authority": scope.authority,
++        "scope_id": scope.scope_id,
++        "schema_version": scope.schema_version,
++        "record_identity": scope.record_identity,
++        "capabilities": {
++            "integrity_verification": True,
++            "authorization": False,
++            "running_eligibility": False,
++            "executable_rendering": False,
++            "research_root_creation": False,
++            "candidate_creation_or_freeze": False,
++            "selection_or_ranking": False,
++            "gate2_preparation": False,
++            "budget_consumption": False,
++            "successor_evidence_satisfaction": False,
++            "production_fallback": False,
++        },
++    }
++
++
++class RetiredHistoricalGate1Audit:
++    """Explicit audit-only access to retained Gate 1 integrity checks."""
++
++    def __init__(self, scope: HistoricalAuditScope):
++        validate_scope(scope, "gate1")
++        from .gate1_finalization import (
++            Gate1Finalizer,
++            _RETIRED_HISTORICAL_AUDIT_CAPABILITY,
++        )
++
++        self._scope = scope
++        self._finalizer = Gate1Finalizer(
++            _historical_audit_capability=_RETIRED_HISTORICAL_AUDIT_CAPABILITY
++        )
++
++    @property
++    def specification(self) -> dict[str, Any]:
++        return capability_statement(self._scope)
++
++    def _bind(self, request: Any) -> None:
++        from pathlib import Path
++        from .gate1_finalization import Gate1Finalizer
++
++        bind_record(self._scope, Gate1Finalizer.historical_record_identity(request))
++        prior = self._finalizer._read(
++            Path(request.prior_package) / "GATE1_ROOT.json"
++        )
++        continuation = self._finalizer._read(
++            Path(request.continuation_package) / "GATE1_ROOT.json"
++        )
++        candidates = {prior.get("candidate_id"), continuation.get("candidate_id")}
++        if self._scope.scope_id == "RETIRED_GATE1_TEST_FIXTURE":
++            if not request.allow_test_fixture or candidates != {"TEST-CANDIDATE"}:
++                raise HistoricalAuditIntegrityError(
++                    "HISTORICAL_AUDIT_SCOPE_MISMATCH"
++                )
++        elif candidates != {"CAND-ETH-ST-001"}:
++            raise HistoricalAuditIntegrityError("HISTORICAL_AUDIT_SCOPE_MISMATCH")
++
++    def finalize(self, request: Any) -> dict[str, Any]:
++        self._bind(request)
++        return self._finalizer.finalize(request)
++
++    def audit_batch(
++        self, request: Any, shard_root: Any, batch_id: int, *, batch_size: int = 20
++    ) -> dict[str, Any]:
++        self._bind(request)
++        return self._finalizer.audit_batch(
++            request, shard_root, batch_id, batch_size=batch_size
++        )
++
++    def merge_batches(
++        self, request: Any, shard_root: Any, *, batch_size: int = 20
++    ) -> dict[str, Any]:
++        self._bind(request)
++        return self._finalizer.merge_batches(
++            request, shard_root, batch_size=batch_size
++        )
++
++    def batch_status(
++        self, request: Any, shard_root: Any, *, batch_size: int = 20
++    ) -> dict[str, Any]:
++        self._bind(request)
++        return self._finalizer.batch_status(
++            request, shard_root, batch_size=batch_size
++        )
++
++
++class RetiredHistoricalFrameAudit:
++    """Audit retained frame sequencing, cardinality and package integrity."""
++
++    def __init__(self, scope: HistoricalAuditScope):
++        validate_scope(scope, "stage14_frames")
++        from .stage14 import ResearchRunCoordinator
++
++        self._scope = scope
++        self._coordinator = ResearchRunCoordinator()
++
++    @property
++    def specification(self) -> dict[str, Any]:
++        return capability_statement(self._scope)
++
++    def _bind(self, manifest: Mapping[str, Any]) -> None:
++        bind_record(self._scope, str(manifest.get("manifest_sha256", "")))
++        if (
++            manifest.get("candidate_id") not in (None, "CAND-ETH-ST-001")
++            or "successor_evidence_declaration" in manifest
++            or "successor_evidence_contract" in manifest
++        ):
++            raise HistoricalAuditIntegrityError("HISTORICAL_AUDIT_SCOPE_MISMATCH")
++
++    def append_frame(
++        self, spool: Any, manifest: Mapping[str, Any], frame: Mapping[str, Any]
++    ) -> dict[str, Any]:
++        self._bind(manifest)
++        return self._coordinator._append_integrity_frame(
++            spool, manifest, frame, audit_only=True
++        )
++
++    def finalize_frames(
++        self, spool: Any, manifest: Mapping[str, Any]
++    ) -> dict[str, Any]:
++        self._bind(manifest)
++        return self._coordinator._finalize_integrity_frames(
++            spool,
++            manifest,
++            finalization_stage="normal_finalization",
++            audit_only=True,
++        )

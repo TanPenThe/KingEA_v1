@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "created_at": "2026-09-04T00:00:00Z",
+  "status": "PASS_DESIGN_AND_SYNTHETIC_NON_CANDIDATE_TESTS_ONLY",
+  "b2_status": "LOCKED",
+  "candidate_execution": false,
+  "candidate_budget_consumption": 0,
+  "mt5_launch": false,
+  "oos_access": false,
+  "holdout_access": false,
+  "boundary_finalization_implemented": false,
+  "current_boundary_cost_basis": "UNPROVEN_IN_PRODUCTION",
+  "proposed_access": {
+    "required": true,
+    "name": "CURRENT_RUN_NATIVE_EXECUTION_ACCOUNTING_METADATA_ONLY",
+    "trigger": "OnTradeTransaction DEAL_ADD for the active authorized run only",
+    "allowed_operation": "HistoryDealSelect(trans.deal), followed by whitelisted scalar DEAL property reads",
+    "prohibited_operations": ["HistorySelect", "HistorySelectByPosition", "HistoryDealsTotal", "HistoryDealGetTicket", "HistoryOrder*", "deal enumeration", "prior-run lookup", "market-data history", "OOS access", "holdout access", "ranking", "selection"]
+  },
+  "prospective_formula": "boundary_net = OrderCalcProfit(entry -> retained_pre_end_bid_or_ask) + authenticated_actual_costs_booked_before_end",
+  "test_results": {
+    "command": "python -m unittest tests.test_native_cost_ledger_audit tests.test_b2_boundary_valuation_audit tests.test_b2_date_gate tests.test_stage12_pipeline tests.test_stage14_pipeline",
+    "tests_run": 37,
+    "status": "PASS",
+    "policy_command": "tests/Test-Stage14ResearchReadinessPolicy.ps1 -Workspace C:/KingEA_v1",
+    "policy_status": "PASS"
+  },
+  "pre_tooling_manifest": "C:/KingEA_v1/governance/evidence/stage14/PRE_TOOLING_B2_NATIVE_PER_GROUP_COST_EVIDENCE_AUDIT_V16_20260904.json",
+  "pre_tooling_post_verification": "PASS_EXACT_SOURCE_HASHES",
+  "design_document": "C:/KingEA_v1/governance/review/B2_NATIVE_PER_GROUP_COST_EVIDENCE_DESIGN_20260904.md",
+  "draft_governance_amendment": "C:/KingEA_v1/governance/review/DRAFT_CURRENT_RUN_NATIVE_EXECUTION_ACCOUNTING_METADATA_ONLY_AMENDMENT_20260904.md"
+}

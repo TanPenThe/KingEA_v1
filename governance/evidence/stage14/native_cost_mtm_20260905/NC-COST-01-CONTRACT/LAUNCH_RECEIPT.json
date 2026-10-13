@@ -1,0 +1,11 @@
+{
+  "command": [
+    "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "/config:C:\\KingEA_v1\\governance\\evidence\\stage14\\native_cost_mtm_20260905\\NC-COST-01-CONTRACT\\tester.ini"
+  ],
+  "launcher_sha256": "EE566BC7F9908B3BD77ABDE4240586724239D1B558C5FF2AF50D5C2BC399DE48",
+  "manifest_sha256": "3F33D383D4641EF0E2F76D594BEFA4A58D8E3F6BE061179F11E9C4C761A8FEF5",
+  "pid": 11608,
+  "run_id": "NC-COST-01-CONTRACT",
+  "started": "2026-09-05T06:24:26.763560+00:00"
+}

@@ -120,6 +120,21 @@ void OnStart()
          !native_unused.has_position,
          "native route consumes only tester result price and leaves virtual state unused");
 
+   KingEAResearchStress native_delay=stress;
+   native_delay.delay_ms=20;
+   KingEAResearchVirtualPosition native_delay_unused={};
+   native_delay_unused.equity=1000.0;
+   KingEAResearchEntryRoute native_delay_route={};
+   KingEAResearchRouteEntry(KINGEA_RESEARCH_ADAPTER_NATIVE,native_delay,
+                            "SENTINEL-NATIVE-20MS",100.0,101.0,
+                            KINGEA_DIRECTION_LONG,95.0,0.01,1000,
+                            1800000,100.75,true,native_delay_unused,
+                            native_delay_route);
+   Check(native_delay_route.healthy && native_delay_route.native_order_required &&
+         native_delay_route.outcome==KINGEA_RESEARCH_NATIVE_ORDER_REQUIRED &&
+         !native_delay_route.enqueued && !native_delay_unused.has_position,
+         "native 20ms route never queues or creates virtual pending state");
+
    KingEAResearchVirtualPosition missed_position={};
    missed_position.equity=1000.0;
    KingEAResearchEntryRoute missed_route={};

@@ -1,0 +1,81 @@
+{
+  "kind": "NATIVE_LONG_CONFORMANCE_INI_ENCODING_CORRECTION_V1_RESULT",
+  "fixture_id": "NCV1-LONG-NORMAL-001",
+  "run_id": "C666040B2B67CB6C5B62BC73193104F84F99731AD695DF250B9E3B17D5D60F2F",
+  "classification": "BLOCKED",
+  "reason": "BLOCKED_START_CONFIG_CONSUMPTION_UNRESOLVED",
+  "detail": "The BOM-free INI was acknowledged, but the retained build-6182 LiveUpdate payload diverted terminal startup to terminal64.exe /update. The updater was stopped under the no-environment-mutation boundary; installed terminal and MetaTester binaries remained build 6140. Strategy Tester and OnInit did not start. No adjustment or rerun was performed.",
+  "preserved_prior": {
+    "classification": "BLOCKED_INPUT_CONSUMPTION_MISMATCH",
+    "subclass": "PRE_ONINIT_START_CONFIG_INI_ENCODING",
+    "result_sha256": "A92FEBBA0EFF5823CB4CA590FDC7F5059A75482C625FFE2600FE14FC536C9A04",
+    "reused_as_authority": false
+  },
+  "prelaunch": {
+    "implementation_identity": "PASS",
+    "environment_build_6140": "PASS",
+    "deterministic_layer_identities": "PASS",
+    "ini_bom_free": "PASS",
+    "ini_semantic_equality": "PASS",
+    "authority_chain": "PASS",
+    "storage": "PASS",
+    "pre_native_sha256": "451EDDAF85E46024DA03F622C39B32FA2785D7A40EE56AE13CD50F4B7FF9CDDD",
+    "expected_terminal_sha256": "15C02F211C0E9F9CF190191DB2BCC5D8DC560F92F184960D0DF41C80282D14DD",
+    "loader_binding_sha256": "84BA5B4CADAC22811EDEFC2AE8FEC41A4E5153AB2E01A4BF4F0C2729E5B5906F",
+    "immediate_observation_sha256": "EEF17AB2CF62BAB393876CD3D56899B9815DE74964386AE902FB095DEE2B52BF",
+    "launch_moment_observation_sha256": "F3DEDFC70CD27F706C952F82807A680BE5DEC3F6CC05B5F136096C06D1527EA0",
+    "storage_receipt_sha256": "2EBE953D53118140D2569E1A3A438A952C7104980627746A1559FD09457C7929"
+  },
+  "identities": {
+    "layer_a": "32787CC3E5467347D610CFF1729BC085C9FB43F1C00BF678C768A4BE23FA7505",
+    "layer_b": "349801C082B4498241C730ABD391A20D58A9B7A2205C67EECFC10CCFBF7FED2A",
+    "runtime_profile": "6C26A1016A36D582CB25754B4205E9B5357D1F2DEE4BD9E632F2CFE63D62DCBA",
+    "governed_set": "821F262AF49224CCFA1BC2497D24D79E694343C386D9EF73C53069E6E7D9A346",
+    "corrected_ini": "EED4F590156443D4187C7600F919A5A8AAAF9686E716CC59891F9E9C6A3A9A26"
+  },
+  "runtime": {
+    "start_config_acknowledged": true,
+    "update_diversion_command": "liveupdate/terminal64.exe /update",
+    "strategy_tester_started": false,
+    "oninit_reached": false,
+    "input_consumption_proven": false,
+    "orders": "NONE",
+    "lifecycle": "NOT_ENTERED",
+    "native_capture": "NOT_PRODUCED",
+    "R_S_A_seal": "NOT_PRODUCED",
+    "retry": false,
+    "terminal_exited": true,
+    "metatester_exited": true,
+    "update_helper_terminated": true
+  },
+  "evidence": {
+    "terminal_log": {
+      "path": "C:\\KingEA_v1\\governance\\evidence\\stage14\\native_production_conformance_20260910\\long_ini_correction_v1\\terminal_20260910.log",
+      "byte_length": 6722,
+      "sha256": "D21055D14CF9A7A0C7965D09C6CBE53D7A27E44DF0934123C58A94CEA9206A41"
+    },
+    "tester_log_20260910": "ABSENT",
+    "native_output": "ABSENT",
+    "ini_encoding": "C5834CA5B3DB5347073CB815624504AB79ACB8AC90A88E0A09DC6E35675D1558",
+    "process_exit": "DBBDDD6BF61F652638533F6544BA0468706A7E7D7314E5CA25051BE0D51BC8D5"
+  },
+  "post_run_environment": {
+    "terminal_version": "5.0.0.6140",
+    "terminal_sha256": "DFD977C2885EA3C92BB4E3A5A33FAF677283F4C51C2BAA0142C393A4EE11B8F2",
+    "metatester_version": "5.0.0.6140",
+    "metatester_sha256": "46DA12974EA4B393FA6855576DA57549A1E3255DBE5C667CCE60D7F32C1A889F",
+    "origin_sha256": "24EF6B629693EB817FA8C0EE7B7C393822B114B9EE346B52161B320E5CCA6406",
+    "deployed_ex5_sha256": "AC6359FFEE65E9107ECFF25C150365A6AFF24422024C11F32B9272A71C872FEF"
+  },
+  "post_run_sources": {
+    "ea": "89AC0D170665A0DE4C16D5D20A50C2B0BFD01ABF0660FB44FB13EF8A89911EDF",
+    "integration": "679984A59366245AF949BCE724ED0F18B86E73308B7BA4247C3D0BF38A757AC9",
+    "python": "B1A11808E16E7F5C9A588C59E130885F5C01B0D6868089E91D8F8F3CCC326439"
+  },
+  "short_launched": false,
+  "boundary_launched": false,
+  "candidate_evidence": false,
+  "research_attempt_consumed": false,
+  "successor_freeze": "NOT_AUTHORIZED",
+  "B2": "LOCKED"
+}

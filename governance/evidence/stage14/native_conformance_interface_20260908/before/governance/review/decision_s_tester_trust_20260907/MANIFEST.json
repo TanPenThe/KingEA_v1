@@ -1,0 +1,35 @@
+{
+  "kind": "READ_ONLY_TRUST_AND_DECISION_S_REVIEW",
+  "file_common": "FILE_COMMON_PROFILE_BLOCKER",
+  "decision_s": "PROPOSED_NOT_ADOPTED",
+  "swap": "RESIDUAL_SWAP_RECONCILIATION_BLOCKER",
+  "preservation_count": 177,
+  "preservation_mismatches": 0,
+  "final_pre_tooling_created": false,
+  "source_changes": 0,
+  "tests_executed": 0,
+  "mt5_launches": 0,
+  "b2": "LOCKED",
+  "artifacts": [
+    {
+      "file": "DECISION_S_REVISED.md",
+      "sha256": "C5C75302E0823B41B4466BEF2F9ADCD3681AE2CE9F2D4568773F5F47B0EC00C2"
+    },
+    {
+      "file": "FILE_COMMON_AUDIT.md",
+      "sha256": "F8166A81D3210EB98D2597D959F8BB7E8C5812E20E6F16B6967C64CFE29DFD9F"
+    },
+    {
+      "file": "FILE_IO_INVENTORY.txt",
+      "sha256": "F0455C3C74C37075EB797AA1126B9C87E3C935E533999C907398CAAB0081E337"
+    },
+    {
+      "file": "PACKAGE_AND_TESTS.md",
+      "sha256": "15435AE5792F38A112C4C6451053274AF9E0E35962A8CC8C22600C176A8D7369"
+    },
+    {
+      "file": "READ_ONLY_REVIEW_BASELINE.json",
+      "sha256": "FCEE68DE80E0D8BC18E5B1B90DB7099EC115046FDA29482F786ED8D3D7D1E5ED"
+    }
+  ]
+}

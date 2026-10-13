@@ -1,0 +1,110 @@
+{
+  "audit_sha256": "63DF432D00AE391578366664AB59D1B30E8E5D6D11926FAF867E110A42A848F9",
+  "baseline_commit": "1562f0a4542da815712a984ca5e5e1bd2b38b442",
+  "controls": {
+    "b2_root_created": false,
+    "budget_consumed": 0,
+    "candidate_execution": false,
+    "holdout_access": false,
+    "oos_access": false
+  },
+  "created_at": "2026-09-04T07:16:54.077051+00:00",
+  "head_commit": "c4d08bd09949c0e5b3d5f6bfc53d2a2fdbd22479",
+  "kind": "B2_DEPENDENCY_BEHAVIORAL_AUDIT",
+  "result": "PASS_WITH_FRESH_IMPLEMENTATION_BASELINE_REQUIRED",
+  "rows": [
+    {
+      "base_git_blob": "8404e449c40e34cc462a38d74ec0d1f640a3e566",
+      "base_to_head_numstat": "0\t0",
+      "classification": "NO_BEHAVIORAL_CHANGE",
+      "current_sha256": "CC8434DCD0815339DBA5A6816FA2D6635122ED5725D372B9B0206DBB9F623AAA",
+      "head_git_blob": "8404e449c40e34cc462a38d74ec0d1f640a3e566",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "SleeveEthSt001.mqh",
+      "path": "MQL5/Include/KingEA/SleeveEthSt001.mqh"
+    },
+    {
+      "base_git_blob": "f761472b5ce61e2ff8aa96e297dea55c401cf70b",
+      "base_to_head_numstat": "0\t0",
+      "classification": "NO_BEHAVIORAL_CHANGE",
+      "current_sha256": "9408695C19DD52F1B663BE3DEC35A2885EFD6FC83948B1166F7E4A08F6216767",
+      "head_git_blob": "f761472b5ce61e2ff8aa96e297dea55c401cf70b",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "SafetyKernel.mqh",
+      "path": "MQL5/Include/KingEA/SafetyKernel.mqh"
+    },
+    {
+      "base_git_blob": "98b89ef5ec46a6df5eb972b5ba2091260e462020",
+      "base_to_head_numstat": "0\t0",
+      "classification": "NO_BEHAVIORAL_CHANGE",
+      "current_sha256": "AF7F2C81C87DDC4CE52A04E052B114515E11B46FF13FC2612C48433F77ECC057",
+      "head_git_blob": "98b89ef5ec46a6df5eb972b5ba2091260e462020",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "RegimeClassifier.mqh",
+      "path": "MQL5/Include/KingEA/RegimeClassifier.mqh"
+    },
+    {
+      "base_git_blob": "8b846f6dd9bd76954fb8448b43f943bad32db6fe",
+      "base_to_head_numstat": "0\t0",
+      "classification": "NO_BEHAVIORAL_CHANGE",
+      "current_sha256": "B12EC50DA690AACB792B09C6BE88AB98DBE82FD5AD4D651F25AB5500224CCD43",
+      "head_git_blob": "8b846f6dd9bd76954fb8448b43f943bad32db6fe",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "CorrelationClustering.mqh",
+      "path": "MQL5/Include/KingEA/CorrelationClustering.mqh"
+    },
+    {
+      "base_git_blob": "b268f7fb0035399c0905f9dca6b83ecf9e12ea82",
+      "base_to_head_numstat": "0\t0",
+      "classification": "NO_BEHAVIORAL_CHANGE",
+      "current_sha256": "F702D1958C2F76383FDAAA8D439DEBF96AD4C519BF8CE2881E79D81C2F0EEC9B",
+      "head_git_blob": "b268f7fb0035399c0905f9dca6b83ecf9e12ea82",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "SpecificationMonitor.mqh",
+      "path": "MQL5/Include/KingEA/SpecificationMonitor.mqh"
+    },
+    {
+      "base_git_blob": "4c58804d970f6e11e16738e64532d9556efba21b",
+      "base_to_head_numstat": "215\t32\tMQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "classification": "EXECUTION_BEHAVIOR_CHANGE",
+      "current_sha256": "9F3D592E474295133EDA721ECA2F8D289E84256A60D4E0CD07AA9CA6DEAA5E85",
+      "head_git_blob": "e0fe28bcbab1de6763a2e6bae30a90afe2c4499f",
+      "head_to_worktree_numstat": "182\t13\tMQL5/Experts/KingEA/GuardedResearchTester.mq5",
+      "module": "GuardedResearchTester.mq5",
+      "path": "MQL5/Experts/KingEA/GuardedResearchTester.mq5"
+    },
+    {
+      "base_git_blob": "8578fb9d75604da9814cf54b36592d07b98fb44a",
+      "base_to_head_numstat": "0\t0",
+      "classification": "EXECUTION_BEHAVIOR_CHANGE",
+      "current_sha256": "CCE94FBEB65D3007306B4E88B75D6AE0974946AC3313ACCA2A85120A6E37BA06",
+      "head_git_blob": "8578fb9d75604da9814cf54b36592d07b98fb44a",
+      "head_to_worktree_numstat": "27\t10\tresearch_pipeline/stage12.py",
+      "module": "stage12.py",
+      "path": "research_pipeline/stage12.py"
+    },
+    {
+      "base_git_blob": "c466fba8f7a811747cb25a9c8c2ceba1e7c2ede9",
+      "base_to_head_numstat": "0\t0",
+      "classification": "NO_BEHAVIORAL_CHANGE",
+      "current_sha256": "3C21FB0DD728DDBB92FC10E6AB6B01988813A97792D1AE82D01689E6F0A91640",
+      "head_git_blob": "c466fba8f7a811747cb25a9c8c2ceba1e7c2ede9",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "stage13.py",
+      "path": "accounting_pipeline/stage13.py"
+    },
+    {
+      "base_git_blob": "f50cf43a6206e25a98809052d9550f86903cc13a",
+      "base_to_head_numstat": "150\t2\tresearch_pipeline/stage14.py",
+      "classification": "EXECUTION_BEHAVIOR_CHANGE",
+      "current_sha256": "189F6137289682CED2B6D0BEE569C3E76AD5234B66A6032B61BE350A269E4859",
+      "head_git_blob": "ef5611b7c67a1c097668b634c496d99292d0b6b2",
+      "head_to_worktree_numstat": "0\t0",
+      "module": "stage14.py",
+      "path": "research_pipeline/stage14.py"
+    }
+  ],
+  "schema": 1,
+  "strategy_or_safety_changes": 0,
+  "unknown_changes": 0
+}
