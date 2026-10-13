@@ -46,14 +46,40 @@
 
   The "insufficient progress" exit is the biggest drag.
 
+## Sensitivity scan (all four training folds, breakers off, recorded Demo2 ticks)
+
+Each parameter was swept across its registered values with the others at
+the grid centre (`tools/Sweep.ps1`, ~30 passes per fold, ~15 min per fold).
+
+- **Every setting loses on every fold:** PF 0.22–0.57, about 190–310 trades
+  per fold. No parameter gets close to PF 1.0.
+- **Supertrend multiplier matters most.** 2.0–2.5 is much worse, and 3.0
+  is about the best. The other parameters move fold-mean PF by only
+  0.02–0.05.
+- Fold 4 (2022-04 → 2023-10) is the worst at PF ~0.30.
+
+## The deciding factor is spread data, not parameters
+
+- Demo2 recorded spreads are ~$23–27 from July 2021 to May 2023, then fall
+  to ~$1–3 (see `docs/audits/ETHUSD_s_HISTORY_QUALITY_2026-07-21.md`).
+  Live2 spreads are ~$1.26 median.
+- The median stop is ~3.8% from entry, so a $25 spread costs ~0.2R per
+  trade. The default configuration loses −0.20R per trade on fill-to-fill
+  prices, so before spread it is roughly breakeven.
+- On the reduced-spread symbol `KINGEA_ETHUSD_S_RSB3` (same Bid path, Ask
+  rebuilt from Live2 cost evidence), the same default configuration on
+  Fold 1 gives **201 trades, PF 1.19, +0.03R mean, 5.6% max DD**. That is
+  marginally positive, but the lower confidence bound (−0.08R) is still
+  below zero.
+- Live2 tick history only starts in November 2024 (OOS/holdout time), so it
+  cannot replace Demo2 for development.
+
 ## What the results already say about the design
 
-- **Daily maintenance flatten makes the strategy intraday.** The protection
-  calendar has a daily 23:55–00:05 server close with a force-flat. About 1 in
-  4 trades is closed by that rule or by a news blackout, so the 48–96-bar
-  holding periods in the grid rarely matter. Decide whether that rule is
-  real for `ETHUSD.s` (crypto trades 24/7 at most brokers) or should be an
-  entry-block only.
+- **Forced intraday closes are now off (owner decision).** Maintenance and
+  news windows block new entries only. With trades allowed to run, the
+  default configuration on Fold 1 (breakers off) gives 246 trades, PF 0.54
+  and mean −0.21R (it was PF 0.44 with the forced closes).
 - **The breakers interact badly with a $1,000 account.** After a ~12%
   drawdown, breaker-headroom sizing pushes every trade below the 0.01 lot
   minimum, so the account stops trading for the rest of the window without
@@ -61,11 +87,11 @@
 
 ## Next steps
 
-1. Answer the maintenance question above. It changes the strategy more than
-   any parameter.
-2. Run Gate 1 on development folds. A full 19,440-point grid at ~1 min per
-   pass is ~320 agent-hours per fold, so either use MT5's genetic
-   optimizer, or shrink the grid to the 3–4 parameters that matter.
+1. **Owner decision:** which cost branch judges development results:
+   recorded Demo2 spreads (the plan's conservative branch, which fails
+   badly), RSB3 reduced spreads, or both as the plan requires.
+2. Full grid on Supertrend multiplier × ATR period × stop buffer × required
+   progress (5×4×3×3 = 180 passes per fold, ~25 min), on the chosen branch.
 3. Pick a configuration from a stable plateau (design plan §13.3), check it
    on the 2023 forward quarters, write it in `DECISIONS.md` and commit.
 4. Only then run 2024 OOS once. Regenerate the protection calendar before
