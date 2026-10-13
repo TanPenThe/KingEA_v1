@@ -74,6 +74,28 @@ the grid centre (`tools/Sweep.ps1`, ~30 passes per fold, ~15 min per fold).
 - Live2 tick history only starts in November 2024 (OOS/holdout time), so it
   cannot replace Demo2 for development.
 
+## Focused grid on reduced spreads (RSB3), all four training folds
+
+180 configurations (Supertrend multiplier × ATR period × stop buffer ×
+required progress, other parameters at the grid centre), breakers off.
+Run with `tools/Grid.ps1 -Label grid_rsb3`, analyse with
+`python tools/analyze_grid.py grid_rsb3`.
+
+| Folds included | Configs PF > 1.0 on every fold | PF ≥ 1.2 and profitable on every fold |
+|---|---:|---:|
+| Fold 1 | 114 | 39 |
+| Folds 1–2 | 83 | 9 |
+| Folds 1–3 | 23 | 0 |
+| Folds 1–4 | 5 | 0 |
+
+- **Best worst-fold PF is 1.07** (multiplier 2.5, ATR 10, stop buffer 0,
+  progress 0.25). Its neighbours are all below the bar (plateau score 0).
+- **The edge decays through time.** Multiplier 3 / ATR 18–22 is PF ~1.3 on
+  2021–2022, ~1.1 on fold 3 and ~1.0 on fold 4 (Apr 2022 → Sep 2023).
+- **Verdict for Candidate 001 as specified:** no configuration meets the
+  design plan's robustness bar (§13.2–13.3), even on optimistic spreads and
+  training data. Per the plan, the search is not widened to rescue it.
+
 ## What the results already say about the design
 
 - **Forced intraday closes are now off (owner decision).** Maintenance and
@@ -87,11 +109,12 @@ the grid centre (`tools/Sweep.ps1`, ~30 passes per fold, ~15 min per fold).
 
 ## Next steps
 
-1. **Owner decision:** which cost branch judges development results:
-   recorded Demo2 spreads (the plan's conservative branch, which fails
-   badly), RSB3 reduced spreads, or both as the plan requires.
-2. Full grid on Supertrend multiplier × ATR period × stop buffer × required
-   progress (5×4×3×3 = 180 passes per fold, ~25 min), on the chosen branch.
+1. **Owner decision:** reject Candidate 001 and pre-register the next
+   hypothesis. Plan §12 pool: Donchian/session breakout, ATR momentum
+   breakout, or a revised exit design for the Supertrend sleeve (the
+   time-stop exit is the largest measured drag).
+2. Use the same loop for the next candidate: sensitivity scan, focused grid
+   on RSB3, plateau check across four folds.
 3. Pick a configuration from a stable plateau (design plan §13.3), check it
    on the 2023 forward quarters, write it in `DECISIONS.md` and commit.
 4. Only then run 2024 OOS once. Regenerate the protection calendar before

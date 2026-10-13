@@ -90,7 +90,7 @@ $lines = foreach ($log in $logs) {
         Where-Object { ($_ -split "`t")[2] -ge $since } |
         Where-Object { $_ -match 'KingEA (result|funnel|regime|sleeve|safety|WARNING)|KingEA: (seeded|WARNING|trading halted|entry failed)' }
 }
-$lines | Select-Object -Last 40 | ForEach-Object { Write-Host $_ }
+if (-not $Optimize) { $lines | Select-Object -Last 40 | ForEach-Object { Write-Host $_ } }
 
 $results = Join-Path $CommonFiles "KingEA\results\$Label"
 Write-Host "Results: $results"

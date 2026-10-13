@@ -53,3 +53,13 @@ Append-only. One entry per decision: date, what, why. Keep it short.
   configuration shows a positive edge on development data.
 - **Repo:** pushed to GitHub (`archive/governed-v1`, tag
   `governed-v1-final`, `lean-reset`).
+
+## 2026-10-14 — Cost branch and Candidate 001 grid
+
+- **Owner decision:** development results are judged on the reduced-spread
+  symbol `KINGEA_ETHUSD_S_RSB3`. Recorded Demo2 spreads are reported
+  alongside as the adverse-cost case.
+- **Candidate 001 focused grid (RSB3, 180 configs × 4 folds):** zero
+  configurations reach PF ≥ 1.2 on every fold. The best worst-fold PF is 1.07
+  and has no plateau. The candidate does not meet the robustness bar.
+  Rejection is pending owner confirmation.
