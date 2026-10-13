@@ -52,6 +52,8 @@ input group "Data and market gates"
 input bool   InpFillDataGaps=true;         // Fill missing M30 slots with flat bars
 input string InpProtectionFile="KingEA\\protection_intervals.csv";
 input bool   InpRequireProtectionFile=false;
+input bool   InpFlattenForMaintenance=false; // Force-close open trades in daily maintenance windows
+input bool   InpFlattenForNews=false;        // Force-close unprotected trades in news blackouts
 input int    InpSpreadSeedDays=90;         // Days of tick history used to seed spread baselines
 
 input group "Output"
@@ -505,8 +507,10 @@ void BuildFacts(const datetime now,const double entry,const double stop,
        SymbolInfoInteger(_Symbol,SYMBOL_TIME_MSC)-g_above_three_start_msc>=10000);
    string kind=MarketBlockKind((long)now*1000);
    facts.market_open=(kind=="");
-   facts.maintenance_block=(kind=="MAINTENANCE_FORCE_FLAT");
-   facts.news_block=(kind=="NEWS_BLOCK");
+   // Maintenance and news windows always block new entries (market_open).
+   // Closing trades that are already open in them is optional.
+   facts.maintenance_block=(InpFlattenForMaintenance && kind=="MAINTENANCE_FORCE_FLAT");
+   facts.news_block=(InpFlattenForNews && kind=="NEWS_BLOCK");
    facts.existing_news_position_safe=(facts.news_block && ProtectedForNews());
    facts.calendar_fresh=(g_iv_loaded || !InpRequireProtectionFile);
    facts.stop_valid=true;
@@ -746,7 +750,11 @@ void TryOpen(const KingEASleeveDecision &intent,const MqlTick &tick)
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
    double stop=NormalizeDouble(safety.required_stop,digits);
    double stops_level=SymbolInfoInteger(_Symbol,SYMBOL_TRADE_STOPS_LEVEL)*_Point;
-   if(MathAbs(entry-stop)<=stops_level)
+   // A long's stop must sit below the bid it would close at (above the ask
+   // for a short); price can cross the technical stop before entry.
+   bool stop_valid=(intent.direction==KINGEA_DIRECTION_LONG ?
+                    stop<tick.bid-stops_level : stop>tick.ask+stops_level);
+   if(!stop_valid)
      {
       g_stop_too_close++;
       return;

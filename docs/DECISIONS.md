@@ -34,3 +34,22 @@ Append-only. One entry per decision: date, what, why. Keep it short.
 - **Protection calendar is optional** in development runs and loads from
   `data/protection_intervals.csv`. It covers 2021-04-01 → 2025-01-01 and must
   be regenerated before any holdout run.
+
+## 2026-10-13 — Owner decisions
+
+- **No intraday rules: trades run until the strategy exits them.** The daily
+  23:55 maintenance force-close and the news force-close are off
+  (`InpFlattenForMaintenance=false`, `InpFlattenForNews=false`). Both windows
+  still block new entries. Stops, strategy exits and risk breakers still apply.
+- **Search method (delegated):** the full 19,440-point grid costs ~160 hours
+  per fold with 4 local agents. Instead:
+  1. One-at-a-time sensitivity per parameter on each training fold
+     (`tools/Sweep.ps1`, ~30 passes per fold).
+  2. A full factorial grid over only the 3–4 parameters that move the
+     results, with the rest fixed at the centre of the registered grid.
+  3. Choose from a stable plateau across folds (design plan §13.3), never
+     from a single best pass.
+- **PnL and drawdown targets** will be discussed with the owner once a
+  configuration shows a positive edge on development data.
+- **Repo:** pushed to GitHub (`archive/governed-v1`, tag
+  `governed-v1-final`, `lean-reset`).
