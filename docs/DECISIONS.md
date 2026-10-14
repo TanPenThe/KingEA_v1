@@ -62,4 +62,9 @@ Append-only. One entry per decision: date, what, why. Keep it short.
 - **Candidate 001 focused grid (RSB3, 180 configs × 4 folds):** zero
   configurations reach PF ≥ 1.2 on every fold. The best worst-fold PF is 1.07
   and has no plateau. The candidate does not meet the robustness bar.
-  Rejection is pending owner confirmation.
+- **Candidate 001 rejected** (owner confirmed 2026-10-14).
+- **Candidate 002 pre-registered:** same entry, trend-following exits
+  (`docs/candidates/CAND-ETH-ST-002.md`). Rules, grid and pass criteria were
+  fixed before any test.
+- **Nyrobrain skills repo reviewed and not adopted:** it has no trading or
+  backtest content, and it adds agent-process overhead and paid-API calls.
