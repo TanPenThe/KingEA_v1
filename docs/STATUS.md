@@ -96,6 +96,14 @@ Run with `tools/Grid.ps1 -Label grid_rsb3`, analyse with
   design plan's robustness bar (§13.2–13.3), even on optimistic spreads and
   training data. Per the plan, the search is not widened to rescue it.
 
+## Candidate 002 (trend-following exits) — full grid on RSB3
+
+243 configurations × 4 folds, spread-ratio rules off on RSB3:
+**0 configurations profitable on every fold** (best worst-fold PF 0.99).
+The same decay appears as in Candidate 001: PF ~1.3 in 2021–22, ≤ 1.0 by
+Apr 2022 → Sep 2023. Both candidates share the Supertrend/breakout entry and
+regime filter. The evidence points at the entry, not the exits.
+
 ## What the results already say about the design
 
 - **Forced intraday closes are now off (owner decision).** Maintenance and

@@ -24,6 +24,11 @@ costs out of sample. If it doesn't, the answer is "no strategy found".
 
 Close the MT5 terminal first. The scripts launch it themselves.
 
+Windows blocks local PowerShell scripts by default. Either run each one
+with `powershell -ExecutionPolicy Bypass -File .\tools\Build.ps1`, or allow
+local scripts for your user once with
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
 ```powershell
 .\tools\Build.ps1
 .\tools\Backtest.ps1 -From 2022.01.01 -To 2022.03.01 -Label smoke

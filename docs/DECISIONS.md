@@ -68,3 +68,17 @@ Append-only. One entry per decision: date, what, why. Keep it short.
   fixed before any test.
 - **Nyrobrain skills repo reviewed and not adopted:** it has no trading or
   backtest content, and it adds agent-process overhead and paid-API calls.
+
+## 2026-10-14 — Candidate 002 result
+
+- **Full pre-registered grid (243 configs × 4 folds, RSB3, spread rules off):**
+  zero configurations are profitable on every fold; best worst-fold PF 0.99.
+  Folds 1–2 (2021–22) reach PF ~1.3; fold 3 drops to ~1.1 and fold 4
+  (Apr 2022 → Sep 2023) to ≤ 1.0, as with Candidate 001.
+- The trailing exit works mechanically (trail-stop exits average +0.8R),
+  but it cannot rescue entries that lose in 2022–23.
+- **Candidate 002 fails its pre-registered criteria.** Rejection is pending
+  owner confirmation.
+- Note: Candidate 001's RSB3 grid ran with the spread-ratio artefact. Candidate 002
+  shares its entry and fails without the artefact, so the 001 rejection
+  stands.
