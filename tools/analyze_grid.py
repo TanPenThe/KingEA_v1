@@ -14,7 +14,8 @@ from itertools import product
 
 ORDER = ['InpSupertrendMultiplier', 'InpAtrPeriod', 'InpStopBufferAtr',
          'InpRequiredProgressR', 'InpBreakoutLookback', 'InpEntryBufferAtr',
-         'InpProgressCheckpointBars', 'InpMaximumHoldingBars']
+         'InpProgressCheckpointBars', 'InpMaximumHoldingBars',
+         'InpTrailAtr', 'InpTrailActivationR', 'InpMaxHoldingBars002']
 
 
 def load(label):

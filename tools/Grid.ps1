@@ -40,6 +40,8 @@ New-Item -ItemType Directory -Force -Path $out | Out-Null
 foreach ($fold in $Folds) {
     $runLabel = "$Label`_$fold"
     $inputs = @{ InpApplyBreakers = $ApplyBreakers.ToString().ToLower() }
+    # Relative-spread rules are meaningless on the synthetic-spread RSB3 symbol.
+    if ($Symbol -like '*RSB3*') { $inputs['InpSpreadRules'] = 'false' }
     foreach ($key in $Parameters.Keys) { $inputs[$key] = $Parameters[$key] }
     & (Join-Path $PSScriptRoot 'Backtest.ps1') -Symbol $Symbol -From $windows[$fold][0] -To $windows[$fold][1] `
         -Optimize -Label $runLabel -Inputs $inputs -TimeoutMinutes 600 |

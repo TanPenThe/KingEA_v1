@@ -60,3 +60,15 @@ are unchanged. There are no forced intraday closes.
 - **Choice:** the configuration nearest the centre of the largest passing
   plateau, not the single best pass.
 - **If nothing passes,** Candidate 002 is rejected. The grid is not widened.
+
+## Addendum (2026-10-14, before the grid run)
+
+The smoke test showed the spread-spike flatten closing 68 of 173 trades on
+`KINGEA_ETHUSD_S_RSB3` and 0 of 193 on recorded `ETHUSD.s` over the same
+window. RSB3's ask is a quantile mapping of Demo2 spreads, so the
+spread-to-90-day-median ratio is an artefact there. This is a defect in the
+test setup, not a strategy result. On RSB3 the relative-spread rules (entry
+block above 2×, reduce above 2.5×, flatten above 3×) are therefore off
+(`InpSpreadRules=false`). Spread **costs** are still charged on every fill.
+On recorded and live data the rules stay on. Rules, grid and pass criteria
+are otherwise unchanged.

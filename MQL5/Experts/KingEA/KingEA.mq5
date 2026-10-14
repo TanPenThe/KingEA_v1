@@ -11,6 +11,7 @@
 #include <KingEA/SleeveEthSt001.mqh>
 #include <KingEA/SafetyKernel.mqh>
 #include <KingEA/ResearchExecution.mqh>
+#include <KingEA/ExitEthSt002.mqh>
 
 #define KINGEA_WINDOW_BARS      4600
 #define KINGEA_M30              1800
@@ -26,7 +27,13 @@ enum KingEACriterion
    CRITERION_NET_PROFIT=3      // Net profit (diagnostic only)
   };
 
-input group "Strategy (CAND-ETH-ST-001 grid)"
+input group "Candidate"
+input int    InpCandidate=2;               // 1 = CAND-ETH-ST-001 exits, 2 = CAND-ETH-ST-002 trailing exits
+input double InpTrailAtr=3.0;              // C002 trail distance (ATR): 2,3,4
+input double InpTrailActivationR=1.0;      // C002 trail starts at this MFE (R): 0,1,2
+input int    InpMaxHoldingBars002=192;     // C002 maximum holding bars: 96,192,384
+
+input group "Strategy (CAND-ETH-ST-001 grid; entry shared by C002)"
 input int    InpConfigurationId=-1;        // >=0 decodes the 19,440-point grid and overrides below
 input int    InpAtrPeriod=14;              // ATR period: 10,14,18,22
 input double InpSupertrendMultiplier=3.0;  // Supertrend multiplier: 2.0-4.0 step 0.5
@@ -54,6 +61,7 @@ input string InpProtectionFile="KingEA\\protection_intervals.csv";
 input bool   InpRequireProtectionFile=false;
 input bool   InpFlattenForMaintenance=false; // Force-close open trades in daily maintenance windows
 input bool   InpFlattenForNews=false;        // Force-close unprotected trades in news blackouts
+input bool   InpSpreadRules=true;          // false on synthetic-spread symbols (RSB3): spread ratios are not meaningful there
 input int    InpSpreadSeedDays=90;         // Days of tick history used to seed spread baselines
 
 input group "Output"
@@ -135,6 +143,12 @@ int      g_before_window=0;
 
 string ConfigurationTag()
   {
+   if(InpCandidate==2)
+      return StringFormat("C2_A%d_M%.1f_L%d_E%.2f_S%.2f_T%.1f_R%.1f_H%d",
+                          g_parameters.atr_period,g_parameters.supertrend_multiplier,
+                          g_parameters.breakout_lookback_bars,g_parameters.entry_buffer_atr,
+                          g_parameters.stop_buffer_atr,InpTrailAtr,InpTrailActivationR,
+                          InpMaxHoldingBars002);
    return StringFormat("A%d_M%.1f_L%d_E%.2f_S%.2f_C%d_P%.2f_H%d",
                        g_parameters.atr_period,g_parameters.supertrend_multiplier,
                        g_parameters.breakout_lookback_bars,g_parameters.entry_buffer_atr,
@@ -501,8 +515,9 @@ void BuildFacts(const datetime now,const double entry,const double stop,
       facts.notional_per_lot=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE)*entry;
      }
    // An unknown baseline blocks entries but never forces a reduction.
-   facts.spread_ratio=(for_entry && g_spread_ratio<=0.0 ? 999.0 : g_spread_ratio);
-   facts.spread_above_three_persistent=
+   facts.spread_ratio=(!InpSpreadRules ? 0.0 :
+                       (for_entry && g_spread_ratio<=0.0 ? 999.0 : g_spread_ratio));
+   facts.spread_above_three_persistent=InpSpreadRules &&
       (g_above_three_count>=3 &&
        SymbolInfoInteger(_Symbol,SYMBOL_TIME_MSC)-g_above_three_start_msc>=10000);
    string kind=MarketBlockKind((long)now*1000);
@@ -655,6 +670,9 @@ void SyncClosedPosition()
    double net=PositionNet(g_position_id,exit_price,exit_time,deal_reason);
    string reason=(deal_reason==DEAL_REASON_EXPERT && g_close_reason!="" ?
                   g_close_reason : DealReasonText(deal_reason));
+   // A trailed stop can close in profit; that is a trend exit, not a loss.
+   if(reason=="STOP_LOSS" && net>0.0)
+      reason="TRAIL_STOP";
    RecordTrade(net,exit_price,exit_time,reason);
    double r=g_trades[ArraySize(g_trades)-1].r;
    KingEASafetyFacts facts={};
@@ -662,7 +680,7 @@ void SyncClosedPosition()
    KingEASafetyRequest closed={};
    closed.event=KINGEA_EVENT_CLOSED_TRADE_GROUP;
    closed.scope=KINGEA_SCOPE_SLEEVE;
-   closed.closed_group_full_loss=InpApplyBreakers && (r<=-0.80 || deal_reason==DEAL_REASON_SL);
+   closed.closed_group_full_loss=InpApplyBreakers && (r<=-0.80 || (deal_reason==DEAL_REASON_SL && net<0.0));
    KingEASafetyDecision decision={};
    KingEAEvaluateSafety(closed,facts,g_safety_state,decision);
    g_safety_state=decision.next_state;
@@ -791,6 +809,53 @@ void TryOpen(const KingEASleeveDecision &intent,const MqlTick &tick)
       ClosePosition("STOP_NOT_CONFIRMED");
   }
 
+// CAND-ETH-ST-002 exits: max holding, H4 flip, ratcheting ATR trail.
+void ManageExit002(const KingEASleeveBar &bars[],const KingEASleeveDecision &intent)
+  {
+   if(!SelectOurPosition())
+      return;
+   KingEAExit002Parameters parameters={};
+   parameters.trail_atr=InpTrailAtr;
+   parameters.trail_activation_r=InpTrailActivationR;
+   parameters.max_holding_bars=InpMaxHoldingBars002;
+   KingEAExit002Facts facts={};
+   facts.direction=g_position.direction;
+   facts.entry_price=g_position.entry_price;
+   facts.initial_stop=g_position.original_confirmed_stop;
+   facts.current_stop=PositionGetDouble(POSITION_SL);
+   facts.highest_high=g_position.entry_price;
+   facts.lowest_low=g_position.entry_price;
+   for(int i=0;i<ArraySize(bars);i++)
+     {
+      if(bars[i].open_time<=g_position.entry_signal_bar_time)
+         continue;
+      facts.bars_held++;
+      facts.highest_high=MathMax(facts.highest_high,bars[i].high);
+      facts.lowest_low=MathMin(facts.lowest_low,bars[i].low);
+     }
+   facts.atr=intent.trace.m30_atr;
+   facts.h4_direction=intent.trace.h4_supertrend_direction;
+   KingEAExit002Decision decision={};
+   KingEAEvaluateExit002(parameters,facts,decision);
+   if(!decision.valid)
+      return;
+   if(decision.exit)
+     {
+      ClosePosition("STRATEGY_"+decision.reason);
+      return;
+     }
+   if(!decision.move_stop)
+      return;
+   double stop=NormalizeDouble(decision.new_stop,_Digits);
+   double stops_level=SymbolInfoInteger(_Symbol,SYMBOL_TRADE_STOPS_LEVEL)*_Point;
+   double bid=SymbolInfoDouble(_Symbol,SYMBOL_BID);
+   double ask=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
+   bool placeable=(g_position.direction==KINGEA_DIRECTION_LONG ?
+                   stop<bid-stops_level : stop>ask+stops_level);
+   if(placeable)
+      g_trade.PositionModify(PositionGetInteger(POSITION_TICKET),stop,0.0);
+  }
+
 void OnNewBar(const MqlTick &tick)
   {
    KingEASleeveBar bars[];
@@ -839,7 +904,15 @@ void OnNewBar(const MqlTick &tick)
    g_sleeve_state=intent.next_state;
    CountReason(g_sleeve_reasons,(int)intent.reason);
 
-   if(intent.action==KINGEA_SLEEVE_ACTION_EXIT && HasPosition())
+   if(InpCandidate==2)
+     {
+      if(HasPosition())
+        {
+         ManageExit002(bars,intent);
+         return;
+        }
+     }
+   else if(intent.action==KINGEA_SLEEVE_ACTION_EXIT && HasPosition())
      {
       ClosePosition("STRATEGY_"+intent.candidate_reason);
       return;
@@ -1014,6 +1087,8 @@ int OnInit()
       g_parameters.required_progress_r=InpRequiredProgressR;
       g_parameters.maximum_holding_bars=InpMaximumHoldingBars;
      }
+   if(InpCandidate!=1 && InpCandidate!=2)
+      return INIT_PARAMETERS_INCORRECT;
    if(!KingEASleeveFrozenParameters(g_parameters))
      {
       Print("KingEA: parameters are outside the registered CAND-ETH-ST-001 grid");
